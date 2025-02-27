@@ -201,6 +201,7 @@ const resendOtp=async (req,res)=>{
 }
 
 
+
 const loadLogin=async(req,res)=>{
     try {
         if(!req.session.user){
