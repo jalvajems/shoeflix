@@ -20,5 +20,8 @@ router.get('/auth/google/callback',passport.authenticate('google',{failureRedire
 
 router.get('/login',userController.loadLogin)
 router.post('/login',userController.login)
+router.get('/profile', userController.loadProfile);
+
+router.get('/logout',userController.logout)
 
 module.exports = router

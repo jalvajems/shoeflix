@@ -15,12 +15,17 @@ const pageNotFound = async (req, res) => {
 
 const loadHomepage = async (req, res) => {
     try {
-        return res.render("home")
+        let user = null;
+        if (req.session.user_id) {
+            user = await User.findById(req.session.user_id).lean();
+        }
+        res.render('home', { user });
     } catch (error) {
-        console.log("Home page not found");
-        res.status(500).send("Server error")
+        console.log(error);
+        res.status(500).send("Server Error");
     }
-}
+};
+
 
 
 const loadShopping = async (req, res) => {
@@ -214,31 +219,62 @@ const loadLogin=async(req,res)=>{
     }
 }
 
-const login=async (req,res)=>{
+const login = async (req, res) => {
     try {
-        const{email,password}=req.body;
-        const findUser=await User.findOne({email:email})
+        const { email, password } = req.body;
+        const user = await User.findOne({ email });
 
-        if(!findUser){
-            return res.render("login",{message:"User not found"})
+        if (!user) {
+            return res.render("login", { message: "Invalid email or password" });
         }
-        if(findUser.isBlocked){
-            return res.render("login",{message:"Users is blocked by admin"})
-        }
-        const passwordMatch=await bcrypt.compare(password,findUser.password)
-         
-        if(!passwordMatch){
-            return res.render("login",{message:"incorrect passwoford"})
-        }
-        req.session.user=findUser._id
-        res.redirect('/')
 
+        const passwordMatch = await bcrypt.compare(password, user.password);
+        if (!passwordMatch) {
+            return res.render("login", { message: "Invalid email or password" });
+        }
+
+        if (user.isBlocked) {
+            return res.render("login", { message: "Your account is blocked" });
+        }
+
+        // Store user in session
+        req.session.user_id = user._id;
+
+        res.redirect("/");
     } catch (error) {
-        console.error("login error");
-        res.render("login",{message})
-        
+        console.log(error);
+        res.status(500).send("Server Error");
     }
-}
+};
+
+const logout = (req, res) => {
+  try{  req.session.destroy((err) => {
+        if (err) {
+            console.log(err);
+            return res.status(500).send("Logout failed");
+        }
+        return res.redirect("/login");
+    });
+}catch(error){
+    console.log('logout error',error);
+    res.redirect("/pageNotFound")
+    
+    }
+};
+
+const loadProfile = async (req, res) => {
+    try {
+        if (!req.session.user_id) {
+            return res.redirect("/login");
+        }
+        const user = await User.findById(req.session.user_id).lean();
+        res.render("profile", { user });
+    } catch (error) {
+        console.log(error);
+        res.status(500).send("Server Error");
+    }
+};
+
 
 module.exports = {
     loadHomepage,
@@ -249,5 +285,7 @@ module.exports = {
     verifyOtp,
     resendOtp,
     loadLogin,
-    login
+    login,
+    loadProfile,
+    logout
 }

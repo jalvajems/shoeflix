@@ -6,6 +6,7 @@ const session=require("express-session")
 const passport=require("./config/passport")
 const db=require("./config/db")
 const userRouter=require("./routes/userRouter")
+const adminRouter=require("./routes/adminRouter")
 db()
 
 const PORT=process.env.PORT||3000
@@ -30,8 +31,7 @@ app.set("views",[path.join(__dirname,'views/user'),path.join(__dirname,'views/ad
 app.use(express.static(path.join(__dirname,"public")))
 
 app.use("/",userRouter)
-console.log("reach");
-
+app.use("/admin",adminRouter)
 
 app.listen(PORT,()=>{
     console.log(`running on http://localhost:${PORT}`)
