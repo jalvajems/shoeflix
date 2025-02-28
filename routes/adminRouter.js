@@ -8,5 +8,6 @@ router.get("/pageerror",adminController.pageerror)
 router.get('/login',adminController.loadLogin)
 router.post('/login',adminController.login)
 router.get('/dashboard',adminAuth,adminController.loadDashboard)
+router.get("/logout",adminController.logout)
 
 module.exports=router

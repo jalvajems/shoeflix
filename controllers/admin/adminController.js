@@ -48,10 +48,28 @@ const loadDashboard=async(req,res)=>{
     }
 }
 
+const logout=(req,res)=>{
+    try {
+        req.session.destroy((err)=>{
+            if(err){
+                console.log(err)
+                return res.status(500).send("Logout Failed")
+            }
+            return res.redirect("/admin/login")
+            
+        })
+    } catch (error) {
+        console.log('logout error',error);
+        res.redirect("/pageerror")
+        
+    }
+}
+
 
 module.exports={
     loadLogin,
     login,
     loadDashboard,
-    pageerror
+    pageerror,
+    logout
 }
