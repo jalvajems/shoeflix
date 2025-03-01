@@ -35,7 +35,7 @@ const userSchema=new Schema({
         type:Boolean,
         default:false
     },
-    idAdmin:{
+    isAdmin:{
         type:Boolean,
         default:false
     },cart:[{

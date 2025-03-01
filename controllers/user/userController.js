@@ -166,6 +166,7 @@ const verifyOtp=async(req,res)=>{
                 email:user.email,
                 phone:user.phone,
                 password:passwordHash,
+                googleId:user.email
 
             })
 

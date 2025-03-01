@@ -3,7 +3,7 @@ const mongoose=require("mongoose")
 const bcrypt=require("bcrypt")
 
 const pageerror=async(req,res)=>{
-    res.render("admin-error")
+    res.render("user/pageNotFound")
 }
 
 
@@ -22,8 +22,8 @@ const login=async(req,res)=>{
     if(admin){
         const passwordMatch=bcrypt.compare(password,admin.password)
         if(passwordMatch){
-            console.log("reachjae")
             req.session.admin=true;
+            req.session.adminData=admin;
             return res.redirect("/admin/dashboard")
         }else{
             return res.redirect("/admin/login")

@@ -7,6 +7,8 @@ const passport=require("./config/passport")
 const db=require("./config/db")
 const userRouter=require("./routes/userRouter")
 const adminRouter=require("./routes/adminRouter")
+const adminController=require("./controllers/admin/adminController")
+
 db()
 
 const PORT=process.env.PORT||3000
@@ -32,6 +34,9 @@ app.use(express.static(path.join(__dirname,"public")))
 
 app.use("/",userRouter)
 app.use("/admin",adminRouter)
+app.use("*",(req,res)=>{
+    res.render("pageNotFound")
+})
 
 app.listen(PORT,()=>{
     console.log(`running on http://localhost:${PORT}`)
