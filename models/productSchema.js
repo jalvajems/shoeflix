@@ -14,7 +14,7 @@ const productSchema=new Schema({
     },
     brand:{
         type:String,
-        required:true,
+        required:false
     },
     category:{
         type:Schema.Types.ObjectId,
@@ -43,7 +43,7 @@ const productSchema=new Schema({
         type:[String],
         required:true
     },
-    isBooked:{
+    isBlocked:{
         type:Boolean,
         default:false
     },

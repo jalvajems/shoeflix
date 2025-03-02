@@ -3,7 +3,7 @@ const mongoose=require("mongoose")
 const bcrypt=require("bcrypt")
 
 const pageerror=async(req,res)=>{
-    res.render("user/pageNotFound")
+    res.render("pageerror")
 }
 
 
