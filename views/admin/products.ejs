@@ -31,45 +31,51 @@
         </thead>
         <tbody>
             <%for(let i=data.length-1;i>=0;i--){%>
-            
             <tr>
                 <td><%=data[i].productName%></td>
                 <td><%=data[i].category.name%></td>
                 <td><%=data[i].salePrice%></td>
                 <td>
+                  <%if(locals.data[i].productOffer){%>
+                    <%=data[i].productOffer%>%
+                    <%}else{%>
+                        0%
+                        <%}%>
                 </td>
                 <td>
-                
-                    <button class="btn btn-info" onclick="" style="width: 100px;">
+                <%if(locals.data[i].productOffer===0){%>
+                    <button class="btn btn-info" onclick="addOffer('<%=data[i]._id%>')" style="width: 100px;">
                         <a href="#" class="text-white">Add Offer</a>
                     </button>
-        
-                    <button class="btn btn-info" onclick="" style="width: 100px;">
+                <%}else{%>
+                    <button class="btn btn-info" onclick="removeOffer('<%=data[i]._id%>')" style="width: 100px;">
                         <a href="#" class="text-white">Remove</a>
                     </button>
-                
+                <%}%>
                 </td>
-                <td></td>
+                <td>
+                    <%=data[i].quantity%>
+                  </td>
                 <td>
                 <%if(data[i].isBlocked===false){%>
                     <button class="btn btn-danger" style="width: 80px;">
                         <a href="/admin/blockProduct?id=<%=data[i]._id%>" class="text-white" style="text-decoration: none;">Block</a>
                     </button>
-                    <%}else{%>
+                <%}else{%>
                     <button class="btn btn-success" style="width: 80px;">
                         <a href="/admin/unblockProduct?id=<%=data[i]._id%>" class="text-white" style="text-decoration: none;">Unblock</a>
                     </button>
-            <%}%>
+                <%}%>
                 </td>
                 <td>
                     <button class="btn btn-info" style="width: 80px;">
-                        <a href="" class="text-white" style="text-decoration: none;">Edit</a>
+                        <a href="/admin/editProduct?id=<%=data[i]._id%>" class="text-white" style="text-decoration: none;">Edit</a>
                     </button>
                 </td>
+               
             </tr>
-        <%}%>            
+            <%}%>
         </tbody>
-
     </table>
 </div>
 </div>

@@ -1,5 +1,6 @@
 const mongoose=require("mongoose");
 const { type } = require("os");
+const Category = require("./categorySchema");
 const {Schema}=mongoose;
 
 
@@ -16,8 +17,10 @@ const productSchema=new Schema({
         type:String,
         required:false
     },
-    category:{
-        type:Schema.Types.ObjectId,
+    category: {
+        type: Schema.Types.ObjectId,
+        ref: "Category",
+        required: true
         
     },regularPrice:{
         type:Number,
