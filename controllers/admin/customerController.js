@@ -1,4 +1,4 @@
-const User=require("../../models/userSchema")
+              const User=require("../../models/userSchema")
 
 
 
@@ -42,29 +42,33 @@ const customerInfo=async(req,res)=>{
     }
 }
 
-const customerBlocked=async(req,res)=>{
-    try {
-        let id=req.query.id;
-        await User.updateOne({_id:id},{$set:{isBlocked:true}})
-        res.redirect("/admin/users")
-    } catch (error) {
-        res.redirect("/pageerror")
-    }
-}
 
-const customerunBlocked= async(req,res)=>{
+const customerBlocked = async (req, res) => {
     try {
-        let id=req.query.id;
-        await User.updateOne({_id:id},{$set:{isBlocked:false}})
-        res.redirect("/admin/users")
+      let id = req.params.id;
+      await User.updateOne({ _id: id }, { $set: { isBlocked: true } });
+      res.status(200).json({ message: "User blocked successfully" });
     } catch (error) {
-        res.redirect("/pageerror")
+      res.status(500).json({ message: "An error occurred", error });
     }
-}
+  };
+  
+
+const customerUnBlocked = async (req, res) => {
+    try {
+      let id = req.params.id;
+      await User.updateOne({ _id: id }, { $set: { isBlocked: false } });
+      res.status(200).json({ message: "User unblocked successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "An error occurred", error });
+    }
+  };
+  
+
 
 module.exports={
     customerInfo,
     customerBlocked,
-    customerunBlocked,
+    customerUnBlocked,
 
 }

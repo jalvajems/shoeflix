@@ -1,0 +1,289 @@
+
+:root {
+    --primary-color: #4ba3a7;
+    --secondary-color: #333;
+    --light-bg: #f8f9fa;
+    --border-color: #e0e0e0;
+  }
+  
+  body {
+    font-family: 'Montserrat', sans-serif;
+    color: #333;
+    overflow-x: hidden;
+  }
+  
+  /* Improved loader styling */
+  #loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.95);
+    z-index: 9999;
+    transition: opacity 0.3s ease;
+  }
+
+  .loader-content {
+    text-align: center;
+  }
+
+  .loader-text {
+    margin-top: 15px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--primary-color);
+  }
+  
+  .brand-logo {
+    font-family: 'Rokkitt', serif;
+    font-weight: 700;
+    font-size: 24px;
+  }
+  
+  .sale-banner {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 10px 0;
+  }
+  
+  .product-img {
+    transition: transform 0.3s ease;
+    max-width: 100%;
+    height: auto;
+  }
+  
+  .product-img:hover {
+    transform: scale(1.03);
+  }
+
+  /* Fallback for image loading */
+  .img-placeholder {
+    background-color: #f5f5f5;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+  }
+  
+  .size-option {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    margin: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .size-option:hover, .size-option.active {
+    background-color: var(--secondary-color);
+    color: white;
+  }
+  
+  .width-option {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    margin: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .width-option:hover, .width-option.active {
+    background-color: var(--secondary-color);
+    color: white;
+  }
+  
+  .quantity-control {
+    display: flex;
+    align-items: center;
+    max-width: 150px;
+  }
+  
+  .quantity-control button {
+    width: 40px;
+    height: 40px;
+    background: var(--light-bg);
+    border: 1px solid var(--border-color);
+  }
+  
+  .quantity-control input {
+    height: 40px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    border-left: none;
+    border-right: none;
+  }
+  
+  .add-to-cart-btn {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 4px;
+    border: none;
+    font-weight: 600;
+    transition: background-color 0.3s;
+  }
+  
+  .add-to-cart-btn:hover {
+    background-color: #3a8a8e;
+  }
+  
+  .star-rating i {
+    color: #ffc107;
+  }
+  
+  .nav-pills .nav-link.active {
+    background-color: var(--primary-color);
+  }
+  
+  .footer {
+    background-color: var(--light-bg);
+    padding: 60px 0 20px;
+  }
+  
+  .footer-title {
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+  
+  .footer-links {
+    list-style: none;
+    padding-left: 0;
+  }
+  
+  .footer-links li {
+    margin-bottom: 10px;
+  }
+  
+  .footer-links a {
+    color: #666;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  
+  .footer-links a:hover {
+    color: var(--primary-color);
+  }
+  
+  .social-icons a {
+    display: inline-block;
+    width: 36px;
+    height: 36px;
+    background-color: var(--secondary-color);
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 36px;
+    margin-right: 10px;
+    transition: background-color 0.3s;
+  }
+  
+  .social-icons a:hover {
+    background-color: var(--primary-color);
+  }
+
+  .back-to-top {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: none;
+    z-index: 99;
+    opacity: 0.8;
+    transition: opacity 0.3s;
+  }
+
+  .back-to-top:hover {
+    opacity: 1;
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 991.98px) {
+    .product-images {
+      margin-bottom: 30px;
+    }
+  }
+  
+  @media (max-width: 767.98px) {
+    .sale-banner {
+      padding: 5px 0;
+      font-size: 14px;
+    }
+    
+    .size-option, .width-option {
+      width: 35px;
+      height: 35px;
+      line-height: 35px;
+      font-size: 13px;
+    }
+    
+    .add-to-cart-btn {
+      width: 100%;
+    }
+    
+    .footer {
+      padding: 40px 0 20px;
+    }
+    
+    .footer-col {
+      margin-bottom: 30px;
+    }
+  }
+  
+  @media (max-width: 575.98px) {
+    .breadcrumbs {
+      display: none;
+    }
+    
+    .product-title {
+      font-size: 1.5rem;
+    }
+    
+    .size-option, .width-option {
+      width: 32px;
+      height: 32px;
+      line-height: 32px;
+      font-size: 12px;
+      margin: 1px;
+    }
+    
+    .nav-pills .nav-link {
+      padding: 0.5rem 0.75rem;
+      font-size: 14px;
+    }
+  }
+  .mb-3.d-flex {
+    display: flex;
+    flex-wrap: wrap; /* Allows wrapping if needed */
+    gap: 15px; /* Adds space between elements */
+    align-items: center;
+  }
+  
+  .star-rating {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  h3 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #28a745; /* Green for sales price */
+  }
+  
+   .rgprice{
+    font-size: 1.2rem;
+    color: #75797c; /* Muted color for regular price */
+    text-decoration: line-through;
+  }
+  

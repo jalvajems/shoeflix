@@ -1,4 +1,6 @@
 const User = require('../../models/userSchema')
+const Category=require("../../models/categorySchema")
+const Product=require("../../models/productSchema")
 const env = require("dotenv").config();
 const nodemailer = require("nodemailer")
 const bcrypt=require("bcrypt")
@@ -11,32 +13,110 @@ const pageNotFound = async (req, res) => {
         res.redirect("/pageNotFound")
     }
 }
-
-
+ 
 const loadHomepage = async (req, res) => {
     try {
-        let user = null;
-        if (req.session.user_id) {
-            user = await User.findById(req.session.user_id).lean();
+        const user = req.session.user;
+        const categories = await Category.find({ isListed: true });
+        
+        let productData = await Product.find({
+            isBlocked: false,
+            category: { $in: categories.map(category => category._id) },quantity:{$gt:0}
+        }).sort({ createdAt: -1 }).limit(4);
+        
+        
+        if (user) {
+            const userData = await User.findOne({ _id: user });
+            
+            if (userData.isBlocked) {
+                req.session.destroy((err) => {
+                    if (err) {
+                        return res.status(500).send('Error in logging out');
+                    }
+                    res.redirect('/login');
+                });
+                return;
+            }
+            return res.render("home", { 
+                user: userData,
+                products: productData,
+            });
+        } else {
+            return res.render("home", {
+                products: productData,
+            });
         }
-        res.render('home', { user });
     } catch (error) {
-        console.log(error);
-        res.status(500).send("Server Error");
+        console.log("Error loading homepage:", error);
+        res.status(500).send("Server error");
+    }
+};
+const loadShopping = async (req, res) => {
+    try {
+        const user = req.session.user;
+        
+        let userData = null;
+        if (user) {
+            userData = await User.findOne({ _id: user });
+            if (userData && userData.isBlocked) {
+                req.session.destroy((err) => {
+                    if (err) {
+                        console.log("Error destroying session:", err);
+                    }
+                    return res.redirect('/login');
+                });
+                return;
+            }
+        }
+        
+        const categories = await Category.find({ isListed: true });
+        
+        const categoryIds = categories.map(category => category._id);
+        console.log("-------------------------->");
+
+        console.log(categoryIds);
+        console.log("-------------------------->");
+        
+        
+        
+        const page = parseInt(req.query.page) || 1;
+        const limit = 9;
+        const skip = (page - 1) * limit;
+        
+        // Get products with pagination=============================
+        const products = await Product.find({
+            isBlocked: false,
+            category: { $in: categoryIds },
+            quantity: { $gt: 0 }
+        })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+        
+        // Count total products for pagination====================
+        const totalProducts = await Product.countDocuments({
+            isBlocked: false,
+            category: { $in: categoryIds },
+            quantity: { $gt: 0 }
+        });
+        
+        const totalPages = Math.ceil(totalProducts / limit);
+        
+        // Render shop page with all necessary data===================
+        return res.render("shop", {
+            user: userData,
+            products: products,
+            category: categories,
+            currentPage: page,
+            totalPages: totalPages
+        });
+        
+    } catch (error) {
+        console.log('Shop page not loading:', error);
+        res.status(500).send('Server error');
     }
 };
 
-
-
-const loadShopping = async (req, res) => {
-    try {
-        return res.render("shop")
-    } catch (error) {
-        console.log('home page not loading :', error);
-        res.status(500).send('server error')
-
-    }
-}
 
 
 const loadSignup = async (req, res) => {
@@ -238,16 +318,23 @@ const login = async (req, res) => {
             return res.render("login", { message: "Your account is blocked" });
         }
 
-        // Store user in session
-        req.session.user_id = user._id;
-
-        res.redirect("/");
+        req.session.user = user._id;
+        console.log("User logged in with ID:", user._id);
+        
+        req.session.isNewUser = false;
+        
+        req.session.save((err) => {
+            if (err) {
+                console.log("Session save error:", err);
+                return res.status(500).send("Server Error");
+            }
+            return res.redirect("/");
+        });
     } catch (error) {
-        console.log(error);
+        console.log("Login error:", error);
         res.status(500).send("Server Error");
     }
 };
-
 const logout = (req, res) => {
   try{  req.session.destroy((err) => {
         if (err) {
@@ -276,11 +363,235 @@ const loadProfile = async (req, res) => {
     }
 };
 
+const getFilteredProducts = async (req) => {
+    const categories = await Category.find({ isListed: true }).lean();
+    const categoryIds = categories.map(category => category._id.toString());
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = 6;
+    const skip = (page - 1) * limit;
+    const sort = req.query.sort || req.body.sort || 'default';
+
+    req.session.sort = sort;
+
+    // Basic query without sizeVariants
+    const query = {
+        isBlocked: false
+    };
+
+    // Apply category filter
+    if (req.query.category) {
+        req.session.selectedCategory = req.query.category;
+    }
+
+    if (req.session.selectedCategory) {
+        query.category = req.session.selectedCategory;
+    } else {
+        query.category = { $in: categoryIds };
+    }
+
+    // Apply search filter
+    if (req.body.query) {
+        req.session.searchQuery = req.body.query;
+    }
+    
+    if (req.session.searchQuery) {
+        query.productName = { 
+            $regex: new RegExp(req.session.searchQuery, "i") 
+        };
+    }
+
+    // Apply price filter - with explicit type conversion
+    if (req.session.priceFilter && 
+        req.session.priceFilter.gt !== undefined && 
+        req.session.priceFilter.lt !== undefined) {
+        
+        // Convert to numbers and ensure they're valid
+        const minPrice = Number(req.session.priceFilter.gt);
+        const maxPrice = Number(req.session.priceFilter.lt);
+        
+        // Only apply if we have valid numbers
+        if (!isNaN(minPrice) && !isNaN(maxPrice)) {
+            query.salePrice = {
+                $gte: minPrice,
+                $lte: maxPrice
+            };
+            
+            // Debug log for price filter
+            console.log(`Applying price filter: ${minPrice} to ${maxPrice}`);
+        } else {
+            console.log("Invalid price range values:", req.session.priceFilter);
+        }
+    }
+
+    // Apply sorting
+    let sortOption = {};
+    switch (sort) {
+        case "low":
+            sortOption = { salePrice: 1 };
+            break;
+        case "high":
+            sortOption = { salePrice: -1 };
+            break;
+        case "az":
+            sortOption = { productName: 1 };
+            break;
+        case "za":
+            sortOption = { productName: -1 };
+            break;
+        default:
+            sortOption = { createdAt: -1 };
+    }
+
+    // Debug logs
+    console.log("Filter query:", JSON.stringify(query, null, 2));
+    console.log("Sort option:", sortOption);
+    
+    // Execute query
+    const products = await Product.find(query)
+        .collation({ locale: 'en', strength: 2 })
+        .sort(sortOption)
+        .skip(skip)
+        .limit(limit)
+        .populate('category')
+        .lean();
+    
+    // Check if we got any products
+    console.log(`Query returned ${products.length} products`);
+    
+    // If no products found with price filter, log some data to diagnose
+    if (products.length === 0 && query.salePrice) {
+        const sampleProducts = await Product.find({
+            isBlocked: false
+        }).limit(5).select('productName salePrice').lean();
+        
+        console.log("Sample products and their prices:", sampleProducts);
+    }
+
+    const updatedProducts = products.map((product) => {
+        const categoryOffer = product.category ? product.category.categoryOffer || 0 : 0;
+        const productOffer = product.productOffer || 0;
+        const totalOffer = categoryOffer + productOffer;
+        
+        return {
+            ...product,
+            totalOffer
+        };
+    });
+
+    const totalProducts = await Product.countDocuments(query);
+    const totalPages = Math.ceil(totalProducts / limit);
+
+    return {
+        products: updatedProducts,
+        totalProducts,
+        totalPages,
+        currentPage: page,
+        categories,
+        sort,
+    };
+};
+
+const filterProduct = async (req, res) => {
+    try {
+        const user = req.session.user;
+        const category = req.query.category;
+       
+        // Clear price filter if new category or search is applied
+        if (req.query.category || req.body.query) {
+            req.session.priceFilter = null;
+        }
+
+        const { 
+            products, 
+            totalPages, 
+            currentPage, 
+            categories, 
+            sort 
+        } = await getFilteredProducts(req);
+
+        let userData = null;
+        if (user) {
+            userData = await User.findOne({ _id: user });
+            if (userData && category) {
+                userData.searchHistory.push({
+                    category: category,
+                    searchedOn: new Date()
+                });
+                await userData.save();
+            }
+        }
+
+        return res.render("shop", {
+            user: userData,
+            products,
+            category: categories,
+            totalPages,
+            currentPage,
+            selectedCategory: req.session.selectedCategory || null,
+            selectedSort: sort,
+            priceRange: req.session.priceFilter || null,
+            searchQuery: req.session.searchQuery || null
+        });
+    } catch (error) {
+        console.error(error);
+        return res.redirect("/pageNotFound");
+    }
+}
+
+const filterByPrice = async (req, res) => {
+    try {
+        // Get price range values and ensure they're numbers
+        const minPrice = req.query.gt ? Number(req.query.gt) : 0;
+        const maxPrice = req.query.lt ? Number(req.query.lt) : 100000;
+        
+        // Add additional validation and logging
+        if (isNaN(minPrice) || isNaN(maxPrice)) {
+            console.error("Invalid price values:", req.query.gt, req.query.lt);
+            return res.redirect("/shop");
+        }
+        
+        // Store validated values in session
+        req.session.priceFilter = {
+            gt: minPrice,
+            lt: maxPrice
+        };
+        
+        console.log("Set price filter:", req.session.priceFilter);
+
+        // Get filtered products with the new price filter
+        const { 
+            products, 
+            totalPages, 
+            currentPage, 
+            categories, 
+            sort 
+        } = await getFilteredProducts(req);
+
+        const user = req.session.user;
+        const userData = user ? await User.findOne({ _id: user }) : null;
+
+        return res.render("shop", {
+            user: userData,
+            products,
+            category: categories,
+            totalPages,
+            currentPage,
+            selectedSort: sort,
+            selectedCategory: req.session.selectedCategory || null,
+            searchQuery: req.session.searchQuery || null,
+            priceRange: req.session.priceFilter
+        });
+    } catch (error) {
+        console.error("Error in filterByPrice:", error);
+        return res.redirect("/pageNotFound");
+    }
+}
 
 module.exports = {
     loadHomepage,
-    pageNotFound,
     loadShopping,
+    pageNotFound,
     loadSignup,
     signup,
     verifyOtp,
@@ -288,5 +599,7 @@ module.exports = {
     loadLogin,
     login,
     loadProfile,
-    logout
+    logout,
+    filterProduct,
+    filterByPrice
 }

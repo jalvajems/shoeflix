@@ -11,42 +11,63 @@ const { route } = require("./userRouter");
 const uploads=multer({storage:storage})
 
 router.get("/pageerror",adminController.pageerror)
-router.get('/login',adminController.loadLogin)
-router.post('/login',adminController.login)
+
+router.route("/login")
+.get(adminController.loadLogin)
+.post(adminController.login)
+
+
 router.get('/dashboard',adminAuth,adminController.loadDashboard)
 router.get("/logout",adminController.logout)
 //this is customers routings========================
 router.get("/users",adminAuth,customerController.customerInfo)
-router.get("/blockCustomer",adminAuth,customerController.customerBlocked)
-router.get("/unblockCustomer",adminAuth,customerController.customerunBlocked)
+router
+  .route("/customers/:id/block")
+  .patch(adminAuth, customerController.customerBlocked); // Block user
+
+router
+  .route("/customers/:id/unblock")
+  .patch(adminAuth, customerController.customerUnBlocked); // Unblock user
+
 //this is category routings==========================
 router.get('/category',adminAuth, categoryController.categoryInfo);
 router.post('/addCategory', adminAuth,categoryController.addCategory);
 
-// Category listing and unlisting=========================
-router.get('/listCategory/:id',adminAuth, categoryController.listCategory);
-router.get('/unlistCategory/:id',adminAuth, categoryController.unlistCategory);
+router
+.route("/category/:id/list")
+.patch(adminAuth, categoryController.listCategory)
+
+router
+.route("/category/:id/unlist")
+.patch(adminAuth, categoryController.unlistCategory)
 
 // Category editing=================
 router.get('/editCategory/:id', adminAuth,categoryController.getEditCategory);
-router.post('/updateCategory/:id',adminAuth, categoryController.updateCategory);
+router.put('/updateCategory/:id',adminAuth, categoryController.updateCategory);
 
-// Category deletion========================
-router.delete('/deleteCategory/:id',adminAuth, categoryController.deleteCategory);
 
-// // Category offers===========================
-// router.post('/addCategoryOffer/:id', categoryController.addCategoryOffer);
-// router.post('/removeCategoryOffer/:id', categoryController.removeCategoryOffer);
 
 //product managment=========================
-router.get("/addProducts",adminAuth,productController.getProductAddPage)
-router.post("/addProducts",adminAuth,uploads.array("images",4),productController.addProducts)
+router.route("/addProducts")
+.get(adminAuth,productController.getProductAddPage)
+.post(adminAuth,uploads.array("images",4),productController.addProducts)
+
 router.get("/products",adminAuth,productController.getAllProducts)
-router.get("/blockProduct",adminAuth,productController.blockProduct)
-router.get("/unblockProduct",adminAuth,productController.unblockProduct)
-router.get("/editProduct", adminAuth, productController.getEditProduct);
-router.post("/editProduct/:id",adminAuth,uploads.array("images",4),productController.editProduct)
-router.post("/deleteImage", adminAuth, productController.deleteSingleImage);
-router.delete("/deleteProduct", adminAuth, productController.deleteProduct);
+
+router.get("/editProduct",adminAuth, productController.getEditProduct)
+router.post('/editProduct/:id',adminAuth, uploads.array('images', 4), productController.editProduct)
+router.delete("/deleteImage",adminAuth, productController.deleteSingleImage);
+
+
+
+// Block/Unblock product routes
+router.route('/product/:id/block')
+    .put(adminAuth, productController.blockProduct);
+
+router.route('/product/:id/unblock')
+    .put(adminAuth, productController.unblockProduct);
+
+
+
 
 module.exports=router

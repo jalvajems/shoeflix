@@ -102,7 +102,7 @@
       const description = document.getElementById('description').value.trim();
       
       fetch('/admin/updateCategory/<%= category._id %>', {
-        method: 'POST',
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
@@ -146,13 +146,13 @@
       clearErrorMessages();
       
       const name = document.getElementById('name').value.trim();
-      const description = document.getElementById('description').value.trim();
+      const description = document.getElementById('description').value.trim().toLowerCase();
       let isValid = true;
       
       if (name === "") {
         displayErrorMessage("name-error", "Please enter a name");
         isValid = false;
-      } else if (!/^[a-zA-Z\s]+$/.test(name)) {
+      } else if (!/^[a-z\s]+$/i.test(name)) {
         displayErrorMessage("name-error", "Category name should contain only alphabetic characters");
         isValid = false;
       }

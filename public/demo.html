@@ -1,0 +1,953 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <title>Footwear - Modern Bootstrap 5 Template</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Google Fonts with preconnect for faster loading -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Rokkitt:wght@100;300;400;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
+  <!-- Custom styles -->
+  <style>
+    :root {
+      --primary-color: #4ba3a7;
+      --secondary-color: #333;
+      --light-bg: #f8f9fa;
+      --border-color: #e0e0e0;
+    }
+    
+    body {
+      font-family: 'Montserrat', sans-serif;
+      color: #333;
+      overflow-x: hidden;
+    }
+    
+    /* Improved loader styling */
+    #loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: rgba(255, 255, 255, 0.95);
+      z-index: 9999;
+      transition: opacity 0.3s ease;
+    }
+
+    .loader-content {
+      text-align: center;
+    }
+
+    .loader-text {
+      margin-top: 15px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--primary-color);
+    }
+    
+    .brand-logo {
+      font-family: 'Rokkitt', serif;
+      font-weight: 700;
+      font-size: 24px;
+    }
+    
+    .sale-banner {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 10px 0;
+    }
+    
+    .product-img {
+      transition: transform 0.3s ease;
+      max-width: 100%;
+      height: auto;
+    }
+    
+    .product-img:hover {
+      transform: scale(1.03);
+    }
+
+    /* Fallback for image loading */
+    .img-placeholder {
+      background-color: #f5f5f5;
+      min-height: 300px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #999;
+    }
+    
+    .size-option {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      line-height: 40px;
+      text-align: center;
+      border: 1px solid var(--border-color);
+      margin: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .size-option:hover, .size-option.active {
+      background-color: var(--secondary-color);
+      color: white;
+    }
+    
+    .width-option {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      line-height: 40px;
+      text-align: center;
+      border: 1px solid var(--border-color);
+      margin: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .width-option:hover, .width-option.active {
+      background-color: var(--secondary-color);
+      color: white;
+    }
+    
+    .quantity-control {
+      display: flex;
+      align-items: center;
+      max-width: 150px;
+    }
+    
+    .quantity-control button {
+      width: 40px;
+      height: 40px;
+      background: var(--light-bg);
+      border: 1px solid var(--border-color);
+    }
+    
+    .quantity-control input {
+      height: 40px;
+      text-align: center;
+      border: 1px solid var(--border-color);
+      border-left: none;
+      border-right: none;
+    }
+    
+    .add-to-cart-btn {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 4px;
+      border: none;
+      font-weight: 600;
+      transition: background-color 0.3s;
+    }
+    
+    .add-to-cart-btn:hover {
+      background-color: #3a8a8e;
+    }
+    
+    .star-rating i {
+      color: #ffc107;
+    }
+    
+    .nav-pills .nav-link.active {
+      background-color: var(--primary-color);
+    }
+    
+    .footer {
+      background-color: var(--light-bg);
+      padding: 60px 0 20px;
+    }
+    
+    .footer-title {
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+    
+    .footer-links {
+      list-style: none;
+      padding-left: 0;
+    }
+    
+    .footer-links li {
+      margin-bottom: 10px;
+    }
+    
+    .footer-links a {
+      color: #666;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    
+    .footer-links a:hover {
+      color: var(--primary-color);
+    }
+    
+    .social-icons a {
+      display: inline-block;
+      width: 36px;
+      height: 36px;
+      background-color: var(--secondary-color);
+      color: white;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 36px;
+      margin-right: 10px;
+      transition: background-color 0.3s;
+    }
+    
+    .social-icons a:hover {
+      background-color: var(--primary-color);
+    }
+
+    .back-to-top {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: none;
+      z-index: 99;
+      opacity: 0.8;
+      transition: opacity 0.3s;
+    }
+
+    .back-to-top:hover {
+      opacity: 1;
+    }
+    
+    /* Responsive styles */
+    @media (max-width: 991.98px) {
+      .product-images {
+        margin-bottom: 30px;
+      }
+    }
+    
+    @media (max-width: 767.98px) {
+      .sale-banner {
+        padding: 5px 0;
+        font-size: 14px;
+      }
+      
+      .size-option, .width-option {
+        width: 35px;
+        height: 35px;
+        line-height: 35px;
+        font-size: 13px;
+      }
+      
+      .add-to-cart-btn {
+        width: 100%;
+      }
+      
+      .footer {
+        padding: 40px 0 20px;
+      }
+      
+      .footer-col {
+        margin-bottom: 30px;
+      }
+    }
+    
+    @media (max-width: 575.98px) {
+      .breadcrumbs {
+        display: none;
+      }
+      
+      .product-title {
+        font-size: 1.5rem;
+      }
+      
+      .size-option, .width-option {
+        width: 32px;
+        height: 32px;
+        line-height: 32px;
+        font-size: 12px;
+        margin: 1px;
+      }
+      
+      .nav-pills .nav-link {
+        padding: 0.5rem 0.75rem;
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Improved Loading spinner -->
+  <div id="loader">
+    <div class="loader-content">
+      <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <div class="loader-text">Loading Footwear Shop...</div>
+    </div>
+  </div>
+
+  <div id="page" style="opacity: 0; transition: opacity 0.5s ease;">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white py-3 shadow-sm">
+      <div class="container">
+        <a class="navbar-brand brand-logo" href="index.html">Footwear</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarContent">
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="index.html">Home</a>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Men</a>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="product-detail.html">Product Detail</a></li>
+                <li><a class="dropdown-item" href="cart.html">Shopping Cart</a></li>
+                <li><a class="dropdown-item" href="checkout.html">Checkout</a></li>
+                <li><a class="dropdown-item" href="order-complete.html">Order Complete</a></li>
+                <li><a class="dropdown-item" href="add-to-wishlist.html">Wishlist</a></li>
+              </ul>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="women.html">Women</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="about.html">About</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="contact.html">Contact</a>
+            </li>
+          </ul>
+          
+          <div class="d-flex align-items-center">
+            <form class="me-3 d-none d-lg-block">
+              <div class="input-group">
+                <input type="search" class="form-control form-control-sm" placeholder="Search">
+                <button class="btn btn-sm btn-outline-secondary" type="submit">
+                  <i class="fas fa-search"></i>
+                </button>
+              </div>
+            </form>
+            <a href="cart.html" class="btn btn-sm btn-outline-dark">
+              <i class="fas fa-shopping-cart me-1"></i> Cart [0]
+            </a>
+          </div>
+        </div>
+      </div>
+    </nav>
+    
+    <!-- Sale Banner -->
+    <div class="sale-banner">
+      <div class="container">
+        <div class="row">
+          <div class="col-12 text-center">
+            <h5 class="mb-0">25% OFF (ALMOST) EVERYTHING! USE CODE: SUMMER SALE</h5>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Breadcrumbs -->
+    <div class="bg-light py-2 breadcrumbs">
+      <div class="container">
+        <div class="row">
+          <div class="col">
+            <nav aria-label="breadcrumb">
+              <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Product Details</li>
+              </ol>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Product Detail Section -->
+    <section class="py-5">
+      <div class="container">
+        <div class="row">
+          <!-- Product Images -->
+          <div class="col-lg-6 product-images">
+            <div id="productCarousel" class="carousel slide" data-bs-ride="carousel">
+              <div class="carousel-indicators">
+                <button type="button" data-bs-target="#productCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                <button type="button" data-bs-target="#productCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                <button type="button" data-bs-target="#productCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                <button type="button" data-bs-target="#productCarousel" data-bs-slide-to="3" aria-label="Slide 4"></button>
+              </div>
+              <div class="carousel-inner">
+                <div class="carousel-item active">
+                  <div class="img-placeholder">
+                    <span>Product Image 1</span>
+                  </div>
+                  <img src="images/item-1.jpg" class="d-block w-100 product-img" alt="Women's Boots" onload="this.previousElementSibling.style.display='none'">
+                </div>
+                <div class="carousel-item">
+                  <div class="img-placeholder">
+                    <span>Product Image 2</span>
+                  </div>
+                  <img src="images/item-2.jpg" class="d-block w-100 product-img" alt="Women's Boots" onload="this.previousElementSibling.style.display='none'">
+                </div>
+                <div class="carousel-item">
+                  <div class="img-placeholder">
+                    <span>Product Image 3</span>
+                  </div>
+                  <img src="images/item-3.jpg" class="d-block w-100 product-img" alt="Women's Boots" onload="this.previousElementSibling.style.display='none'">
+                </div>
+                <div class="carousel-item">
+                  <div class="img-placeholder">
+                    <span>Product Image 4</span>
+                  </div>
+                  <img src="images/item-4.jpg" class="d-block w-100 product-img" alt="Women's Boots" onload="this.previousElementSibling.style.display='none'">
+                </div>
+              </div>
+              <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+              </button>
+              <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+              </button>
+            </div>
+          </div>
+          
+          <!-- Product Info -->
+          <div class="col-lg-6">
+            <h2 class="product-title mb-3">Women's Boots Shoes Maca</h2>
+            <div class="mb-3 d-flex align-items-center">
+              <h3 class="me-3 mb-0">$68.00</h3>
+              <div class="star-rating">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star-half-alt"></i>
+                <span class="ms-2 text-muted">(74 Ratings)</span>
+              </div>
+            </div>
+            <p>Even the all-powerful Pointing has no control about the blind texts it is an almost unorthographic life One day however a small line of blind text by the name of Lorem Ipsum decided to leave for the far World of Grammar.</p>
+            
+            <!-- Size Selection -->
+            <div class="mb-4">
+              <h5>Size</h5>
+              <div class="sizes mb-3">
+                <div class="size-option" data-size="7">7</div>
+                <div class="size-option" data-size="7.5">7.5</div>
+                <div class="size-option" data-size="8">8</div>
+                <div class="size-option" data-size="8.5">8.5</div>
+                <div class="size-option" data-size="9">9</div>
+                <div class="size-option" data-size="9.5">9.5</div>
+                <div class="size-option" data-size="10">10</div>
+                <div class="size-option" data-size="10.5">10.5</div>
+                <div class="size-option" data-size="11">11</div>
+                <div class="size-option" data-size="11.5">11.5</div>
+                <div class="size-option" data-size="12">12</div>
+                <div class="size-option" data-size="12.5">12.5</div>
+                <div class="size-option" data-size="13">13</div>
+                <div class="size-option" data-size="13.5">13.5</div>
+                <div class="size-option" data-size="14">14</div>
+              </div>
+            </div>
+            
+            <!-- Width Selection -->
+            <div class="mb-4">
+              <h5>Width</h5>
+              <div class="widths">
+                <div class="width-option" data-width="M">M</div>
+                <div class="width-option" data-width="W">W</div>
+              </div>
+            </div>
+            
+            <!-- Quantity Control -->
+            <div class="mb-4">
+              <h5>Quantity</h5>
+              <div class="quantity-control">
+                <button class="quantity-minus" type="button" aria-label="Decrease quantity">
+                  <i class="fas fa-minus"></i>
+                </button>
+                <input type="number" id="quantity" name="quantity" value="1" min="1" max="100" class="form-control">
+                <button class="quantity-plus" type="button" aria-label="Increase quantity">
+                  <i class="fas fa-plus"></i>
+                </button>
+              </div>
+            </div>
+            
+            <!-- Add to Cart -->
+            <button class="add-to-cart-btn">
+              <i class="fas fa-shopping-cart me-2"></i> Add to Cart
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Product Details Tabs -->
+    <section class="py-5 bg-light">
+      <div class="container">
+        <div class="row">
+          <div class="col-12">
+            <ul class="nav nav-pills mb-4 justify-content-center" id="productTabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="description-tab" data-bs-toggle="pill" data-bs-target="#description" type="button" role="tab" aria-controls="description" aria-selected="true">Description</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="manufacturer-tab" data-bs-toggle="pill" data-bs-target="#manufacturer" type="button" role="tab" aria-controls="manufacturer" aria-selected="false">Manufacturer</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="reviews-tab" data-bs-toggle="pill" data-bs-target="#reviews" type="button" role="tab" aria-controls="reviews" aria-selected="false">Reviews</button>
+              </li>
+            </ul>
+            
+            <div class="tab-content bg-white p-4 rounded shadow-sm" id="productTabContent">
+              <!-- Description Tab -->
+              <div class="tab-pane fade show active" id="description" role="tabpanel" aria-labelledby="description-tab">
+                <p>Even the all-powerful Pointing has no control about the blind texts it is an almost unorthographic life One day however a small line of blind text by the name of Lorem Ipsum decided to leave for the far World of Grammar.</p>
+                <p>When she reached the first hills of the Italic Mountains, she had a last view back on the skyline of her hometown Bookmarksgrove, the headline of Alphabet Village and the subline of her own road, the Line Lane. Pityful a rethoric question ran over her cheek, then she continued her way.</p>
+                <ul>
+                  <li>The Big Oxmox advised her not to do so</li>
+                  <li>Because there were thousands of bad Commas</li>
+                  <li>Wild Question Marks and devious Semikoli</li>
+                  <li>She packed her seven versalia</li>
+                  <li>tial into the belt and made herself on the way.</li>
+                </ul>
+              </div>
+              
+              <!-- Manufacturer Tab -->
+              <div class="tab-pane fade" id="manufacturer" role="tabpanel" aria-labelledby="manufacturer-tab">
+                <p>Even the all-powerful Pointing has no control about the blind texts it is an almost unorthographic life One day however a small line of blind text by the name of Lorem Ipsum decided to leave for the far World of Grammar.</p>
+                <p>When she reached the first hills of the Italic Mountains, she had a last view back on the skyline of her hometown Bookmarksgrove, the headline of Alphabet Village and the subline of her own road, the Line Lane. Pityful a rethoric question ran over her cheek, then she continued her way.</p>
+              </div>
+              
+              <!-- Reviews Tab -->
+              <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+                <div class="row">
+                  <div class="col-md-8">
+                    <h4 class="mb-4">23 Reviews</h4>
+                    
+                    <!-- Review Item -->
+                    <div class="d-flex mb-4">
+                      <div class="flex-shrink-0">
+                        <div class="img-placeholder rounded-circle" style="width: 60px; height: 60px; min-height: 60px; font-size: 12px;">
+                          <span>Photo</span>
+                        </div>
+                        <img src="images/person1.jpg" alt="Reviewer" class="rounded-circle" width="60" height="60" onload="this.previousElementSibling.style.display='none'">
+                      </div>
+                      <div class="flex-grow-1 ms-3">
+                        <div class="d-flex justify-content-between mb-2">
+                          <h5 class="mb-0">Jacob Webb</h5>
+                          <small class="text-muted">14 March 2018</small>
+                        </div>
+                        <div class="star-rating mb-2">
+                          <i class="fas fa-star"></i>
+                          <i class="fas fa-star"></i>
+                          <i class="fas fa-star"></i>
+                          <i class="fas fa-star-half-alt"></i>
+                          <i class="far fa-star"></i>
+                        </div>
+                        <p>When she reached the first hills of the Italic Mountains, she had a last view back on the skyline of her hometown Bookmarksgrov</p>
+                      </div>
+                    </div>
+                    
+                    <!-- Review Item -->
+                    <div class="d-flex mb-4">
+                      <div class="flex-shrink-0">
+                        <div class="img-placeholder rounded-circle" style="width: 60px; height: 60px; min-height: 60px; font-size: 12px;">
+                          <span>Photo</span>
+                        </div>
+                        <img src="images/person2.jpg" alt="Reviewer" class="rounded-circle" width="60" height="60" onload="this.previousElementSibling.style.display='none'">
+                      </div>
+                      <div class="flex-grow-1 ms-3">
+                        <div class="d-flex justify-content-between mb-2">
+                          <h5 class="mb-0">Jacob Webb</h5>
+                          <small class="text-muted">14 March 2018</small>
+                        </div>
+                        <div class="star-rating mb-2">
+                          <i class="fas fa-star"></i>
+                          <i class="fas fa-star"></i>
+                          <i class="fas fa-star"></i>
+                          <i class="fas fa-star-half-alt"></i>
+                          <i class="far fa-star"></i>
+                        </div>
+                        <p>When she reached the first hills of the Italic Mountains, she had a last view back on the skyline of her hometown Bookmarksgrov</p>
+                      </div>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <nav aria-label="Review pagination">
+                      <ul class="pagination justify-content-center">
+                        <li class="page-item disabled">
+                          <a class="page-link" href="#" tabindex="-1" aria-disabled="true">&laquo;</a>
+                        </li>
+                        <li class="page-item active" aria-current="page"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item">
+                          <a class="page-link" href="#">&raquo;</a>
+                        </li>
+                      </ul>
+                    </nav>
+                  </div>
+                  
+                  <!-- Review Stats -->
+                  <div class="col-md-4">
+                    <div class="bg-light p-4 rounded">
+                      <h4 class="mb-4">Rating Distribution</h4>
+                      <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                          <div class="star-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                          </div>
+                          <span>98%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                          <div class="progress-bar bg-success" style="width: 98%" role="progressbar" aria-valuenow="98" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <small class="text-muted">20 Reviews</small>
+                      </div>
+                      
+                      <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                          <div class="star-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="far fa-star"></i>
+                          </div>
+                          <span>85%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                          <div class="progress-bar bg-success" style="width: 85%" role="progressbar" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <small class="text-muted">10 Reviews</small>
+                      </div>
+                      
+                      <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                          <div class="star-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="far fa-star"></i>
+                            <i class="far fa-star"></i>
+                          </div>
+                          <span>70%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                          <div class="progress-bar bg-info" style="width: 70%" role="progressbar" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <small class="text-muted">5 Reviews</small>
+                      </div>
+                      
+                      <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                          <div class="star-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="far fa-star"></i>
+                            <i class="far fa-star"></i>
+                            <i class="far fa-star"></i>
+                          </div>
+                          <span>10%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                          <div class="progress-bar bg-warning" style="width: 10%" role="progressbar" aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <small class="text-muted">0 Reviews</small>
+                      </div>
+                      
+                      <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                          <div class="star-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="far fa-star"></i>
+                            <i class="far fa-star"></i>
+                            <i class="far fa-star"></i>
+                            <i class="far fa-star"></i>
+                          </div>
+                          <span>2%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                          <div class="progress-bar bg-danger" style="width: 2%" role="progressbar" aria-valuenow="2" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <small class="text-muted">0 Reviews</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Related Products -->
+    <section class="py-5">
+      <div class="container">
+        <h2 class="text-center mb-4">Related Products</h2>
+        <div class="row">
+          <!-- Product 1 -->
+          <div class="col-md-3 col-6 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+              <div class="img-placeholder" style="height: 200px;">
+                <span>Product Image</span>
+              </div>
+              <img src="images/related-1.jpg" class="card-img-top product-img" alt="Related Product" onload="this.previousElementSibling.style.display='none'">
+              <div class="card-body text-center">
+                <h5 class="card-title">Women's Boot</h5>
+                <div class="star-rating mb-2">
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="far fa-star"></i>
+                </div>
+                <p class="card-text">$49.00</p>
+                <a href="#" class="btn btn-sm btn-outline-dark">Add to Cart</a>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Product 2 -->
+          <div class="col-md-3 col-6 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+              <div class="img-placeholder" style="height: 200px;">
+                <span>Product Image</span>
+              </div>
+              <img src="images/related-2.jpg" class="card-img-top product-img" alt="Related Product" onload="this.previousElementSibling.style.display='none'">
+              <div class="card-body text-center">
+                <h5 class="card-title">Men's Boot</h5>
+                <div class="star-rating mb-2">
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star-half-alt"></i>
+                  <i class="far fa-star"></i>
+                </div>
+                <p class="card-text">$59.00</p>
+                <a href="#" class="btn btn-sm btn-outline-dark">Add to Cart</a>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Product 3 -->
+          <div class="col-md-3 col-6 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+              <div class="img-placeholder" style="height: 200px;">
+                <span>Product Image</span>
+              </div>
+              <img src="images/related-3.jpg" class="card-img-top product-img" alt="Related Product" onload="this.previousElementSibling.style.display='none'">
+              <div class="card-body text-center">
+                <h5 class="card-title">Sports Shoe</h5>
+                <div class="star-rating mb-2">
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                </div>
+                <p class="card-text">$79.00</p>
+                <a href="#" class="btn btn-sm btn-outline-dark">Add to Cart</a>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Product 4 -->
+          <div class="col-md-3 col-6 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+              <div class="img-placeholder" style="height: 200px;">
+                <span>Product Image</span>
+              </div>
+              <img src="images/related-4.jpg" class="card-img-top product-img" alt="Related Product" onload="this.previousElementSibling.style.display='none'">
+              <div class="card-body text-center">
+                <h5 class="card-title">Fashion Boots</h5>
+                <div class="star-rating mb-2">
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="far fa-star"></i>
+                </div>
+                <p class="card-text">$69.00</p>
+                <a href="#" class="btn btn-sm btn-outline-dark">Add to Cart</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-3 col-sm-6 footer-col mb-4 mb-md-0">
+            <h5 class="footer-title">Footwear</h5>
+            <p>Far far away, behind the word mountains, far from the countries.</p>
+            <div class="social-icons mt-4">
+              <a href="#"><i class="fab fa-facebook-f"></i></a>
+              <a href="#"><i class="fab fa-twitter"></i></a>
+              <a href="#"><i class="fab fa-instagram"></i></a>
+              <a href="#"><i class="fab fa-pinterest-p"></i></a>
+            </div>
+          </div>
+          
+          <div class="col-md-3 col-sm-6 footer-col mb-4 mb-md-0">
+            <h5 class="footer-title">Menu</h5>
+            <ul class="footer-links">
+              <li><a href="index.html">Home</a></li>
+              <li><a href="shop.html">Shop</a></li>
+              <li><a href="about.html">About</a></li>
+              <li><a href="contact.html">Contact</a></li>
+            </ul>
+          </div>
+          
+          <div class="col-md-3 col-sm-6 footer-col mb-4 mb-md-0">
+            <h5 class="footer-title">Help</h5>
+            <ul class="footer-links">
+              <li><a href="#">Shipping Information</a></li>
+              <li><a href="#">Returns & Exchange</a></li>
+              <li><a href="#">Terms & Conditions</a></li>
+              <li><a href="#">Privacy Policy</a></li>
+              <li><a href="#">FAQs</a></li>
+            </ul>
+          </div>
+          
+          <div class="col-md-3 col-sm-6 footer-col mb-4 mb-md-0">
+            <h5 class="footer-title">Have a Question?</h5>
+            <ul class="footer-links">
+              <li><i class="fas fa-map-marker-alt me-2"></i> 203 Fake St. Mountain View, San Francisco, California, USA</li>
+              <li><i class="fas fa-phone me-2"></i> +2 392 3929 210</li>
+              <li><i class="fas fa-envelope me-2"></i> info@yourdomain.com</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="row mt-5 pt-4 border-top">
+          <div class="col-md-6 text-center text-md-start">
+            <p class="mb-0">Copyright &copy; 2025 All rights reserved</p>
+          </div>
+          <div class="col-md-6 text-center text-md-end">
+            <p class="mb-0">
+              <img src="images/payment-methods.png" alt="Payment Methods" class="img-fluid" style="max-width: 250px;">
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+    
+    <!-- Back to top button -->
+    <a href="#" class="back-to-top btn btn-primary rounded-circle" aria-label="Back to top">
+      <i class="fas fa-arrow-up"></i>
+    </a>
+  </div>
+  
+  <!-- Bootstrap JS Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Custom JavaScript -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Show page content and hide loader after everything is loaded
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          document.getElementById('loader').style.opacity = '0';
+          document.getElementById('page').style.opacity = '1';
+          setTimeout(function() {
+            document.getElementById('loader').style.display = 'none';
+          }, 300);
+        }, 800); // Simulate loading for demo purposes
+      });
+      
+      // Size selection
+      const sizeOptions = document.querySelectorAll('.size-option');
+      sizeOptions.forEach(option => {
+        option.addEventListener('click', function() {
+          sizeOptions.forEach(opt => opt.classList.remove('active'));
+          this.classList.add('active');
+        });
+      });
+      
+      // Width selection
+      const widthOptions = document.querySelectorAll('.width-option');
+      widthOptions.forEach(option => {
+        option.addEventListener('click', function() {
+          widthOptions.forEach(opt => opt.classList.remove('active'));
+          this.classList.add('active');
+        });
+      });
+      
+      // Quantity control
+      const quantityInput = document.getElementById('quantity');
+      const minusBtn = document.querySelector('.quantity-minus');
+      const plusBtn = document.querySelector('.quantity-plus');
+      
+      minusBtn.addEventListener('click', function() {
+        let value = parseInt(quantityInput.value);
+        if (value > 1) {
+          quantityInput.value = value - 1;
+        }
+      });
+      
+      plusBtn.addEventListener('click', function() {
+        let value = parseInt(quantityInput.value);
+        if (value < parseInt(quantityInput.max)) {
+          quantityInput.value = value + 1;
+        }
+      });
+      
+      // Back to top button
+      const backToTopBtn = document.querySelector('.back-to-top');
+      
+      window.addEventListener('scroll', function() {
+        if (window.pageYOffset > 300) {
+          backToTopBtn.style.display = 'block';
+        } else {
+          backToTopBtn.style.display = 'none';
+        }
+      });
+      
+      backToTopBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        window.scrollTo({top: 0, behavior: 'smooth'});
+      });
+      
+      // Add to cart functionality (demo)
+      const addToCartBtn = document.querySelector('.add-to-cart-btn');
+      addToCartBtn.addEventListener('click', function() {
+        const selectedSize = document.querySelector('.size-option.active');
+        const selectedWidth = document.querySelector('.width-option.active');
+        
+        if (!selectedSize) {
+          alert('Please select a size');
+          return;
+        }
+        
+        if (!selectedWidth) {
+          alert('Please select a width');
+          return;
+        }
+        
+        alert('Product added to cart!');
+      });
+    });
+  </script>
+</body>
+</html>

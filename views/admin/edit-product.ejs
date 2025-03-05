@@ -63,6 +63,14 @@
                             </div>
                             <div class="col-lg-4">
                                 <div class="mb-4">
+                                    <label class="form-label">Quantity</label>
+                                    <input placeholder="" name="quantity" type="text" class="form-control border" value="6">
+                                    <div id="quantity-error" class="error-message" v></div>
+                                </div>
+                            </div>
+                        </div>
+                            <div class="col-lg-4">
+                                <div class="mb-4">
                                     <label class="form-label">Color</label>
                                     <input name="color" type="text" value="<%=product.color%>"
                                         class="form-control border">
@@ -177,10 +185,14 @@
     </div>
 </section>
 <script src="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
+
 <%- include("../../views/partials/admin/footer") %>
 
 <script>
     function validateAndSubmit() {
+        console.log("validation reached here")
         if (validateForm()) {
             document.getElementById('productForm').submit();
         }
@@ -194,6 +206,7 @@
         const description = document.getElementsByName('descriptionData')[0].value;
         const price = document.getElementsByName('regularPrice')[0].value;
         const saleprice = document.getElementsByName('salePrice')[0].value;
+        const quantity = document.getElementsByName('quantity')[0].value;
         const color = document.getElementsByName('color')[0].value;
         const category = document.getElementsByName('category')[0].value;
         const images = document.getElementById('input1');
@@ -220,7 +233,12 @@
             displayErrorMessage('salePrice-error', 'Please enter a valid non-negative price.');
             isValid = false;
         }
-        
+           // Quantity validation
+    if (quantity.trim() === "" || isNaN(parseInt(quantity)) || parseInt(quantity) < 0) {
+        displayErrorMessage('quantity-error', 'Please enter a valid non-negative quantity.');
+        isValid = false;
+    }
+    
         if (color.trim() === "") {
             displayErrorMessage('color-error', 'Please enter a color.');
             isValid = false;
@@ -302,26 +320,56 @@
         };
         reader.readAsDataURL(input.files[0]);
     }
-
     function deleteSingleImage(imageId, productId) {
-        fetch('/admin/deleteImage', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                imageNameToServer: imageId,
-                productIdToServer: productId,
-            }),
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === true) {
-                window.location.reload();
+    fetch('/admin/deleteImage', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            imageNameToServer: imageId,
+            productIdToServer: productId,
+        }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log("Server Response:", data); // Debugging line
+
+        if (data.status === true) {
+            console.log("Image deleted successfully!");
+            
+            // Remove the image from the UI
+            const imageElement = document.getElementById(imageId);
+            if (imageElement) {
+                imageElement.remove();
             }
-        })
-        .catch(error => {
-            console.error('Error deleting image:', error);
+
+            // Show SweetAlert confirmation
+            Swal.fire({
+                icon: 'success',
+                title: 'Deleted!',
+                text: 'Image deleted successfully!',
+                timer: 2000, // Auto-close after 2 seconds
+                showConfirmButton: false
+            });
+            setTimeout(() => location.reload(), 2000);
+
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to delete image: ' + data.message
+            });
+        }
+    })
+    .catch(error => {
+        console.error("Error deleting image:", error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'An error occurred while deleting the image.'
         });
-    }
+    });
+}
+
+
+
 </script>

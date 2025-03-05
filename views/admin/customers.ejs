@@ -33,15 +33,18 @@
                     <td><%= data[i].phone %></td>
                     <td> 
                         <% if (data[i].isBlocked === false) { %>
-                            <button class="btn btn-danger" style="width: 80px;">
-                                <a href="/admin/blockCustomer?id=<%= data[i].id %>" class="text-white" style="text-decoration: none;">Block</a>
+                            <button class="btn btn-danger" style="width: 80px;"
+                                onclick="confirmBlockUnblock('<%= data[i].id %>', true)">
+                                Block
                             </button>
                         <% } else { %>
-                            <button class="btn btn-success" style="width: 80px;">
-                                <a href="/admin/unblockCustomer?id=<%= data[i].id %>" class="text-white" style="text-decoration: none;">Unblock</a>
-                            </button> 
+                            <button class="btn btn-success" style="width: 80px;"
+                                onclick="confirmBlockUnblock('<%= data[i].id %>', false)">
+                                Unblock
+                            </button>
                         <% } %>
-                    </td>
+                    </td>           
+                    
                 </tr>
             <% } %>  
         </tbody>
@@ -60,4 +63,56 @@
     </nav>
 </div>
 
+
 <%- include("../../views/partials/admin/footer") %>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    function confirmBlockUnblock(userId, isBlocking) {
+        let action = isBlocking ? "block" : "unblock";
+        let actionText = isBlocking ? "Blocked" : "Unblocked";
+        let apiUrl = `/admin/customers/${userId}/${action}`;
+
+        Swal.fire({
+            title: `Are you sure?`,
+            text: `Do you really want to ${action} this user?`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: isBlocking ? "#d33" : "#28a745",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: `Yes, ${action} it!`
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(apiUrl, { 
+                    method: 'PATCH', // Changed from GET to PATCH
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Something went wrong!");
+                    }
+                    return response.json();
+                })
+                .then(() => {
+                    Swal.fire(
+                        `${actionText}!`,
+                        `The user has been ${actionText.toLowerCase()}.`,
+                        "success"
+                    ).then(() => {
+                        location.reload(); // Reload page after confirmation
+                    });
+                })
+                .catch(error => {
+                    Swal.fire(
+                        "Error!",
+                        "An error occurred while processing your request.",
+                        "error"
+                    );
+                });
+            }
+        });
+    }
+</script>
+

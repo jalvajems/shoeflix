@@ -34,9 +34,6 @@ app.use(express.static(path.join(__dirname,"public")))
 
 app.use("/",userRouter)
 app.use("/admin",adminRouter)
-// app.use("*",(req,res)=>{
-//     res.render("pageNotFound")
-// })
 
 app.listen(PORT,()=>{
     console.log(`running on http://localhost:${PORT}`)

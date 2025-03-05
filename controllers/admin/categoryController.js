@@ -40,7 +40,7 @@ const addCategory = async(req, res) => {
     try {
         console.log("adding to category");
 
-        const existingCategory = await Category.findOne({ name: name });
+        const existingCategory = await Category.findOne({ name: { $regex: new RegExp("^" + name + "$", "i") }  });
         if (existingCategory) {
             return res.status(400).json({error: "Category already exists"});
         }
@@ -59,26 +59,31 @@ const addCategory = async(req, res) => {
 };
 
 const listCategory = async(req, res) => {
+    console.log("list reached here")
     try {
-        const categoryId = req.params.id;
-        await Category.findByIdAndUpdate(categoryId, { isListed: true });
-        res.redirect('/admin/category');
+        let categoryId = req.params.id;
+        console.log("categoryIdList", categoryId)
+        await Category.updateOne({ _id: categoryId }, { $set: { isListed: true } });
+        res.status(200).json({message:"Category listed successfully"})
     } catch (error) {
         console.error(error);
-        res.redirect("/admin/pageerror");
+        res.status(500).json({ message: "An error occurred", error });
     }
 };
 
 const unlistCategory = async(req, res) => {
+    console.log("unlisted reached here")
     try {
         const categoryId = req.params.id;
-        await Category.findByIdAndUpdate(categoryId, { isListed: false });
-        res.redirect('/admin/category');
+        console.log("categoryIdUnlist", categoryId)
+        await Category.updateOne({ _id: categoryId }, { $set: { isListed: false } });
+        res.status(200).json({message:"Category unlisted successfully"})
     } catch (error) {
         console.error(error);
-        res.redirect("/admin/pageerror");
+        res.status(500).json({ message: "An error occurred", error });
     }
 };
+
 
 const getEditCategory = async(req, res) => {
     try {
@@ -102,10 +107,8 @@ const updateCategory = async(req, res) => {
         const { name, description } = req.body;
         
         // Check if the updated name already exists for another category
-        const existingCategory = await Category.findOne({ 
-            name: name, 
-            _id: { $ne: categoryId } 
-        });
+        const existingCategory = await Category.findOne({ name: { $regex: new RegExp("^" + name + "$", "i") }  });
+
         
         if (existingCategory) {
             return res.status(400).json({ error: "Category name already exists" });
@@ -123,50 +126,9 @@ const updateCategory = async(req, res) => {
     }
 };
 
-const deleteCategory = async(req, res) => {
-    try {
-        const categoryId = req.params.id;
-        await Category.findByIdAndDelete(categoryId);
-        return res.status(200).json({ message: "Category deleted successfully" });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: "Internal server error" });
-    }
-};
 
-const addCategoryOffer = async(req, res) => {
-    try {
-        const categoryId = req.params.id;
-        const { offerPercentage } = req.body;
-        
-        if (isNaN(offerPercentage) || offerPercentage < 0 || offerPercentage > 100) {
-            return res.status(400).json({ error: "Invalid offer percentage" });
-        }
-        
-        await Category.findByIdAndUpdate(categoryId, {
-            categoryOffer: offerPercentage
-        });
-        
-        return res.status(200).json({ message: "Offer added successfully" });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: "Internal server error" });
-    }
-};
 
-const removeCategoryOffer = async(req, res) => {
-    try {
-        const categoryId = req.params.id;
-        await Category.findByIdAndUpdate(categoryId, {
-            categoryOffer: 0
-        });
-        
-        return res.status(200).json({ message: "Offer removed successfully" });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: "Internal server error" });
-    }
-};
+
 
 module.exports = {
     categoryInfo,
@@ -174,8 +136,5 @@ module.exports = {
     listCategory,
     unlistCategory,
     getEditCategory,
-    updateCategory,
-    deleteCategory,
-    addCategoryOffer,
-    removeCategoryOffer
+    updateCategory
 };
