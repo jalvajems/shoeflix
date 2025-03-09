@@ -109,6 +109,16 @@
         font-size: 0.75rem;
         display: none;
       }
+
+      .forgot-password-link{
+        font: size 0.875rem;
+        color: #007bff;
+        text-decoration: none;
+      }
+      .forgot-password-link:hover{
+        color :#0056b3;
+        text-decoration: underline;
+      }
     </style>
   </head>
   <body>
@@ -125,7 +135,7 @@
                   class="form-control"
                   name="email"
                   id="email"
-                  value="jaffa@gmail.com"
+                  value="pjaffa@gmail.com"
                   placeholder="Enter email"
                 />
                 <div id="error1" class="error-message"></div>
@@ -133,7 +143,7 @@
               <div class="form-group">
                 <label for="password">Password</label>
                 <input
-                value="mnbvcxz1"
+                value="zxcvbnm1"
                   type="password"
                   class="form-control"
                   name="password"
@@ -141,7 +151,9 @@
                   placeholder="Password"
                 />
                 <div id="error2" class="error-message"></div>
-
+                <div class="form-group d-flex justify-content-end">
+                  <a href="/forgot-password" class="forgot-password-link ms-auto">Forgot Password</a>
+                </div>
               </div>
               <%if(locals.message && message.length>0){%>
               <div class="alert alert-danger text-center">

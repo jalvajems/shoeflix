@@ -275,7 +275,7 @@ const resendOtp=async (req,res)=>{
         const emailSent=await sendVerificationEmail(email,otp)
         if(emailSent){
             console.log("Resend OTP",otp);
-            res.status(200).json({success:true,message:"OTP send successfully"})
+            res.status(200).json({success:true,message:"OTP send successfullyjjjjjj"})
 
         }else{
             res.status(500).json({success:false,message:"Failed tio resend the OTP. Please try again"})
@@ -541,25 +541,11 @@ const filterProduct = async (req, res) => {
 
 const filterByPrice = async (req, res) => {
     try {
-        // Get price range values and ensure they're numbers
-        const minPrice = req.query.gt ? Number(req.query.gt) : 0;
-        const maxPrice = req.query.lt ? Number(req.query.lt) : 100000;
-        
-        // Add additional validation and logging
-        if (isNaN(minPrice) || isNaN(maxPrice)) {
-            console.error("Invalid price values:", req.query.gt, req.query.lt);
-            return res.redirect("/shop");
-        }
-        
-        // Store validated values in session
         req.session.priceFilter = {
-            gt: minPrice,
-            lt: maxPrice
+            gt: parseInt(req.query.gt),
+            lt: parseInt(req.query.lt)
         };
-        
-        console.log("Set price filter:", req.session.priceFilter);
 
-        // Get filtered products with the new price filter
         const { 
             products, 
             totalPages, 
@@ -569,7 +555,7 @@ const filterByPrice = async (req, res) => {
         } = await getFilteredProducts(req);
 
         const user = req.session.user;
-        const userData = user ? await User.findOne({ _id: user }) : null;
+        const userData = await User.findOne({ _id: user });
 
         return res.render("shop", {
             user: userData,
@@ -579,14 +565,18 @@ const filterByPrice = async (req, res) => {
             currentPage,
             selectedSort: sort,
             selectedCategory: req.session.selectedCategory || null,
-            searchQuery: req.session.searchQuery || null,
-            priceRange: req.session.priceFilter
+            searchQuery: null,
+            priceRange: { 
+                gt: req.query.gt, 
+                lt: req.query.lt 
+            }
         });
     } catch (error) {
-        console.error("Error in filterByPrice:", error);
+        console.error(error);
         return res.redirect("/pageNotFound");
     }
 }
+
 
 module.exports = {
     loadHomepage,
