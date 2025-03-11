@@ -17,8 +17,11 @@ const cartSchema=new Schema({
         quantity:{
             type:Number,
             default:1
-        },
-        price:{
+        },size: {
+            type: String,
+            enum: ['IND-5', 'IND-6', 'IND-7', 'IND-8'],
+            // required: true
+        },price:{
             type:Number,
             required:true
         },
@@ -37,5 +40,5 @@ const cartSchema=new Schema({
     }]
 })
 
-const Cart=mangoose.model("Cart",cartSchema)
+const Cart=mongoose.model("Cart",cartSchema)
 module.exports=Cart

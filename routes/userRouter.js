@@ -4,6 +4,8 @@ const userController = require("../controllers/user/userController")
 const {userAuth,adminAuth}=require("../middlewares/auth")
 const productController=require("../controllers/user/productController")
 const profileController=require("../controllers/user/profileController")
+const cartController=require("../controllers/user/cartController")
+const checkoutController=require("../controllers/user/checkoutController")
 const passport = require("passport")
 const { route } = require("../app")
 
@@ -74,7 +76,14 @@ router.route("/editAddress")
 
 router.get("/deleteAddress", userAuth, profileController.deleteAddress);
 
+//cart managment=============================================
 
-// router.get("/change-password",userAuth,profileController.changePassword)
+router.get("/cart", userAuth, cartController.loadCart);
+router.post("/add-to-cart", userAuth, cartController.addToCart);
+router.post("/update-cart/:cartItemId", userAuth, cartController.updateCartQuantity);
+router.delete("/remove-from-cart/:cartItemId", userAuth, cartController.removeFromCart);
+
+//checkout======================================================
+router.get("/checkout",userAuth,checkoutController.getCheckoutPage)
 
 module.exports = router

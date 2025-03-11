@@ -29,7 +29,7 @@ const orderSchema=new Schema({
         required:true
     },
     discount:{
-        type:Numbe,
+        type:Number,
         default:0
     },
     finalAmount:{

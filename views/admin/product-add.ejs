@@ -28,6 +28,37 @@
    .btn-primary{
         margin-left: 12px;
    }
+
+   .variant-container {
+       border: 1px solid #ddd;
+       padding: 15px;
+       margin-bottom: 10px;
+       border-radius: 5px;
+   }
+
+   .variant-row {
+       display: flex;
+       gap: 10px;
+       margin-bottom: 10px;
+       align-items: center;
+   }
+
+   .btn-add-variant {
+       margin-bottom: 15px;
+   }
+
+   .btn-remove-variant {
+       background-color: #dc3545;
+       color: white;
+       border: none;
+       border-radius: 50%;
+       width: 26px;
+       height: 26px;
+       cursor: pointer;
+       display: flex;
+       align-items: center;
+       justify-content: center;
+   }
 </style>
    <section class="content-main">
        <div class="row">
@@ -54,7 +85,7 @@
                                <div id="description-error" class="error-message"></div>
                            </div>
                            <div class="row">
-                               <div class="col-lg-4">
+                               <div class="col-lg-6">
                                    <div class="mb-4">
                                        <label class="form-label">Regular price</label>
                                        <input placeholder="$" name="regularPrice" type="text"
@@ -62,30 +93,51 @@
                                        <div id="regularPrice-error" class="error-message"></div>
                                    </div>
                                </div>
-                               <div class="col-lg-4">
-                                <div class="mb-4">
-                                    <label class="form-label">Sale price</label>
-                                    <input placeholder="$" name="salePrice" type="text" class="form-control border" id="sale_price" value="5999">
-                                    <div id="salePrice-error" class="error-message"></div>
-                                </div>
-                            </div>
-                               <div class="col-lg-4">
+                               <div class="col-lg-6">
                                    <div class="mb-4">
-                                       <label class="form-label">Quantity</label>
-                                       <input placeholder="" name="quantity" type="text" class="form-control border" value="6">
-                                       <div id="quantity-error" class="error-message" v></div>
+                                       <label class="form-label">Sale price</label>
+                                       <input placeholder="$" name="salePrice" type="text" class="form-control border" id="sale_price" value="5999">
+                                       <div id="salePrice-error" class="error-message"></div>
                                    </div>
                                </div>
                            </div>
-                           <div class="row">
-                               <div class="col-lg-4">
-                                   <div class="mb-4">
-                                       <label class="form-label">Color</label>
-                                       <input name="color" type="text" class="form-control border" value="blue">
-                                       <div id="color-error" class="error-message"></div>
+
+                           <!-- Variants Section -->
+                           <div class="card mb-4">
+                               <div class="card-header">
+                                   <h4>Product Variants</h4>
+                               </div>
+                               <div class="card-body">
+                                   <div id="variants-container">
+                                       <!-- Variants will be added here -->
+                                       <div class="variant-container" id="variant-0">
+                                           <div class="variant-row">
+                                               <div class="col-md-6">
+                                                   <label class="form-label">Size</label>
+                                                   <select name="size" class="form-select border">
+                                                       <option value="IND-5">IND-5</option>
+                                                       <option value="IND-6">IND-6</option>
+                                                       <option value="IND-7">IND-7</option>
+                                                       <option value="IND-8">IND-8</option>
+                                                   </select>
+                                               </div>
+                                               <div class="col-md-4">
+                                                   <label class="form-label">Quantity</label>
+                                                   <input type="number" name="quantity" class="form-control border" min="0" value="0">
+                                               </div>
+                                               <div class="col-md-2 d-flex align-items-end">
+                                                   <button type="button" class="btn-remove-variant" onclick="removeVariant(0)" style="visibility: hidden;">×</button>
+                                               </div>
+                                           </div>
+                                       </div>
                                    </div>
+                                   <button type="button" class="btn btn-sm btn-outline-primary btn-add-variant" onclick="addVariant()">
+                                       Add Variant
+                                   </button>
+                                   <div id="variants-error" class="error-message"></div>
                                </div>
                            </div>
+
                            <div class="card mb-4">
                                <div class="card-body">
                                    <div class="row gx-2">
@@ -181,6 +233,60 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
 
 <script>
+// Variables for variant management
+let variantCount = 1;
+
+// Add new variant
+function addVariant() {
+    const variantsContainer = document.getElementById('variants-container');
+    const newVariant = document.createElement('div');
+    newVariant.className = 'variant-container';
+    newVariant.id = `variant-${variantCount}`;
+    
+    newVariant.innerHTML = `
+        <div class="variant-row">
+            <div class="col-md-6">
+                <label class="form-label">Size</label>
+                <select name="size" class="form-select border">
+                    <option value="IND-5">IND-5</option>
+                    <option value="IND-6">IND-6</option>
+                    <option value="IND-7">IND-7</option>
+                    <option value="IND-8">IND-8</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Quantity</label>
+                <input type="number" name="quantity" class="form-control border" min="0" value="0">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="button" class="btn-remove-variant" onclick="removeVariant(${variantCount})">×</button>
+            </div>
+        </div>
+    `;
+    
+    variantsContainer.appendChild(newVariant);
+    variantCount++;
+    
+    // Make the first variant's remove button visible if there are multiple variants
+    if (variantCount > 1) {
+        document.querySelector('#variant-0 .btn-remove-variant').style.visibility = 'visible';
+    }
+}
+
+// Remove variant
+function removeVariant(index) {
+    const variant = document.getElementById(`variant-${index}`);
+    if (variant) {
+        variant.remove();
+    }
+    
+    // Hide the remove button of the first variant if it's the only one left
+    const variants = document.querySelectorAll('.variant-container');
+    if (variants.length === 1) {
+        document.querySelector('#variant-0 .btn-remove-variant').style.visibility = 'hidden';
+    }
+}
+
 // Form submission after validation
 function validateAndSubmit() {
     if(validateForm()) {
@@ -193,11 +299,14 @@ function viewImage1(event) {
     document.getElementById("imgView1").src = URL.createObjectURL(event.target.files[0]);
 }
 
-   function viewImage2(event) {
-     document.getElementById("imgView2").src = URL.createObjectURL(event.target.files[0]);}
+function viewImage2(event) {
+    document.getElementById("imgView2").src = URL.createObjectURL(event.target.files[0]);
+}
+
 function viewImage3(event) {
     document.getElementById("imgView3").src = URL.createObjectURL(event.target.files[0]);
 }
+
 function viewImage4(event) {
     document.getElementById("imgView4").src = URL.createObjectURL(event.target.files[0]);
 }
@@ -300,10 +409,12 @@ function validateForm() {
     const name = document.getElementsByName('productName')[0].value;
     const description = document.getElementById('descriptionid').value;
     const price = document.getElementsByName('regularPrice')[0].value;
-    const saleprice = document.getElementsByName('salePrice')[0].value; // Get sale price value
-    const color = document.getElementsByName('color')[0].value;
+    const saleprice = document.getElementsByName('salePrice')[0].value;
     const images = document.getElementById('input1');
-    const quantity = document.getElementsByName('quantity')[0].value;
+    
+    // Get all variants
+    const sizeElements = document.querySelectorAll('select[name="size"]');
+    const quantityElements = document.querySelectorAll('input[name="quantity"]');
     
     let isValid = true;
     
@@ -322,21 +433,13 @@ function validateForm() {
         isValid = false;
     }
     
-    // Quantity validation
-    if (quantity.trim() === "" || isNaN(parseInt(quantity)) || parseInt(quantity) < 0) {
-        displayErrorMessage('quantity-error', 'Please enter a valid non-negative quantity.');
-        isValid = false;
-    }
-    
     // Regular price validation
     if (price.trim() === "" || !/^\d+(\.\d{1,2})?$/.test(price) || parseFloat(price) <= 0) {
         displayErrorMessage('regularPrice-error', 'Please enter a valid positive price.');
         isValid = false;
     }
     
-    // Sale price validation - Specific focus here
-    console.log("Sale price value:", saleprice); // Debug
-    
+    // Sale price validation
     if (saleprice.trim() !== "") {
         if (!/^\d+(\.\d{1,2})?$/.test(saleprice)) {
             displayErrorMessage('salePrice-error', 'Please enter a valid price format.');
@@ -350,9 +453,30 @@ function validateForm() {
         }
     }
     
-    // Color validation
-    if (color.trim() === "") {
-        displayErrorMessage('color-error', 'Please enter a color.');
+    // Variants validation
+    let totalQuantity = 0;
+    let hasDuplicateSize = false;
+    const sizeSet = new Set();
+    
+    for (let i = 0; i < sizeElements.length; i++) {
+        const size = sizeElements[i].value;
+        const quantity = parseInt(quantityElements[i].value) || 0;
+        
+        totalQuantity += quantity;
+        
+        if (sizeSet.has(size)) {
+            hasDuplicateSize = true;
+        }
+        sizeSet.add(size);
+    }
+    
+    if (totalQuantity === 0) {
+        displayErrorMessage('variants-error', 'Total quantity across all variants must be greater than 0.');
+        isValid = false;
+    }
+    
+    if (hasDuplicateSize) {
+        displayErrorMessage('variants-error', 'Each variant must have a unique size.');
         isValid = false;
     }
     
@@ -362,13 +486,13 @@ function validateForm() {
         isValid = false;
     }
     
-    console.log("Form is valid:", isValid); // Debug
+    console.log("Form is valid:", isValid);
     return isValid;
 }
 
 // Display error message
 function displayErrorMessage(elementId, message) {
-    console.log("Displaying error for:", elementId, message); // Debug
+    console.log("Displaying error for:", elementId, message);
     var errorElement = document.getElementById(elementId);
     
     if (!errorElement) {

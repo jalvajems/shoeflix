@@ -1,0 +1,248 @@
+<%- include("../../views/partials/user/header") %>
+
+<div class="breadcrumbs">
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <p class="bread"><span><a href="/">Home</a></span> / <span>Shopping Cart</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="colorlib-product">
+    <div class="container">
+        <div class="row row-pb-lg">
+            <div class="col-md-10 offset-md-1">
+                <div class="process-wrap">
+                    <div class="process text-center active">
+                        <p><span>01</span></p>
+                        <h3>Shopping Cart</h3>
+                    </div>
+                    <div class="process text-center">
+                        <p><span>02</span></p>
+                        <h3>Checkout</h3>
+                    </div>
+                    <div class="process text-center">
+                        <p><span>03</span></p>
+                        <h3>Order Complete</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row row-pb-lg">
+            <div class="col-md-12">
+                <% if(cart && cart.length > 0) { %>
+                    <div class="product-name d-flex">
+                        <div class="one-forth text-left px-4">
+                            <span>Product Details</span>
+                        </div>
+                        <div class="one-eight text-center">
+                            <span>Size</span> <!-- New column for size -->
+                        </div>
+                        <div class="one-eight text-center">
+                            <span>Price</span>
+                        </div>
+                        <div class="one-eight text-center">
+                            <span>Quantity</span>
+                        </div>
+                        <div class="one-eight text-center">
+                            <span>Total</span>
+                        </div>
+                        <div class="one-eight text-center">
+                            <span>Remove</span>
+                        </div>
+                    </div>
+                    
+                    <% cart.forEach(function(item) { %>
+                        <div class="product-cart d-flex" data-cart-item-id="<%= item._id %>">
+                            <div class="one-forth">
+                                <div class="product-img" style="background-image: url(/uploads/product-images/<%=item.productId.productImage[0]%>);"></div>
+                                <div class="display-tc">
+                                    <h3><%= item.productId.productName %></h3>
+                                </div>
+                            </div>
+                            <div class="one-eight text-center">
+                                <span><%= item.size || "Size not set" %></span>
+                            </div>
+                            <div class="one-eight text-center">
+                                <span>₹<%= item.price %></span>
+                            </div>
+                            <div class="one-eight text-center">
+                                <div class="quantity-control">
+                                    <button class="btn btn-sm btn-outline-secondary quantity-minus">-</button>
+                                    <input type="number" value="<%= item.quantity %>" min="1" max="5" class="form-control quantity-input">
+                                    <button class="btn btn-sm btn-outline-secondary quantity-plus">+</button>
+                                </div>
+                            </div>
+                            <div class="one-eight text-center">
+                                <span>₹<%= item.totalPrice %></span>
+                            </div>
+                            <div class="one-eight text-center">
+                                <button class="btn btn-sm btn-danger remove-item">X</button>
+                            </div>
+                        </div>
+                    <% }); %>
+
+                    <div class="row row-pb-lg">
+                        <div class="col-md-12">
+                            <div class="total-wrap">
+                                <div class="row">
+                                    <div class="col-sm-8">
+                                        <p><a href="/shop" class="btn btn-primary">Continue Shopping</a></p>
+                                    </div>
+                                    <div class="col-sm-4 text-center">
+                                        <div class="total">
+                                            <div class="sub">
+                                                <p><span>Subtotal:</span> <span>₹<%= totalPrice !== undefined ? totalPrice : '0' %></span></p>
+                                            </div>
+                                            <div class="grand-total">
+                                                <p><span><strong>Total:</strong></span> <span><strong>₹<%= totalPrice !== undefined ? totalPrice : '0' %></strong></span></p>
+                                            </div>
+                                            <p><a href="/checkout" class="btn btn-primary">Proceed to Checkout</a></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <div class="row">
+                        <div class="col-md-12 text-center">
+                            <div class="empty-cart-message" style="padding: 50px 0;">
+                                <i class="fa fa-shopping-cart" style="font-size: 60px; color: #ddd;"></i>
+                                <h2 style="margin-top: 20px;">Your cart is empty</h2>
+                                <p>Looks like you haven't added anything to your cart yet.</p>
+                                <a href="/shop" class="btn btn-primary mt-3">Continue Shopping</a>
+                            </div>
+                        </div>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include("../../views/partials/user/footer") %>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Quantity controls
+        document.querySelectorAll(".quantity-minus").forEach(btn => {
+            btn.addEventListener("click", async function() {
+                const cartItemId = this.closest(".product-cart").dataset.cartItemId;
+                const input = this.nextElementSibling;
+                let quantity = parseInt(input.value);
+                if (quantity > 1) {
+                    quantity--;
+                    updateQuantity(cartItemId, quantity, input);
+                }
+            });
+        });
+
+        document.querySelectorAll(".quantity-plus").forEach(btn => {
+            btn.addEventListener("click", async function() {
+                const cartItemId = this.closest(".product-cart").dataset.cartItemId;
+                const input = this.previousElementSibling;
+                let quantity = parseInt(input.value);
+                if (quantity < 5) {
+                    quantity++;
+                    updateQuantity(cartItemId, quantity, input);
+                }
+            });
+        });
+
+        document.querySelectorAll(".quantity-input").forEach(input => {
+            input.addEventListener("change", function() {
+                const cartItemId = this.closest(".product-cart").dataset.cartItemId;
+                let quantity = parseInt(this.value);
+                if (quantity >= 1 && quantity <= 5) {
+                    updateQuantity(cartItemId, quantity, this);
+                } else {
+                    this.value = Math.max(1, Math.min(5, quantity));
+                }
+            });
+        });
+
+        async function updateQuantity(cartItemId, quantity, input) {
+            try {
+                console.log("Updating cart item:", cartItemId, "to quantity:", quantity);
+                const response = await fetch(`/update-cart/${cartItemId}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ quantity, cartItemId })
+                });
+                const data = await response.json();
+                console.log("Response data:", data);
+                
+                if (data.status) {
+                    if (data.removed) {
+                        input.closest(".product-cart").remove();
+                        updateTotal();
+                        Swal.fire("Success", "Item removed from cart", "success");
+                    } else {
+                        input.value = data.quantity;
+                        const itemTotalElement = input.closest(".product-cart").querySelector(".one-eight:nth-child(5) span");
+                        if (itemTotalElement) {
+                            itemTotalElement.textContent = `₹${data.itemTotal}`;
+                        }
+                        updateTotal();
+                    }
+                } else {
+                    Swal.fire("Error", data.message || "Failed to update cart", "error");
+                }
+            } catch (error) {
+                console.error("Error updating quantity:", error);
+                Swal.fire("Error", "Failed to update quantity", "error");
+            }
+        }
+
+        function updateTotal() {
+            try {
+                const totalElements = document.querySelectorAll(".product-cart .one-eight:nth-child(5) span");
+                const totals = Array.from(totalElements)
+                    .map(span => parseFloat(span.textContent.replace("₹", "")) || 0);
+                const total = totals.reduce((acc, val) => acc + val, 0);
+
+                const subtotalElement = document.querySelector(".sub span:last-child");
+                const grandTotalElement = document.querySelector(".grand-total span:last-child strong");
+
+                if (subtotalElement && grandTotalElement) {
+                    subtotalElement.textContent = `₹${total}`;
+                    grandTotalElement.textContent = `₹${total}`;
+                }
+
+                if (totals.length === 0) {
+                    location.reload();
+                }
+            } catch (error) {
+                console.error("Error updating total:", error);
+            }
+        }
+
+        // Remove item
+        document.querySelectorAll(".remove-item").forEach(btn => {
+            btn.addEventListener("click", async function() {
+                const cartItemId = this.closest(".product-cart").dataset.cartItemId;
+                try {
+                    const response = await fetch(`/remove-from-cart/${cartItemId}`, {
+                        method: "DELETE"
+                    });
+                    const data = await response.json();
+
+                    if (data.status) {
+                        this.closest(".product-cart").remove();
+                        updateTotal();
+                        Swal.fire("Success", "Item removed from cart", "success");
+                    } else {
+                        Swal.fire("Error", data.message, "error");
+                    }
+                } catch (error) {
+                    Swal.fire("Error", "Failed to remove item", "error");
+                }
+            });
+        });
+    });
+</script>

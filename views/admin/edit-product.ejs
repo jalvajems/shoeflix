@@ -17,8 +17,29 @@
            color: red;
            display: none;
        }
+       
+       .variant-row {
+           display: flex;
+           margin-bottom: 10px;
+           align-items: center;
+       }
+       
+       .variant-row input, .variant-row select {
+           margin-right: 10px;
+       }
+       
+       .remove-variant {
+           cursor: pointer;
+           color: red;
+           font-weight: bold;
+       }
+       .variant-row input, .variant-row select {
+    margin-right: 10px;
+}
+
    </style>
    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.css">
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css">
 </head>
 <section class="content-main">
     <div class="row">
@@ -63,14 +84,6 @@
                             </div>
                             <div class="col-lg-4">
                                 <div class="mb-4">
-                                    <label class="form-label">Quantity</label>
-                                    <input placeholder="" name="quantity" type="text" class="form-control border" value="6">
-                                    <div id="quantity-error" class="error-message" v></div>
-                                </div>
-                            </div>
-                        </div>
-                            <div class="col-lg-4">
-                                <div class="mb-4">
                                     <label class="form-label">Color</label>
                                     <input name="color" type="text" value="<%=product.color%>"
                                         class="form-control border">
@@ -78,108 +91,147 @@
                                 </div>
                             </div>
                         </div>
-                </div>
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <div class="row gx-2">
-                            <div class="col-sm-6 mb-3">
-                                <label class="form-label">Category</label>
-                                <select class="form-select border" style="width: 150px;" name="category">
-                                    <%for(let i=0;i<cat.length;i++){%>
-                                        <option value="<%=cat[i]._id%>">
-                                            <%=cat[i].name%>
-                                        </option>
-                                    <%}%>
-                                </select>
-                                <div id="category-error" class="error-message"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card mb-2">
-                    <div class="card-header">
-                        <h4>Choose images</h4>
-                    </div>
                         
-                    <%for(let i=0; i<product.productImage.length; i++){%>
-                        <div class="col-md-12">
-                            <div class="mb-4">
-                                <div class="col-12">
-                                    <td>
-                                        <input type="hidden" value="<%=product.productImage[i]%>" id="imageDatas">
-                                        <img class="rounded" style="width: 50px; height: 60px;"
-                                            src="/uploads/product-images/<%=product.productImage[i]%>" alt="">
-                                            <span onclick="deleteSingleImage('<%=product.productImage[i]%>','<%=product._id%>')" 
-                                                style="position: absolute; margin-left: .5rem; cursor: pointer; font-weight: bold;">
-                                              X
-                                          </span>
-                                          
-                                    </td>
+                        <!-- Variants Section -->
+                        <div class="mb-4">
+                            <label class="form-label">Product Variants</label>
+                            <div id="variants-container">
+                                <% if (product.variants && product.variants.length > 0) { %>
+                                    <% product.variants.forEach((variant, index) => { %>
+                                        <div class="variant-row">
+                                            <select name="size" class="form-control border" style="width: 40%;">
+                                                <option value="IND-5" <%= variant.size === 'IND-5' ? 'selected' : '' %>>IND-5</option>
+                                                <option value="IND-6" <%= variant.size === 'IND-6' ? 'selected' : '' %>>IND-6</option>
+                                                <option value="IND-7" <%= variant.size === 'IND-7' ? 'selected' : '' %>>IND-7</option>
+                                                <option value="IND-8" <%= variant.size === 'IND-8' ? 'selected' : '' %>>IND-8</option>
+                                            </select>
+                                            <input type="number" name="quantity" value="<%= variant.quantity %>" 
+                                                placeholder="Quantity" class="form-control border" style="width: 40%;">
+                                            <span class="remove-variant" onclick="removeVariant(this)">X</span>
+                                        </div>
+                                    <% }) %>
+                                <% } else { %>
+                                    <div class="variant-row">
+                                        <select name="size" class="form-control border" style="width: 40%;">
+                                            <option value="IND-5">IND-5</option>
+                                            <option value="IND-6">IND-6</option>
+                                            <option value="IND-7">IND-7</option>
+                                            <option value="IND-8">IND-8</option>
+                                        </select>
+                                        <input type="number" name="quantity" placeholder="Quantity" 
+                                            class="form-control border" style="width: 40%;">
+                                        <span class="remove-variant" onclick="removeVariant(this)">X</span>
+                                    </div>
+                                <% } %>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary mt-2" 
+                                onclick="addVariant()">Add Variant</button>
+                            <div id="variants-error" class="error-message"></div>
+                        </div>
+                        
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <div class="row gx-2">
+                                    <div class="col-sm-6 mb-3">
+                                        <label class="form-label">Category</label>
+                                        <select class="form-select border" style="width: 150px;" name="category">
+                                            <%for(let i=0;i<cat.length;i++){%>
+                                                <option value="<%=cat[i]._id%>" 
+                                                    <%= (cat[i]._id.toString() === product.category.toString()) ? 'selected' : '' %>>
+                                                    <%=cat[i].name%>
+                                                </option>
+                                            <%}%>
+                                        </select>
+                                        <div id="category-error" class="error-message"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    <%}%>
-                    <div class="card-body">
-                        <div class="card-body align-items-center" style="margin-bottom: 20px;">
-                            <img src="" alt="" id="imgView1">
-                            <input class="form-control" type="file" name="images" id="input1"
-                                accept="image/png, image/jpeg, image/jpg"
-                                onchange="viewImage1(event), viewImage(event, 1)">
-                            <div id="images-error" class="error-message"></div>
+                        <div class="card mb-2">
+                            <div class="card-header">
+                                <h4>Choose images</h4>
+                            </div>
+                                
+                            <%for(let i=0; i<product.productImage.length; i++){%>
+                                <div class="col-md-12">
+                                    <div class="mb-4">
+                                        <div class="col-12">
+                                            <td>
+                                                <input type="hidden" value="<%=product.productImage[i]%>" id="imageDatas">
+                                                <img class="rounded" style="width: 50px; height: 60px;"
+                                                    src="/uploads/product-images/<%=product.productImage[i]%>" alt="">
+                                                    <span onclick="deleteSingleImage('<%=product.productImage[i]%>','<%=product._id%>')" 
+                                                        style="position: absolute; margin-left: .5rem; cursor: pointer; font-weight: bold;">
+                                                      X
+                                                  </span>
+                                                  
+                                            </td>
+                                        </div>
+                                    </div>
+                                </div>
+                            <%}%>
+                            <div class="card-body">
+                                <div class="card-body align-items-center" style="margin-bottom: 20px;">
+                                    <img src="" alt="" id="imgView1">
+                                    <input class="form-control" type="file" name="images" id="input1"
+                                        accept="image/png, image/jpeg, image/jpg"
+                                        onchange="viewImage1(event), viewImage(event, 1)">
+                                    <div id="images-error" class="error-message"></div>
+                                </div>
+                                <div class="image-cropper d-flex align-items-center"
+                                    style="display:none; width: 300px; height: 200px; margin-bottom: 20px;">
+                                    <img src="" id="croppedImg1" alt="">
+                                    <button type="button" id="saveButton1" class="btn-sm btn-primary">Save</button>
+                                </div>
+                                <div class="row">
+                                    <div class="card-body align-items-center" style="margin-bottom: 20px;">
+                                        <img src="" alt="" id="imgView2">
+                                        <input class="form-control" type="file" name="images" id="input2"
+                                            accept="image/png, image/jpeg, image/jpg"
+                                            onchange="viewImage2(event),viewImage(event, 2)">
+                                    </div>
+                                    <div class="image-cropper d-flex align-items-center"
+                                        style="display:none; width: 300px; height: 200px; margin-bottom: 20px;">
+                                        <img src="" id="croppedImg2" alt="">
+                                        <button type="button" id="saveButton2" class="btn-sm btn-primary">Save</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="card-body align-items-center" style="margin-bottom: 20px;">
+                                        <img src="" alt="" id="imgView3">
+                                        <input class="form-control" type="file" name="images" id="input3"
+                                            accept="image/png, image/jpeg, image/jpg"
+                                            onchange="viewImage3(event),viewImage(event, 3)">
+                                    </div>
+                                    <div class="image-cropper d-flex align-items-center"
+                                        style="display:none; width: 300px; height: 200px; margin-bottom: 20px;">
+                                        <img src="" id="croppedImg3" alt="">
+                                        <button type="button" id="saveButton3" class="btn-sm btn-primary">Save</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="card-body align-items-center" style="margin-bottom: 20px;">
+                                        <img src="" alt="" id="imgView4">
+                                        <input class="form-control" type="file" name="images" id="input4"
+                                            accept="image/png, image/jpeg, image/jpg"
+                                            onchange="viewImage4(event),viewImage(event, 4)">
+                                    </div>
+                                    <div class="image-cropper d-flex align-items-center"
+                                        style="display:none; width: 300px; height: 200px; margin-bottom: 20px;">
+                                        <img src="" id="croppedImg4" alt="">
+                                        <button type="button" id="saveButton4" class="btn-sm btn-primary">Save</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="image-cropper d-flex align-items-center"
-                            style="display:none; width: 300px; height: 200px; margin-bottom: 20px;">
-                            <img src="" id="croppedImg1" alt="">
-                            <button type="button" id="saveButton1" class="btn-sm btn-primary">Save</button>
+                        <div>
+                            <button class="btn btn-md rounded font-sm hover-up" id="updatebtn"
+                                type="button" onclick="validateAndSubmit()">Update</button>
                         </div>
-                        <div class="row">
-                            <div class="card-body align-items-center" style="margin-bottom: 20px;">
-                                <img src="" alt="" id="imgView2">
-                                <input class="form-control" type="file" name="images" id="input2"
-                                    accept="image/png, image/jpeg, image/jpg"
-                                    onchange="viewImage2(event),viewImage(event, 2)">
-                            </div>
-                            <div class="image-cropper d-flex align-items-center"
-                                style="display:none; width: 300px; height: 200px; margin-bottom: 20px;">
-                                <img src="" id="croppedImg2" alt="">
-                                <button type="button" id="saveButton2" class="btn-sm btn-primary">Save</button>
-                            </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="card-body align-items-center" style="margin-bottom: 20px;">
-                                <img src="" alt="" id="imgView3">
-                                <input class="form-control" type="file" name="images" id="input3"
-                                    accept="image/png, image/jpeg, image/jpg"
-                                    onchange="viewImage3(event),viewImage(event, 3)">
-                            </div>
-                            <div class="image-cropper d-flex align-items-center"
-                                style="display:none; width: 300px; height: 200px; margin-bottom: 20px;">
-                                <img src="" id="croppedImg3" alt="">
-                                <button type="button" id="saveButton3" class="btn-sm btn-primary">Save</button>
-                            </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="card-body align-items-center" style="margin-bottom: 20px;">
-                                <img src="" alt="" id="imgView4">
-                                <input class="form-control" type="file" name="images" id="input4"
-                                    accept="image/png, image/jpeg, image/jpg"
-                                    onchange="viewImage4(event),viewImage(event, 4)">
-                            </div>
-                            <div class="image-cropper d-flex align-items-center"
-                                style="display:none; width: 300px; height: 200px; margin-bottom: 20px;">
-                                <img src="" id="croppedImg4" alt="">
-                                <button type="button" id="saveButton4" class="btn-sm btn-primary">Save</button>
-                            </div>
-                        </div>
-                    </div>
+                    </form>
                 </div>
-                <div>
-                    <button class="btn btn-md rounded font-sm hover-up" id="updatebtn"
-                        type="button" onclick="validateAndSubmit()">Update</button>
-                </div>
-                </form>
             </div>
         </div>
     </div>
@@ -191,8 +243,40 @@
 <%- include("../../views/partials/admin/footer") %>
 
 <script>
+    // Add variant row function
+    function addVariant() {
+        const container = document.getElementById('variants-container');
+        const newRow = document.createElement('div');
+        newRow.className = 'variant-row';
+        newRow.innerHTML = `
+            <select name="size" class="form-control border" style="width: 40%;">
+                <option value="IND-5">IND-5</option>
+                <option value="IND-6">IND-6</option>
+                <option value="IND-7">IND-7</option>
+                <option value="IND-8">IND-8</option>
+            </select>
+            <input type="number" name="quantity" placeholder="Quantity" class="form-control border" style="width: 40%;">
+            <span class="remove-variant" onclick="removeVariant(this)">X</span>
+        `;
+        container.appendChild(newRow);
+    }
+
+    // Remove variant row function
+    function removeVariant(element) {
+        const row = element.parentElement;
+        if (document.querySelectorAll('.variant-row').length > 1) {
+            row.remove();
+        } else {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Required',
+                text: 'At least one variant is required'
+            });
+        }
+    }
+
     function validateAndSubmit() {
-        console.log("validation reached here")
+        console.log("validation reached here");
         if (validateForm()) {
             document.getElementById('productForm').submit();
         }
@@ -206,7 +290,8 @@
         const description = document.getElementsByName('descriptionData')[0].value;
         const price = document.getElementsByName('regularPrice')[0].value;
         const saleprice = document.getElementsByName('salePrice')[0].value;
-        const quantity = document.getElementsByName('quantity')[0].value;
+        const sizes = document.getElementsByName('size');
+        const quantities = document.getElementsByName('quantity');
         const color = document.getElementsByName('color')[0].value;
         const category = document.getElementsByName('category')[0].value;
         const images = document.getElementById('input1');
@@ -233,11 +318,20 @@
             displayErrorMessage('salePrice-error', 'Please enter a valid non-negative price.');
             isValid = false;
         }
-           // Quantity validation
-    if (quantity.trim() === "" || isNaN(parseInt(quantity)) || parseInt(quantity) < 0) {
-        displayErrorMessage('quantity-error', 'Please enter a valid non-negative quantity.');
-        isValid = false;
-    }
+        
+        // Validate variants
+        let hasValidVariant = false;
+        for (let i = 0; i < sizes.length; i++) {
+            if (sizes[i].value.trim() !== "" && quantities[i].value > 0) {
+                hasValidVariant = true;
+                break;
+            }
+        }
+        
+        if (!hasValidVariant) {
+            displayErrorMessage('variants-error', 'Please add at least one valid variant with size and quantity.');
+            isValid = false;
+        }
     
         if (color.trim() === "") {
             displayErrorMessage('color-error', 'Please enter a color.');
@@ -320,56 +414,54 @@
         };
         reader.readAsDataURL(input.files[0]);
     }
+    
     function deleteSingleImage(imageId, productId) {
-    fetch('/admin/deleteImage', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            imageNameToServer: imageId,
-            productIdToServer: productId,
-        }),
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log("Server Response:", data); // Debugging line
+        fetch('/admin/deleteImage', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                imageNameToServer: imageId,
+                productIdToServer: productId,
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("Server Response:", data); // Debugging line
 
-        if (data.status === true) {
-            console.log("Image deleted successfully!");
-            
-            // Remove the image from the UI
-            const imageElement = document.getElementById(imageId);
-            if (imageElement) {
-                imageElement.remove();
+            if (data.status === true) {
+                console.log("Image deleted successfully!");
+                
+                // Remove the image from the UI
+                const imageElement = document.getElementById(imageId);
+                if (imageElement) {
+                    imageElement.remove();
+                }
+
+                // Show SweetAlert confirmation
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Deleted!',
+                    text: 'Image deleted successfully!',
+                    timer: 2000, // Auto-close after 2 seconds
+                    showConfirmButton: false
+                });
+                setTimeout(() => location.reload(), 2000);
+
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to delete image: ' + data.message
+                });
             }
-
-            // Show SweetAlert confirmation
-            Swal.fire({
-                icon: 'success',
-                title: 'Deleted!',
-                text: 'Image deleted successfully!',
-                timer: 2000, // Auto-close after 2 seconds
-                showConfirmButton: false
-            });
-            setTimeout(() => location.reload(), 2000);
-
-        } else {
+        })
+        .catch(error => {
+            console.error("Error deleting image:", error);
             Swal.fire({
                 icon: 'error',
-                title: 'Error',
-                text: 'Failed to delete image: ' + data.message
+                title: 'Oops...',
+                text: 'An error occurred while deleting the image.'
             });
-        }
-    })
-    .catch(error => {
-        console.error("Error deleting image:", error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Oops...',
-            text: 'An error occurred while deleting the image.'
         });
-    });
-}
-
-
-
+    }
 </script>
