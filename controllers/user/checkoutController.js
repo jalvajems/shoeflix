@@ -4,36 +4,29 @@ const Order = require('../../models/orderSchema');
 const User = require('../../models/userSchema');
 const Product = require("../../models/productSchema");
 
-
 const getCheckoutPage = async (req, res) => {
     try {
-        // Check if user is logged in
         const userId = req.session.user;
         if (!userId) {
             return res.redirect('/login');
         }
 
-        // Find user
         const user = await User.findById(userId);
         if (!user) {
             return res.redirect('/login');
         }
 
-        // Get user's cart with populated products
         const cart = await Cart.findOne({ userId }).populate({
             path: 'items.productId',
             select: 'productName salePrice regularPrice productImage status variants productOffer isBlocked'
         });
 
-        // Check if cart exists and has items
         if (!cart || cart.items.length === 0) {
             return res.redirect('/cart?error=empty_cart');
         }
 
-        // Check stock availability and product status for each item
         let isStockSufficient = true;
         const stockCheckDetails = cart.items.map((item) => {
-            // Check if product exists and is not blocked
             if (!item.productId || item.productId.isBlocked || item.productId.status !== 'Available') {
                 isStockSufficient = false;
                 return {
@@ -46,7 +39,6 @@ const getCheckoutPage = async (req, res) => {
                 };
             }
 
-            // Find stock for the selected size
             const variant = item.productId.variants.find(
                 (variant) => variant.size === item.size
             );
@@ -66,19 +58,14 @@ const getCheckoutPage = async (req, res) => {
             };
         });
 
-        console.log("Stock check details:", stockCheckDetails);
-
-        // If stock is insufficient, redirect to cart with error
         if (!isStockSufficient) {
             console.log("Insufficient stock for one or more items in your cart.");
             return res.redirect('/cart?error=insufficient_stock');
         }
 
-        // Calculate subtotal considering product offers
         const subtotal = cart.items.reduce((total, item) => {
             if (item.productId) {
-                // Apply product offer if exists
-                const offerPrice = item.productId.productOffer > 0 
+                const offerPrice = item.productId.productOffer > 0
                     ? item.price - (item.price * item.productId.productOffer / 100)
                     : item.price;
                 return total + (offerPrice * item.quantity);
@@ -86,30 +73,15 @@ const getCheckoutPage = async (req, res) => {
             return total;
         }, 0);
 
-        // Get user's addresses
         const userAddress = await Address.findOne({ userId });
 
-        // Get available coupons (uncomment and adjust as needed)
-        // const validCoupons = await Coupon.find({
-        //     isActive: true,
-        //     expireOn: { $gt: new Date() },
-        //     createdOn: { $lt: new Date() },
-        //     $or: [
-        //         { userId: { $eq: [] } },
-        //         { userId: { $nin: [userId] } }
-        //     ]
-        // })
-        // .sort({ createdOn: -1 })
-        // .select('name offerPrice minimumPrice');
-
-        // Render checkout page
         return res.render('checkout', {
             cart,
             addresses: userAddress ? userAddress.addresses : [],
             user,
             subtotal,
             walletBalance: user.wallet || 0,
-            validCoupons: [], // Add this to avoid undefined error in template
+            validCoupons: [], // You can populate this with actual coupons if you have a Coupon model
             error: null
         });
 
@@ -129,39 +101,36 @@ const checkout = async (req, res) => {
             return res.status(401).json({ success: false, message: 'Please login to continue' });
         }
 
-        const { 
-            addressId, 
-            paymentMethod, 
-            couponCode, 
-            useWallet = false 
+        const {
+            addressId,
+            paymentMethod,
+            couponCode,
+            useWallet = false
         } = req.body;
 
-        // Validate required fields
         if (!addressId || !paymentMethod) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Address and payment method are required' 
+            return res.status(400).json({
+                success: false,
+                message: 'Address and payment method are required'
             });
         }
 
-        // Get cart and validate
         const cart = await Cart.findOne({ userId }).populate({
             path: 'items.productId',
             select: 'productName salePrice regularPrice variants productOffer isBlocked status'
         });
 
         if (!cart || cart.items.length === 0) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Cart is empty' 
+            return res.status(400).json({
+                success: false,
+                message: 'Cart is empty'
             });
         }
 
-        // Re-check stock availability and product status
         for (const item of cart.items) {
             if (!item.productId || item.productId.isBlocked || item.productId.status !== 'Available') {
-                return res.status(400).json({ 
-                    success: false, 
+                return res.status(400).json({
+                    success: false,
                     message: `Product ${item.productId?.productName || ''} is not available`
                 });
             }
@@ -173,32 +142,29 @@ const checkout = async (req, res) => {
             const productStock = variant ? variant.quantity : 0;
 
             if (item.quantity > productStock) {
-                return res.status(400).json({ 
-                    success: false, 
+                return res.status(400).json({
+                    success: false,
                     message: `Insufficient stock for ${item.productId.productName}`
                 });
             }
         }
 
-        // Get selected address
         const userAddress = await Address.findOne({ userId });
         const selectedAddress = userAddress.addresses.id(addressId);
         if (!selectedAddress) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Invalid address selected' 
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid address selected'
             });
         }
 
-        // Calculate totals considering product offers
         let subtotal = cart.items.reduce((total, item) => {
-            const offerPrice = item.productId.productOffer > 0 
+            const offerPrice = item.productId.productOffer > 0
                 ? item.price - (item.price * item.productId.productOffer / 100)
                 : item.price;
             return total + (offerPrice * item.quantity);
         }, 0);
 
-        // Apply coupon if provided
         let discount = 0;
         if (couponCode) {
             const coupon = await Coupon.findOne({ name: couponCode });
@@ -208,7 +174,6 @@ const checkout = async (req, res) => {
             }
         }
 
-        // Handle wallet payment if selected
         if (useWallet) {
             const user = await User.findById(userId);
             if (user.wallet < subtotal) {
@@ -219,15 +184,6 @@ const checkout = async (req, res) => {
             }
         }
 
-        // Here you would typically:
-        // 1. Create an order
-        // 2. Update product stock
-        // 3. Clear cart
-        // 4. Handle payment
-        // 5. Update wallet if used
-        // 6. Send confirmation email
-
-        // For now, let's just return success
         return res.status(200).json({
             success: true,
             message: 'Order placed successfully',
@@ -250,7 +206,168 @@ const checkout = async (req, res) => {
     }
 };
 
+// Add Address Controller
+const addAddress = async (req, res) => {
+    try {
+        console.log();
+        
+        const userId = req.session.user;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: 'Please login to add an address' });
+        }
+
+        const {
+            addressType,
+            name,
+            landMark,
+            city,
+            state,
+            pincode,
+            phone,
+            altPhone
+        } = req.body;
+
+        // Validate required fields
+        if (!addressType || !name || !city || !landMark || !state || !pincode || !phone || !altPhone) {
+            return res.status(400).json({ success: false, message: 'All required fields must be filled' });
+        }
+
+        // Validate phone number (basic validation for 10 digits)
+        const phoneRegex = /^\d{10}$/;
+        if (!phoneRegex.test(phone) || !phoneRegex.test(altPhone)) {
+            return res.status(400).json({ success: false, message: 'Phone numbers must be 10 digits' });
+        }
+
+        // Validate pincode (basic validation for 6 digits)
+        const pincodeRegex = /^\d{6}$/;
+        if (!pincodeRegex.test(pincode)) {
+            return res.status(400).json({ success: false, message: 'Pincode must be 6 digits' });
+        }
+        
+        // Create new address object
+        const newAddress = {
+            addressType,
+            name,
+            landMark,
+            city,
+            state,
+            pincode,
+            phone,
+            altPhone
+        };
+        console.log(newAddress); 
+
+        // Find or create user's address document
+        let userAddress = await Address.findOne({ userId });
+        console.log("userAddress=======",userAddress)
+        if (!userAddress) {
+            userAddress = new Address({
+                userId,
+                addresses: [newAddress]
+            });
+        } else {
+            userAddress.addresses.push(newAddress);
+        }
+        console.log("useraddress===== after else",userAddress)
+
+        await userAddress.save();
+
+        return res.status(200).json({
+            success: true,
+            message: 'Address added successfully',
+            address: newAddress
+        });
+
+    } catch (error) {
+        console.error('Error adding address:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Error adding address',
+            error: error.message
+        });
+    }
+};
+
+// Update Address Controller
+const updateAddress = async (req, res) => {
+    try {
+        const userId = req.session.user;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: 'Please login to update an address' });
+        }
+
+        const {
+            _id,
+            addressType,
+            name,
+            landMark,
+            city,
+            state,
+            pincode,
+            phone,
+            altPhone
+        } = req.body;
+
+        // Validate required fields
+        if (!_id || !addressType || !name || !city || !landMark || !state || !pincode || !phone || !altPhone) {
+            return res.status(400).json({ success: false, message: 'All required fields must be filled' });
+        }
+
+        // Validate phone number (basic validation for 10 digits)
+        const phoneRegex = /^\d{10}$/;
+        if (!phoneRegex.test(phone) || !phoneRegex.test(altPhone)) {
+            return res.status(400).json({ success: false, message: 'Phone numbers must be 10 digits' });
+        }
+
+        // Validate pincode (basic validation for 6 digits)
+        const pincodeRegex = /^\d{6}$/;
+        if (!pincodeRegex.test(pincode)) {
+            return res.status(400).json({ success: false, message: 'Pincode must be 6 digits' });
+        }
+
+        // Find user's address document
+        const userAddress = await Address.findOne({ userId });
+        if (!userAddress) {
+            return res.status(404).json({ success: false, message: 'No addresses found for user' });
+        }
+
+        // Find the address to update
+        const addressToUpdate = userAddress.addresses.id(_id);
+        if (!addressToUpdate) {
+            return res.status(404).json({ success: false, message: 'Address not found' });
+        }
+
+        // Update address fields
+        addressToUpdate.addressType = addressType;
+        addressToUpdate.name = name;
+        addressToUpdate.landMark = landMark;
+        addressToUpdate.city = city;
+        addressToUpdate.state = state;
+        addressToUpdate.pincode = pincode;
+        addressToUpdate.phone = phone;
+        addressToUpdate.altPhone = altPhone;
+
+        await userAddress.save();
+
+        return res.status(200).json({
+            success: true,
+            message: 'Address updated successfully',
+            address: addressToUpdate
+        });
+
+    } catch (error) {
+        console.error('Error updating address:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Error updating address',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     getCheckoutPage,
-    checkout
+    checkout,
+    addAddress,
+    updateAddress
 };

@@ -1,474 +1,475 @@
 <%- include("../../views/partials/user/header") %>
 <style>
     /* Main Checkout Styles */
-.checkout-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.checkout-title {
-    font-size: 32px;
-    margin-bottom: 30px;
-    color: #333;
-    border-bottom: 2px solid #f0f0f0;
-    padding-bottom: 15px;
-}
-
-.checkout-grid {
-    display: grid;
-    grid-template-columns: 1fr 350px;
-    gap: 20px;
-}
-
-@media (max-width: 900px) {
-    .checkout-grid {
-        grid-template-columns: 1fr;
+    .checkout-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-}
 
-/* Card Styles */
-.checkout-card {
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    margin-bottom: 20px;
-}
-
-.section-heading {
-    font-size: 18px;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 15px;
-}
-
-.section-heading i {
-    margin-right: 10px;
-    color: #5bbfba;
-}
-
-/* Customer Details Styles */
-.customer-details-display {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 15px;
-}
-
-.details-group {
-    margin-bottom: 15px;
-}
-
-.details-group label {
-    display: block;
-    font-size: 14px;
-    color: #777;
-    margin-bottom: 5px;
-}
-
-.detail-value {
-    font-size: 16px;
-    margin: 0;
-    color: #333;
-}
-
-/* Address Styles */
-.address-box {
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 15px;
-    margin-bottom: 15px;
-    transition: all 0.3s ease;
-}
-
-.address-box.selected {
-    border-color: #5bbfba;
-    background-color: rgba(91, 191, 186, 0.05);
-}
-
-.address-content {
-    display: flex;
-    align-items: flex-start;
-}
-
-.address-details {
-    flex: 1;
-    margin-left: 15px;
-}
-
-.address-details p {
-    margin: 5px 0;
-    font-size: 14px;
-}
-
-.address-details .name {
-    font-weight: 600;
-    font-size: 16px;
-}
-
-.address-type {
-    display: inline-block;
-    background: #f0f0f0;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    text-transform: uppercase;
-}
-
-.address-actions {
-    display: flex;
-    margin-bottom: 10px;
-}
-
-.edit-address-btn {
-    background: none;
-    border: none;
-    color: #5bbfba;
-    cursor: pointer;
-    font-size: 14px;
-    padding: 0;
-    margin-left: auto;
-    text-decoration: underline;
-}
-
-.add-address-btn {
-    background: none;
-    border: 1px dashed #5bbfba;
-    color: #5bbfba;
-    padding: 10px 15px;
-    width: 100%;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    margin-top: 10px;
-    transition: all 0.3s ease;
-}
-
-.add-address-btn:hover {
-    background-color: rgba(91, 191, 186, 0.1);
-}
-
-/* Address Form Styles */
-#add-address-form, #edit-address-form {
-    background: #f9f9f9;
-}
-
-#add-address-form h4, #edit-address-form h4 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    color: #333;
-}
-
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-size: 14px;
-    color: #555;
-}
-
-.form-group input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-.btn {
-    padding: 10px 15px;
-    border-radius: 4px;
-    font-size: 14px;
-    cursor: pointer;
-    border: none;
-    margin-right: 10px;
-}
-
-.btn-primary {
-    background-color: #5bbfba;
-    color: white;
-}
-
-.btn-secondary {
-    background-color: #f0f0f0;
-    color: #333;
-}
-
-/* Payment Method Styles */
-.payment-methods {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.payment-option {
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 15px;
-    transition: all 0.3s ease;
-}
-
-.payment-option.selected {
-    border-color: #5bbfba;
-    background-color: rgba(91, 191, 186, 0.05);
-}
-
-.payment-content {
-    display: flex;
-    align-items: center;
-}
-
-.payment-icon {
-    margin: 0 15px;
-    font-size: 20px;
-    color: #5bbfba;
-}
-
-.payment-details {
-    flex: 1;
-}
-
-.payment-details .name {
-    font-weight: 600;
-    margin: 0;
-}
-
-.payment-details .description {
-    color: #777;
-    margin: 5px 0 0;
-    font-size: 14px;
-}
-
-/* Order Summary Styles */
-.order-summary-section {
-    align-self: start;
-}
-
-.order-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 15px 0;
-    border-bottom: 1px solid #eee;
-}
-
-.order-details h4 {
-    margin: 0 0 10px;
-    font-size: 16px;
-}
-
-.order-quantity, .order-size {
-    margin: 5px 0;
-    font-size: 14px;
-    color: #777;
-}
-
-.order-price {
-    font-weight: 600;
-    font-size: 16px;
-}
-
-.order-summary {
-    margin-top: 20px;
-}
-
-.summary-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
-    font-size: 14px;
-}
-
-.summary-row.total {
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px solid #eee;
-    font-weight: 600;
-    font-size: 18px;
-}
-
-.place-order-btn {
-    background-color: #5bbfba;
-    color: white;
-    padding: 15px;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
-    width: 100%;
-    margin-top: 20px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.place-order-btn:hover {
-    background-color: #4aa6a2;
-}
-
-.delivery-info {
-    margin-top: 15px;
-    font-size: 14px;
-    color: #777;
-    text-align: center;
-}
-
-.delivery-info i {
-    margin-right: 5px;
-}
-
-/* Coupon Styles */
-.coupon-section {
-    margin-bottom: 20px;
-}
-
-.coupon-form {
-    display: flex;
-    margin-bottom: 10px;
-}
-
-.coupon-input {
-    flex: 1;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px 0 0 4px;
-    font-size: 14px;
-}
-
-.coupon-btn {
-    background-color: #5bbfba;
-    color: white;
-    border: none;
-    padding: 0 15px;
-    border-radius: 0 4px 4px 0;
-    cursor: pointer;
-}
-
-#removeCouponBtn {
-    background-color: #f55;
-}
-
-.coupon-message {
-    margin-top: 10px;
-    font-size: 14px;
-}
-
-.coupon-message.success {
-    color: #5bbfba;
-}
-
-.coupon-message.error {
-    color: #f55;
-}
-
-.available-coupons {
-    margin-top: 20px;
-}
-
-.coupon-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-.coupon-card {
-    border: 1px dashed #5bbfba;
-    border-radius: 8px;
-    padding: 10px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.coupon-card:hover {
-    background-color: rgba(91, 191, 186, 0.05);
-}
-
-.coupon-code {
-    font-weight: 600;
-    color: #5bbfba;
-    margin-bottom: 5px;
-}
-
-.coupon-discount {
-    font-weight: 600;
-    margin: 5px 0;
-}
-
-.coupon-min, .coupon-description {
-    font-size: 12px;
-    color: #777;
-    margin: 3px 0;
-}
-
-/* Header and Navigation Styles */
-.home {
-    color: #5bbfba;
-    text-decoration: none;
-    margin-right: 20px;
-    transition: color 0.3s;
-}
-
-.shop, .jaffa {
-    color: #333;
-    text-decoration: none;
-    margin-right: 20px;
-    transition: color 0.3s;
-}
-
-.home:hover, .shop:hover, .jaffa:hover {
-    color: #4aa6a2;
-}
-
-/* Sale Banner */
-.sale-banner {
-    background-color: #5bbfba;
-    color: white;
-    text-align: center;
-    padding: 10px 0;
-    font-size: 18px;
-    margin-bottom: 20px;
-}
-
-/* General Fixes */
-input[type="radio"] {
-    margin-right: 10px;
-}
-
-/* Make the checkout page more responsive */
-@media (max-width: 768px) {
-    .checkout-grid {
-        grid-template-columns: 1fr;
+    .checkout-title {
+        font-size: 32px;
+        margin-bottom: 30px;
+        color: #333;
+        border-bottom: 2px solid #f0f0f0;
+        padding-bottom: 15px;
     }
-    
+
+    .checkout-grid {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 20px;
+    }
+
+    @media (max-width: 900px) {
+        .checkout-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Card Styles */
+    .checkout-card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .section-heading {
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 15px;
+    }
+
+    .section-heading i {
+        margin-right: 10px;
+        color: #5bbfba;
+    }
+
+    /* Customer Details Styles */
     .customer-details-display {
-        grid-template-columns: 1fr;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
     }
-    
-    .coupon-form {
-        flex-direction: column;
+
+    .details-group {
+        margin-bottom: 15px;
     }
-    
-    .coupon-input {
+
+    .details-group label {
+        display: block;
+        font-size: 14px;
+        color: #777;
+        margin-bottom: 5px;
+    }
+
+    .detail-value {
+        font-size: 16px;
+        margin: 0;
+        color: #333;
+    }
+
+    /* Address Styles */
+    .address-box {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+    }
+
+    .address-box.selected {
+        border-color: #5bbfba;
+        background-color: rgba(91, 191, 186, 0.05);
+    }
+
+    .address-content {
+        display: flex;
+        align-items: flex-start;
+    }
+
+    .address-details {
+        flex: 1;
+        margin-left: 15px;
+    }
+
+    .address-details p {
+        margin: 5px 0;
+        font-size: 14px;
+    }
+
+    .address-details .name {
+        font-weight: 600;
+        font-size: 16px;
+    }
+
+    .address-type {
+        display: inline-block;
+        background: #f0f0f0;
+        padding: 2px 8px;
         border-radius: 4px;
+        font-size: 12px;
+        text-transform: uppercase;
+    }
+
+    .address-actions {
+        display: flex;
         margin-bottom: 10px;
     }
-    
-    .coupon-btn {
-        border-radius: 4px;
-        padding: 10px;
+
+    .edit-address-btn {
+        background: none;
+        border: none;
+        color: #5bbfba;
+        cursor: pointer;
+        font-size: 14px;
+        padding: 0;
+        margin-left: auto;
+        text-decoration: underline;
     }
-}
+
+    .add-address-btn {
+        background: none;
+        border: 1px dashed #5bbfba;
+        color: #5bbfba;
+        padding: 10px 15px;
+        width: 100%;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-top: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .add-address-btn:hover {
+        background-color: rgba(91, 191, 186, 0.1);
+    }
+
+    /* Address Form Styles */
+    #add-address-form, #edit-address-form {
+        background: #f9f9f9;
+    }
+
+    #add-address-form h4, #edit-address-form h4 {
+        margin-top: 0;
+        margin-bottom: 15px;
+        color: #333;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 14px;
+        color: #555;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+    .btn {
+        padding: 10px 15px;
+        border-radius: 4px;
+        font-size: 14px;
+        cursor: pointer;
+        border: none;
+        margin-right: 10px;
+    }
+
+    .btn-primary {
+        background-color: #5bbfba;
+        color: white;
+    }
+
+    .btn-secondary {
+        background-color: #f0f0f0;
+        color: #333;
+    }
+
+    /* Payment Method Styles */
+    .payment-methods {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .payment-option {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 15px;
+        transition: all 0.3s ease;
+    }
+
+    .payment-option.selected {
+        border-color: #5bbfba;
+        background-color: rgba(91, 191, 186, 0.05);
+    }
+
+    .payment-content {
+        display: flex;
+        align-items: center;
+    }
+
+    .payment-icon {
+        margin: 0 15px;
+        font-size: 20px;
+        color: #5bbfba;
+    }
+
+    .payment-details {
+        flex: 1;
+    }
+
+    .payment-details .name {
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .payment-details .description {
+        color: #777;
+        margin: 5px 0 0;
+        font-size: 14px;
+    }
+
+    /* Order Summary Styles */
+    .order-summary-section {
+        align-self: start;
+    }
+
+    .order-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 15px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .order-details h4 {
+        margin: 0 0 10px;
+        font-size: 16px;
+    }
+
+    .order-quantity, .order-size {
+        margin: 5px 0;
+        font-size: 14px;
+        color: #777;
+    }
+
+    .order-price {
+        font-weight: 600;
+        font-size: 16px;
+    }
+
+    .order-summary {
+        margin-top: 20px;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        font-size: 14px;
+    }
+
+    .summary-row.total {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #eee;
+        font-weight: 600;
+        font-size: 18px;
+    }
+
+    .place-order-btn {
+        background-color: #5bbfba;
+        color: white;
+        padding: 15px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        width: 100%;
+        margin-top: 20px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .place-order-btn:hover {
+        background-color: #4aa6a2;
+    }
+
+    .delivery-info {
+        margin-top: 15px;
+        font-size: 14px;
+        color: #777;
+        text-align: center;
+    }
+
+    .delivery-info i {
+        margin-right: 5px;
+    }
+
+    /* Coupon Styles */
+    .coupon-section {
+        margin-bottom: 20px;
+    }
+
+    .coupon-form {
+        display: flex;
+        margin-bottom: 10px;
+    }
+
+    .coupon-input {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px 0 0 4px;
+        font-size: 14px;
+    }
+
+    .coupon-btn {
+        background-color: #5bbfba;
+        color: white;
+        border: none;
+        padding: 0 15px;
+        border-radius: 0 4px 4px 0;
+        cursor: pointer;
+    }
+
+    #removeCouponBtn {
+        background-color: #f55;
+    }
+
+    .coupon-message {
+        margin-top: 10px;
+        font-size: 14px;
+    }
+
+    .coupon-message.success {
+        color: #5bbfba;
+    }
+
+    .coupon-message.error {
+        color: #f55;
+    }
+
+    .available-coupons {
+        margin-top: 20px;
+    }
+
+    .coupon-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .coupon-card {
+        border: 1px dashed #5bbfba;
+        border-radius: 8px;
+        padding: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .coupon-card:hover {
+        background-color: rgba(91, 191, 186, 0.05);
+    }
+
+    .coupon-code {
+        font-weight: 600;
+        color: #5bbfba;
+        margin-bottom: 5px;
+    }
+
+    .coupon-discount {
+        font-weight: 600;
+        margin: 5px 0;
+    }
+
+    .coupon-min, .coupon-description {
+        font-size: 12px;
+        color: #777;
+        margin: 3px 0;
+    }
+
+    /* Header and Navigation Styles */
+    .home {
+        color: #5bbfba;
+        text-decoration: none;
+        margin-right: 20px;
+        transition: color 0.3s;
+    }
+
+    .shop, .jaffa {
+        color: #333;
+        text-decoration: none;
+        margin-right: 20px;
+        transition: color 0.3s;
+    }
+
+    .home:hover, .shop:hover, .jaffa:hover {
+        color: #4aa6a2;
+    }
+
+    /* Sale Banner */
+    .sale-banner {
+        background-color: #5bbfba;
+        color: white;
+        text-align: center;
+        padding: 10px 0;
+        font-size: 18px;
+        margin-bottom: 20px;
+    }
+
+    /* General Fixes */
+    input[type="radio"] {
+        margin-right: 10px;
+    }
+
+    /* Make the checkout page more responsive */
+    @media (max-width: 768px) {
+        .checkout-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .customer-details-display {
+            grid-template-columns: 1fr;
+        }
+        
+        .coupon-form {
+            flex-direction: column;
+        }
+        
+        .coupon-input {
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        .coupon-btn {
+            border-radius: 4px;
+            padding: 10px;
+        }
+    }
 </style>
 <div class="checkout-container">
     <h1 class="checkout-title">Checkout</h1>
+    <div class="sale-banner">25% OFF ALMOST EVERYTHING! USE CODE: SUMMER SALE</div>
 
     <div class="checkout-grid">
         <!-- Left Column -->
@@ -483,147 +484,139 @@ input[type="radio"] {
                 <div class="customer-details-display">
                     <div class="details-group">
                         <label>Full Name</label>
-                        <p class="detail-value">
-                            <%= user?.username || 'Not provided' %>
-                        </p>
+                        <p class="detail-value"><%= user?.name || 'jaffa' %></p>
                     </div>
 
                     <div class="details-group">
                         <label>Email</label>
-                        <p class="detail-value">
-                            <%= user?.email || 'Not provided' %>
-                        </p>
+                        <p class="detail-value"><%= user?.email || 'j@gmail.com' %></p>
                     </div>
 
                     <div class="details-group">
                         <label>Phone Number</label>
-                        <p class="detail-value">
-                            <%= user?.mobile || 'Not provided' %>
-                        </p>
+                        <p class="detail-value"><%= user?.phone || '9539933611' %></p>
                     </div>
                 </div>
             </div>
 
-          <!-- Delivery Address Section -->
-<div class="checkout-card">
-    <div class="section-heading">
-        <i class="fas fa-map-marker-alt"></i>
-        Delivery Address
-    </div>
+            <!-- Delivery Address Section -->
+            <div class="checkout-card">
+                <div class="section-heading">
+                    <i class="fas fa-map-marker-alt"></i>
+                    Delivery Address
+                </div>
+                <% if (addresses && addresses.length > 0) { %>
+                    <% addresses.forEach((address, index) => { %>
+                        <div class="address-box <%= index === 0 ? 'selected' : '' %>" data-address-id="<%= address._id %>">
+                            <div class="address-content">
+                                <input type="radio" name="address" value="<%= address._id %>" <%= index === 0 ? 'checked' : '' %>>
+                                <div class="address-details">
+                                    <p class="name"><%= address.name %></p>
+                                    <p><%= address.landMark %></p>
+                                    <p><%= address.city %>, <%= address.state %> <%= address.pincode %></p>
+                                    <p>Phone: <%= address.phone %></p>
+                                    <p>Alt Phone: <%= address.altPhone || 'Not provided' %></p>
+                                    <p class="address-type"><%= address.addressType %></p>
+                                </div>
+                                <div class="address-actions">
+                                    <button type="button" class="edit-address-btn" data-address='<%- JSON.stringify(address).replace(/'/g, "'") %>'>
+                                        Edit
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <p>No addresses available. Please add a new address.</p>
+                <% } %>
+                <button class="add-address-btn" type="button">+ Add New Address</button>
 
-    <% if (addresses && addresses.length > 0) { %>
-        <% addresses.forEach((address, index) => { %>
-            <div class="address-box <%= index === 0 ? 'selected' : '' %>" data-address-id="<%= address._id %>">
-                <div class="address-content">
-                    <div class="address-actions">
-                        <button type="button" class="edit-address-btn" 
-                                data-address='<%- JSON.stringify(address).replace(/'/g, "&quot;") %>'>
-                            Edit
-                        </button>
-                    </div>
-                    <input type="radio" name="address" value="<%= address._id %>" <%= index === 0 ? 'checked' : '' %>>
-                    <div class="address-details">
-                        <p class="name"><%= address.name || 'Not provided' %></p>
-                        <p><%= address.landMark || 'Not provided' %></p>
-                        <p><%= address.city || 'Not provided' %>, <%= address.state || 'Not provided' %> <%= address.pincode || 'Not provided' %></p>
-                        <p>Phone: <%= address.phone || 'Not provided' %></p>
-                        <p>Alt Phone: <%= address.altPhone || 'Not provided' %></p>
-                        <p class="address-type"><%= address.addressType || 'Not provided' %></p>
-                    </div>
+                <!-- Add Address Form -->
+                <div id="add-address-form" class="address-box" style="display: none;">
+                    <h4>Add New Address</h4>
+                    <form id="address-form">
+                        <div class="form-group">
+                            <label for="address-type">Address Type</label>
+                            <input type="text" id="address-type" name="addressType" placeholder="eg: home, office">
+                        </div>
+                        <div class="form-group">
+                            <label for="address-name">Name</label>
+                            <input type="text" id="address-name" name="name">
+                        </div>
+                        <div class="form-group">
+                            <label for="address-landmark">Landmark</label>
+                            <input type="text" id="address-landmark" name="landmark">
+                        </div>
+                        <div class="form-group">
+                            <label for="address-city">City</label>
+                            <input type="text" id="address-city" name="city">
+                        </div>
+                        <div class="form-group">
+                            <label for="address-state">State</label>
+                            <input type="text" id="address-state" name="state">
+                        </div>
+                        <div class="form-group">
+                            <label for="address-pincode">Pincode</label>
+                            <input type="text" id="address-pincode" name="pincode">
+                        </div>
+                        <div class="form-group">
+                            <label for="address-phone">Phone</label>
+                            <input type="text" id="address-phone" name="phone">
+                        </div>
+                        <div class="form-group">
+                            <label for="address-altPhone">Alternate Phone (Optional)</label>
+                            <input type="text" id="address-altPhone" name="altPhone">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Save Address</button>
+                        <button type="button" class="btn btn-secondary" onclick="hideAddressForm()">Cancel</button>
+                    </form>
+                </div>
+
+                <!-- Edit Address Form -->
+                <div id="edit-address-form" class="address-box" style="display: none;">
+                    <h4>Edit Address</h4>
+                    <form id="edit-address-form">
+                        <input type="hidden" id="edit-address-id">
+                        <div class="form-group">
+                            <label for="edit-address-type">Address Type</label>
+                            <input type="text" id="edit-address-type" name="addressType">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-address-name">Name</label>
+                            <input type="text" id="edit-address-name" name="name">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-address-landmark">Landmark</label>
+                            <input type="text" id="edit-address-landmark" name="landmark">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-address-city">City</label>
+                            <input type="text" id="edit-address-city" name="city">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-address-state">State</label>
+                            <input type="text" id="edit-address-state" name="state">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-address-pincode">Pincode</label>
+                            <input type="text" id="edit-address-pincode" name="pincode">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-address-phone">Phone</label>
+                            <input type="text" id="edit-address-phone" name="phone">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-address-altPhone">Alternate Phone (Optional)</label>
+                            <input type="text" id="edit-address-altPhone" name="altPhone">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Update Address</button>
+                        <button type="button" class="btn btn-secondary" onclick="hideEditAddressForm()">Cancel</button>
+                    </form>
                 </div>
             </div>
-        <% }) %>
-    <% } else { %>
-        <p>No addresses found. Please add a new address.</p>
-    <% } %>
 
-    <button class="add-address-btn" type="button">+ Add New Address</button>
-
-    <!-- Add Address Form -->
-    <div id="add-address-form" class="address-box" style="display: none;">
-        <h4>Add New Address</h4>
-        <form id="address-form">
-            <div class="form-group">
-                <label for="address-type">Address Type</label>
-                <input type="text" id="address-type" name="addressType" placeholder="eg:home,office">
-            </div>
-            <div class="form-group">
-                <label for="address-name">Name</label>
-                <input type="text" id="address-name" name="name">
-            </div>
-            <div class="form-group">
-                <label for="address-landmark">LandMark</label>
-                <input type="text" id="address-landmark" name="landmark">
-            </div>
-            <div class="form-group">
-                <label for="address-city">City</label>
-                <input type="text" id="address-city" name="city">
-            </div>
-            <div class="form-group">
-                <label for="address-state">State</label>
-                <input type="text" id="address-state" name="state">
-            </div>
-            <div class="form-group">
-                <label for="address-pincode">Pincode</label>
-                <input type="text" id="address-pincode" name="pincode">
-            </div>
-            <div class="form-group">
-                <label for="address-phone">Phone</label>
-                <input type="text" id="address-phone" name="phone">
-            </div>
-            <div class="form-group">
-                <label for="address-altPhone">Alternate Phone (Optional)</label>
-                <input type="text" id="address-altPhone" name="altPhone">
-            </div>
-
-            <button type="submit" class="btn btn-primary">Save Address</button>
-            <button type="button" class="btn btn-secondary" onclick="hideAddressForm()">Cancel</button>
-        </form>
-    </div>
-
-    <!-- Edit Address Form -->
-    <div id="edit-address-form" class="address-box" style="display: none;">
-        <h4>Edit Address</h4>
-        <form id="edit-address-form">
-            <input type="hidden" id="edit-address-id">
-            <div class="form-group">
-                <label for="edit-address-type">Address Type</label>
-                <input type="text" id="edit-address-type" name="addressType">
-            </div>
-            <div class="form-group">
-                <label for="edit-address-name">Name</label>
-                <input type="text" id="edit-address-name" name="name">
-            </div>
-            <div class="form-group">
-                <label for="edit-address-landmark">LandMark</label>
-                <input type="text" id="edit-address-landmark" name="landmark">
-            </div>
-            <div class="form-group">
-                <label for="edit-address-city">City</label>
-                <input type="text" id="edit-address-city" name="city">
-            </div>
-            <div class="form-group">
-                <label for="edit-address-state">State</label>
-                <input type="text" id="edit-address-state" name="state">
-            </div>
-            <div class="form-group">
-                <label for="edit-address-pincode">Pincode</label>
-                <input type="text" id="edit-address-pincode" name="pincode">
-            </div>
-            <div class="form-group">
-                <label for="edit-address-phone">Phone</label>
-                <input type="text" id="edit-address-phone" name="phone">
-            </div>
-            <div class="form-group">
-                <label for="edit-address-altPhone">Alternate Phone (Optional)</label>
-                <input type="text" id="edit-address-altPhone" name="altPhone">
-            </div>
-
-            <button type="submit" class="btn btn-primary">Update Address</button>
-            <button type="button" class="btn btn-secondary" onclick="hideEditAddressForm()">Cancel</button>
-        </form>
-    </div>
-</div>
             <!-- Payment Method Section -->
             <div class="checkout-card">
                 <div class="section-heading">
@@ -689,14 +682,14 @@ input[type="radio"] {
                             Available Coupons
                         </div>
                         <div class="coupon-list">
-                            <% if(validCoupons && validCoupons.length > 0) { %>
+                            <% if (validCoupons && validCoupons.length > 0) { %>
                                 <% validCoupons.forEach(coupon => { %>
                                     <div class="coupon-card" onclick="applyCouponCode('<%= coupon.name %>')">
                                         <div class="coupon-code"><%= coupon.name %></div>
                                         <div class="coupon-details">
                                             <p class="coupon-discount">Save ₹<%= coupon.offerPrice %></p>
                                             <p class="coupon-min">Min. Order: ₹<%= coupon.minimumPrice %></p>
-                                            <% if(coupon.description) { %>
+                                            <% if (coupon.description) { %>
                                                 <p class="coupon-description"><%= coupon.description %></p>
                                             <% } %>
                                         </div>
@@ -708,17 +701,15 @@ input[type="radio"] {
                 </div>
 
                 <div class="section-heading">Order Summary</div>
-                <% if(cart && cart.items && cart.items.length > 0) { %>
+                <% if (cart && cart.items && cart.items.length > 0) { %>
                     <% cart.items.forEach(item => { %>
                         <div class="order-item">
                             <div class="order-details">
-                                <h4>
-                                    <%= item.productId?.productName || 'Product Name' %>
-                                </h4>
+                                <h4><%= item.productId?.productName || 'blacker' %></h4>
                                 <p class="order-quantity">Quantity: <%= item.quantity %></p>
                                 <p class="order-size">Size: <%= item.size %></p>
                             </div>
-                            <div class="order-price">₹<%= item.totalPrice %></div>
+                            <div class="order-price">₹<%= item.totalPrice || 15000 %></div>
                         </div>
                     <% }) %>
                 <% } %>
@@ -726,7 +717,7 @@ input[type="radio"] {
                 <div class="order-summary">
                     <div class="summary-row">
                         <span>Subtotal</span>
-                        <span id="subtotal">₹<%= subtotal || 0 %></span>
+                        <span id="subtotal">₹<%= subtotal || 15000 %></span>
                     </div>
                     <div class="summary-row">
                         <span>Shipping</span>
@@ -738,7 +729,7 @@ input[type="radio"] {
                     </div>
                     <div class="summary-row total">
                         <span>Total</span>
-                        <span>₹<%= subtotal || 0 %></span>
+                        <span>₹<%= subtotal || 15000 %></span>
                     </div>
                 </div>
 
@@ -756,187 +747,253 @@ input[type="radio"] {
 <%- include("../../views/partials/user/footer") %>
 <script>
     // Function to handle address selection
-function selectAddress(element) {
-    // Remove selected class from all address boxes
-    document.querySelectorAll('.address-box').forEach(box => {
-        box.classList.remove('selected');
-    });
-    
-    // Add selected class to clicked address box
-    element.classList.add('selected');
-    
-    // Select the radio button
-    element.querySelector('input[type="radio"]').checked = true;
-}
-
-// Function to handle payment method selection
-function selectPaymentMethod(element) {
-    // Remove selected class from all payment options
-    document.querySelectorAll('.payment-option').forEach(option => {
-        option.classList.remove('selected');
-    });
-    
-    // Add selected class to clicked payment option
-    element.classList.add('selected');
-    
-    // Select the radio button
-    element.querySelector('input[type="radio"]').checked = true;
-}
-
-// Function to show address form
-function showAddressForm() {
-    document.getElementById('add-address-form').style.display = 'block';
-}
-
-// Function to hide address form
-function hideAddressForm() {
-    document.getElementById('add-address-form').style.display = 'none';
-}
-
-// Function to show edit address form
-function showEditAddressForm(addressData) {
-    const form = document.getElementById('edit-address-form');
-    
-    // Populate form fields with address data
-    document.getElementById('edit-address-id').value = addressData._id;
-    document.getElementById('edit-address-type').value = addressData.addressType || '';
-    document.getElementById('edit-address-name').value = addressData.name || '';
-    document.getElementById('edit-address-landmark').value = addressData.landMark || '';
-    document.getElementById('edit-address-city').value = addressData.city || '';
-    document.getElementById('edit-address-state').value = addressData.state || '';
-    document.getElementById('edit-address-pincode').value = addressData.pincode || '';
-    document.getElementById('edit-address-phone').value = addressData.phone || '';
-    document.getElementById('edit-address-altPhone').value = addressData.altPhone || '';
-    
-    // Show the form
-    form.style.display = 'block';
-}
-
-// Function to hide edit address form
-function hideEditAddressForm() {
-    document.getElementById('edit-address-form').style.display = 'none';
-}
-
-// Function to apply coupon
-function applyCoupon() {
-    const couponCode = document.getElementById('coupon-code').value;
-    if (!couponCode) {
-        showCouponMessage('Please enter a coupon code', 'error');
-        return;
+    function selectAddress(element) {
+        document.querySelectorAll('.address-box').forEach(box => {
+            box.classList.remove('selected');
+        });
+        element.classList.add('selected');
+        element.querySelector('input[type="radio"]').checked = true;
     }
-    
-    // Normally, you would send an AJAX request to verify the coupon
-    // For demo purposes, we'll simulate a successful coupon application
-    const subtotal = parseFloat(document.getElementById('subtotal').textContent.replace('₹', ''));
-    const discountAmount = Math.round(subtotal * 0.1); // 10% discount for demo
-    
-    // Update UI to show discount
-    document.getElementById('discount-amount').textContent = discountAmount;
-    document.getElementById('discount-row').style.display = 'flex';
-    
-    // Update total
-    const newTotal = subtotal - discountAmount;
-    document.querySelector('.summary-row.total span:last-child').textContent = '₹' + newTotal;
-    
-    // Show success message
-    showCouponMessage('Coupon applied successfully!', 'success');
-    
-    // Show remove button
-    document.getElementById('applyCouponBtn').style.display = 'none';
-    document.getElementById('removeCouponBtn').style.display = 'inline-block';
-}
 
-// Function to remove coupon
-function removeCoupon() {
-    // Hide discount row
-    document.getElementById('discount-row').style.display = 'none';
-    
-    // Reset total to subtotal
-    const subtotal = document.getElementById('subtotal').textContent;
-    document.querySelector('.summary-row.total span:last-child').textContent = subtotal;
-    
-    // Clear coupon input
-    document.getElementById('coupon-code').value = '';
-    
-    // Show apply button
-    document.getElementById('applyCouponBtn').style.display = 'inline-block';
-    document.getElementById('removeCouponBtn').style.display = 'none';
-    
-    // Show message
-    showCouponMessage('Coupon removed', 'info');
-}
-
-// Function to apply coupon code from available coupons
-function applyCouponCode(code) {
-    document.getElementById('coupon-code').value = code;
-    applyCoupon();
-}
-
-// Function to show coupon message
-function showCouponMessage(message, type) {
-    const messageElement = document.getElementById('coupon-message');
-    messageElement.textContent = message;
-    messageElement.className = 'coupon-message ' + type;
-}
-
-// Function to place order
-function placeOrder() {
-    // Get selected address
-    const selectedAddress = document.querySelector('input[name="address"]:checked');
-    if (!selectedAddress) {
-        alert('Please select or add a delivery address');
-        return;
+    // Function to handle payment method selection
+    function selectPaymentMethod(element) {
+        document.querySelectorAll('.payment-option').forEach(option => {
+            option.classList.remove('selected');
+        });
+        element.classList.add('selected');
+        element.querySelector('input[type="radio"]').checked = true;
     }
-    
-    // Get selected payment method
-    const selectedPayment = document.querySelector('input[name="payment"]:checked');
-    
-    // Normally, you would submit the form or send an AJAX request here
-    // For demo purposes, we'll just show an alert
-    alert('Order placed successfully! You will be redirected to payment gateway if applicable.');
-}
 
-// Event listeners
-document.addEventListener('DOMContentLoaded', function() {
-    // Add click event listeners to address boxes
-    document.querySelectorAll('.address-box').forEach(box => {
-        box.addEventListener('click', function() {
-            selectAddress(this);
+    // Function to show address form
+    function showAddressForm() {
+        document.getElementById('add-address-form').style.display = 'block';
+    }
+
+    // Function to hide address form
+    function hideAddressForm() {
+        document.getElementById('add-address-form').style.display = 'none';
+    }
+
+    // Function to show edit address form
+    function showEditAddressForm(addressData) {
+        const form = document.getElementById('edit-address-form');
+        document.getElementById('edit-address-id').value = addressData._id || '';
+        document.getElementById('edit-address-type').value = addressData.addressType || '';
+        document.getElementById('edit-address-name').value = addressData.name || '';
+        document.getElementById('edit-address-landmark').value = addressData.landMark || '';
+        document.getElementById('edit-address-city').value = addressData.city || '';
+        document.getElementById('edit-address-state').value = addressData.state || '';
+        document.getElementById('edit-address-pincode').value = addressData.pincode || '';
+        document.getElementById('edit-address-phone').value = addressData.phone || '';
+        document.getElementById('edit-address-altPhone').value = addressData.altPhone || '';
+        form.style.display = 'block';
+    }
+
+    // Function to hide edit address form
+    function hideEditAddressForm() {
+        document.getElementById('edit-address-form').style.display = 'none';
+    }
+
+    // Function to apply coupon
+    function applyCoupon() {
+        const couponCode = document.getElementById('coupon-code').value.trim();
+        if (!couponCode) {
+            showCouponMessage('Please enter a coupon code', 'error');
+            return;
+        }
+
+        fetch('/apply-coupon', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ couponCode })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const subtotal = parseFloat(document.getElementById('subtotal').textContent.replace('₹', ''));
+                const discountAmount = data.discountAmount || 0;
+                document.getElementById('discount-amount').textContent = discountAmount;
+                document.getElementById('discount-row').style.display = 'flex';
+                const newTotal = subtotal - discountAmount;
+                document.querySelector('.summary-row.total span:last-child').textContent = '₹' + newTotal;
+                showCouponMessage('Coupon applied successfully!', 'success');
+                document.getElementById('applyCouponBtn').style.display = 'none';
+                document.getElementById('removeCouponBtn').style.display = 'inline-block';
+            } else {
+                showCouponMessage(data.message || 'Invalid coupon code', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showCouponMessage('An error occurred while applying the coupon', 'error');
+        });
+    }
+
+    // Function to remove coupon
+    function removeCoupon() {
+        document.getElementById('discount-row').style.display = 'none';
+        const subtotal = document.getElementById('subtotal').textContent;
+        document.querySelector('.summary-row.total span:last-child').textContent = subtotal;
+        document.getElementById('coupon-code').value = '';
+        document.getElementById('applyCouponBtn').style.display = 'inline-block';
+        document.getElementById('removeCouponBtn').style.display = 'none';
+        showCouponMessage('Coupon removed', 'info');
+    }
+
+    // Function to apply coupon code from available coupons
+    function applyCouponCode(code) {
+        document.getElementById('coupon-code').value = code;
+        applyCoupon();
+    }
+
+    // Function to show coupon message
+    function showCouponMessage(message, type) {
+        const messageElement = document.getElementById('coupon-message');
+        messageElement.textContent = message;
+        messageElement.className = 'coupon-message ' + type;
+    }
+
+    // Function to place order
+    function placeOrder() {
+        const selectedAddress = document.querySelector('input[name="address"]:checked');
+        if (!selectedAddress) {
+            alert('Please select or add a delivery address');
+            return;
+        }
+
+        const selectedPayment = document.querySelector('input[name="payment"]:checked');
+        if (!selectedPayment) {
+            alert('Please select a payment method');
+            return;
+        }
+
+        const couponCode = document.getElementById('coupon-code').value.trim() || null;
+        const orderData = {
+            addressId: selectedAddress.value,
+            paymentMethod: selectedPayment.value,
+            couponCode: couponCode,
+            totalAmount: parseFloat(document.querySelector('.summary-row.total span:last-child').textContent.replace('₹', '')),
+            items: <%- JSON.stringify(cart?.items || []) %> // Pass cart items from server
+        };
+
+        fetch('/place-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Order placed successfully!');
+                window.location.href = data.redirectUrl || '/order-confirmation';
+            } else {
+                alert('Failed to place order: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while placing the order.');
+        });
+    }
+
+    // Event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add click event listeners to address boxes
+        document.querySelectorAll('.address-box').forEach(box => {
+            box.addEventListener('click', function() {
+                selectAddress(this);
+            });
+        });
+
+        // Add click event listeners to payment options
+        document.querySelectorAll('.payment-option').forEach(option => {
+            option.addEventListener('click', function() {
+                selectPaymentMethod(this);
+            });
+        });
+
+        // Add click event listener to add address button
+        document.querySelector('.add-address-btn').addEventListener('click', showAddressForm);
+
+        // Add click event listeners to edit address buttons
+        document.querySelectorAll('.edit-address-btn').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const addressData = JSON.parse(this.getAttribute('data-address'));
+                showEditAddressForm(addressData);
+            });
+        });
+
+        // Form submission handlers
+        document.getElementById('address-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const addressData = {
+                addressType: document.getElementById('address-type').value.trim(),
+                name: document.getElementById('address-name').value.trim(),
+                landMark: document.getElementById('address-landmark').value.trim(),
+                city: document.getElementById('address-city').value.trim(),
+                state: document.getElementById('address-state').value.trim(),
+                pincode: document.getElementById('address-pincode').value.trim(),
+                phone: document.getElementById('address-phone').value.trim(),
+                altPhone: document.getElementById('address-altPhone').value.trim() || ''
+            };
+
+            fetch('/add-address', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(addressData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Address added successfully!');
+                    location.reload();
+                } else {
+                    alert('Failed to add address: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while adding the address.');
+            });
+
+            hideAddressForm();
+        });
+
+        document.getElementById('edit-address-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const addressData = {
+                _id: document.getElementById('edit-address-id').value,
+                addressType: document.getElementById('edit-address-type').value.trim(),
+                name: document.getElementById('edit-address-name').value.trim(),
+                landMark: document.getElementById('edit-address-landmark').value.trim(),
+                city: document.getElementById('edit-address-city').value.trim(),
+                state: document.getElementById('edit-address-state').value.trim(),
+                pincode: document.getElementById('edit-address-pincode').value.trim(),
+                phone: document.getElementById('edit-address-phone').value.trim(),
+                altPhone: document.getElementById('edit-address-altPhone').value.trim() || ''
+            };
+
+            fetch('/update-address', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(addressData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Address updated successfully!');
+                    location.reload();
+                } else {
+                    alert('Failed to update address: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while updating the address.');
+            });
+
+            hideEditAddressForm();
         });
     });
-    
-    // Add click event listeners to payment options
-    document.querySelectorAll('.payment-option').forEach(option => {
-        option.addEventListener('click', function() {
-            selectPaymentMethod(this);
-        });
-    });
-    
-    // Add click event listener to add address button
-    document.querySelector('.add-address-btn').addEventListener('click', showAddressForm);
-    
-    // Add click event listeners to edit address buttons
-    document.querySelectorAll('.edit-address-btn').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.stopPropagation(); // Prevent address box selection
-            const addressData = JSON.parse(this.getAttribute('data-address'));
-            showEditAddressForm(addressData);
-        });
-    });
-    
-    // Form submission handlers
-    document.getElementById('address-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        // Handle form submission logic here
-        hideAddressForm();
-        // You would typically send an AJAX request and update the UI
-    });
-    
-    document.getElementById('edit-address-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        // Handle form submission logic here
-        hideEditAddressForm();
-        // You would typically send an AJAX request and update the UI
-    });
-});+`
 </script>
