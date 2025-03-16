@@ -92,13 +92,11 @@ const updateOrderStatus = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
-
-// Approve Return Request
 const approveReturnRequest = async (req, res) => {
   try {
     const { orderId, productId } = req.body;
 
-    const order = await Order.findById(orderId);
+    const order = await Order.findById(orderId).populate('userId');
     if (!order) {
       return res.status(404).json({ success: false, message: 'Order not found' });
     }
@@ -108,6 +106,10 @@ const approveReturnRequest = async (req, res) => {
       return res.status(400).json({ success: false, message: 'No active return request for this item' });
     }
 
+    // Calculate refund amount
+    const refundAmount = item.price * item.variants.quantity;
+
+    // Update item status
     item.returnStatus = 'Approved';
 
     // Update product stock
@@ -122,18 +124,32 @@ const approveReturnRequest = async (req, res) => {
       }
     }
 
-    // Refund to wallet
-    const wallet = await Wallet.findOne({ userId: order.userId });
-    if (wallet) {
-      const refundAmount = item.price * item.variants.quantity;
-      wallet.balance += refundAmount;
-      wallet.transactionHistory.push({
-        type: 'refund',
-        amount: refundAmount,
-        date: new Date(),
-        description: `Refund for Order #${order.orderId} - ${item.name}`
-      });
-      await wallet.save();
+    // Update wallet if payment method is not COD
+    if (order.paymentMethod !== 'Cash on Delivery') {
+      const user = await User.findById(order.userId._id);
+      if (user) {
+        // Find the pending transaction
+        const transaction = user.walletHistory.find(
+          tx => tx.orderId.toString() === orderId && tx.itemId.toString() === productId && tx.status === 'Pending'
+        );
+        if (transaction) {
+          transaction.status = 'Completed';
+          user.wallet += refundAmount;
+        } else {
+          // Fallback: Add a completed transaction if no pending one exists (shouldn't happen)
+          user.walletHistory.push({
+            transactionId: `TXN-${Date.now()}`,
+            type: 'credit',
+            amount: refundAmount,
+            status: 'Completed',
+            orderId: order._id,
+            itemId: item._id,
+            description: `Refund for approved return in order #${order.orderId}`
+          });
+          user.wallet += refundAmount;
+        }
+        await user.save();
+      }
     }
 
     // Update order status if all items are processed
@@ -151,13 +167,11 @@ const approveReturnRequest = async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to approve return' });
   }
 };
-
-// Reject Return Request
 const rejectReturnRequest = async (req, res) => {
   try {
     const { orderId, productId } = req.body;
 
-    const order = await Order.findById(orderId);
+    const order = await Order.findById(orderId).populate('userId');
     if (!order) {
       return res.status(404).json({ success: false, message: 'Order not found' });
     }
@@ -167,7 +181,22 @@ const rejectReturnRequest = async (req, res) => {
       return res.status(400).json({ success: false, message: 'No active return request for this item' });
     }
 
+    // Update item status
     item.returnStatus = 'Rejected';
+
+    // Remove pending transaction from wallet history
+    if (order.paymentMethod !== 'Cash on Delivery') {
+      const user = await User.findById(order.userId._id);
+      if (user) {
+        const transactionIndex = user.walletHistory.findIndex(
+          tx => tx.orderId.toString() === orderId && tx.itemId.toString() === productId && tx.status === 'Pending'
+        );
+        if (transactionIndex !== -1) {
+          user.walletHistory.splice(transactionIndex, 1);
+          await user.save();
+        }
+      }
+    }
 
     // Update order status if all items are processed
     const allProcessed = order.orderItems.every(i =>
@@ -184,7 +213,6 @@ const rejectReturnRequest = async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to reject return' });
   }
 };
-
 module.exports = {
   loadOrderList,
   loadOrderDetails,

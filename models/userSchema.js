@@ -65,7 +65,13 @@ const userSchema=new Schema({
             type: String,
             enum: ["Completed", "Pending"],
             default: "Completed"
-        }
+        },orderId: {
+            type: Schema.Types.ObjectId,
+            ref: "Order"
+          },
+          itemId: {
+            type: Schema.Types.ObjectId
+          }
     }],
     orderHistory:[{
         type:Schema.Types.ObjectId,

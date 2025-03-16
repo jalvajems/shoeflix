@@ -84,20 +84,34 @@ router.post("/update-cart/:cartItemId", userAuth, cartController.updateCartQuant
 router.delete("/remove-from-cart/:cartItemId", userAuth, cartController.removeFromCart);
 
 //checkout======================================================
+// router.get('/checkout', userAuth, checkoutController.loadCheckoutPage);
+// router.post('/checkout', userAuth, checkoutController.processCheckout);
+// router.post('/verify-razorpay-payment', userAuth, checkoutController.verifyRazorpayPayment);
+// router.post('/cancel-product/:orderId/:itemId', userAuth, checkoutController.cancelProduct);
+// router.post('/cancel-order/:orderId', userAuth, checkoutController.cancelOrder);
+// router.post('/return-product/:orderId/:itemId', userAuth, checkoutController.returnProduct);
+// router.get('/download-invoice/:orderId', userAuth, checkoutController.downloadInvoice);
+
+// router.get('/checkout-address', userAuth, checkoutController.loadCheckoutAddress);
+// router.post('/api/addresses', userAuth, checkoutController.addressPost);
+// router.get('/api/addresses/:id/edit', userAuth, checkoutController.loadEditAddress);
+// router.post('/api/addresses/:id', userAuth, checkoutController.editAddress);
+
 router.get('/checkout', userAuth, checkoutController.loadCheckoutPage);
 router.post('/checkout', userAuth, checkoutController.processCheckout);
+router.post('/create-razorpay-order', userAuth, checkoutController.createRazorpayOrder);
 router.post('/verify-razorpay-payment', userAuth, checkoutController.verifyRazorpayPayment);
-router.post('/cancel-product/:orderId/:itemId', userAuth, checkoutController.cancelProduct);
+router.post('/handle-payment-dismissal', userAuth, checkoutController.handlePaymentDismissal);
+router.get('/checkout-address', userAuth, checkoutController.loadCheckoutAddress);
+router.post('/checkout-address', userAuth, checkoutController.addressPost);
+router.get('/api/addresses/:id/edit', userAuth, checkoutController.loadEditAddress);
+router.post('/api/addresses/:id/edit', userAuth, checkoutController.editAddress);
+router.get('/thank-you', userAuth, checkoutController.loadThankYouPage);
 router.post('/cancel-order/:orderId', userAuth, checkoutController.cancelOrder);
+router.post('/cancel-product/:orderId/:itemId', userAuth, checkoutController.cancelProduct);
 router.post('/return-product/:orderId/:itemId', userAuth, checkoutController.returnProduct);
 router.get('/download-invoice/:orderId', userAuth, checkoutController.downloadInvoice);
 
-
-
-router.get('/checkout-address', userAuth, checkoutController.loadCheckoutAddress);
-router.post('/api/addresses', userAuth, checkoutController.addressPost);
-router.get('/api/addresses/:id/edit', userAuth, checkoutController.loadEditAddress);
-router.post('/api/addresses/:id', userAuth, checkoutController.editAddress);
 
 router.get('/thank-you', userAuth, checkoutController.loadThankYouPage);
 module.exports = router

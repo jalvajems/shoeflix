@@ -1,7 +1,14 @@
 <%- include("../../views/partials/user/header") %>
 <style>
-  /* [Your existing styles remain unchanged] */
-  .card-green {
+
+.table th, .table td {
+  vertical-align: middle;
+}
+.table .badge {
+  font-size: 0.9em;
+  padding: 5px 10px;
+}
+.card-green {
     background-color: #88c8bcb9;
   }
   .main {
@@ -273,14 +280,59 @@
 
                 <!-- Wallet Tab -->
                 <div class="tab-pane fade" id="track-orders" role="tabpanel" aria-labelledby="track-orders-tab">
-                  <div class="card"><div class="card-header"><h5 class="mb-0">Wallet</h5></div><div class="card-body"><p>Wallet content here</p></div></div>
+                  <div class="card">
+                    <div class="card-header">
+                      <h5 class="mb-0">Wallet</h5>
+                    </div>
+                    <div class="card-body">
+                      <p><strong>Current Wallet Balance:</strong> ₹<%= user.wallet %></p>
+                      <p>Use your wallet balance to make purchases or withdraw funds (if applicable).</p>
+                    </div>
+                  </div>
                 </div>
 
                 <!-- Wallet History Tab -->
                 <div class="tab-pane fade" id="wallet-history" role="tabpanel" aria-labelledby="orders-tab">
-                  <div class="card"><div class="card-header"><h5 class="mb-0">Wallet History</h5></div><div class="card-body"><p>History content here</p></div></div>
+                  <div class="card">
+                    <div class="card-header">
+                      <h5 class="mb-0">Wallet History</h5>
+                    </div>
+                    <div class="card-body">
+                      <% if (user.walletHistory && user.walletHistory.length > 0) { %>
+                        <table class="table table-bordered">
+                          <thead>
+                            <tr>
+                              <th>Transaction ID</th>
+                              <th>Date</th>
+                              <th>Type</th>
+                              <th>Amount</th>
+                              <th>Status</th>
+                              <th>Description</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <% user.walletHistory.forEach(transaction => { %>
+                              <tr>
+                                <td><%= transaction.transactionId %></td>
+                                <td><%= new Date(transaction.date).toLocaleString() %></td>
+                                <td><%= transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1) %></td>
+                                <td>₹<%= transaction.amount.toFixed(2) %></td>
+                                <td>
+                                  <span class="badge <%= transaction.status === 'Completed' ? 'bg-success' : 'bg-warning' %>">
+                                    <%= transaction.status %>
+                                  </span>
+                                </td>
+                                <td><%= transaction.description || 'N/A' %></td>
+                              </tr>
+                            <% }) %>
+                          </tbody>
+                        </table>
+                      <% } else { %>
+                        <p>No wallet transactions found.</p>
+                      <% } %>
+                    </div>
+                  </div>
                 </div>
-
                 <!-- Referral Tab -->
                 <div class="tab-pane fade" id="referal" role="tabpanel" aria-labelledby="track-orders-tab">
                   <div class="card"><div class="card-header"><h5 class="mb-0">Referal</h5></div><div class="card-body"><p>Referral content here</p></div></div>
