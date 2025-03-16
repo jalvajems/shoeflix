@@ -5,6 +5,7 @@ const {userAuth,adminAuth}=require("../middlewares/auth")
 const customerController=require("../controllers/admin/customerController")
 const categoryController=require("../controllers/admin/categoryController")
 const productController=require("../controllers/admin/productController")
+const orderController = require('../controllers/admin/orderController'); 
 const multer=require("multer")
 const storage=require("../helpers/multer");
 const { route } = require("./userRouter");
@@ -68,6 +69,12 @@ router.route('/product/:id/unblock')
     .put(adminAuth, productController.unblockProduct);
 
 
+// Order Management
+router.get('/orders', adminAuth, orderController.loadOrderList);
+router.get('/orders/:id', adminAuth, orderController.loadOrderDetails);
+router.post('/updateOrderStatus/:id', adminAuth, orderController.updateOrderStatus);
+router.post('/approve-return', adminAuth, orderController.approveReturnRequest);
+router.post('/reject-return', adminAuth, orderController.rejectReturnRequest);
 
 
 module.exports=router

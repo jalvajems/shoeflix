@@ -1,0 +1,136 @@
+<%- include("../../views/partials/admin/header") %>
+
+<section class="content-main">
+  <div class="content-header">
+    <h2 class="content-title">Orders</h2>
+    <div class="search-filter">
+      <form method="GET" action="/admin/orders" class="d-flex">
+        <input type="text" name="search" value="<%= search %>" placeholder="Search by Order ID" class="form-control me-2">
+        <select name="status" class="form-select me-2" onchange="this.form.submit()">
+          <option value="">All Statuses</option>
+          <% availableStatuses.forEach(status => { %>
+            <option value="<%= status %>" <%= statusFilter === status ? 'selected' : '' %>><%= status %></option>
+          <% }); %>
+        </select>
+        <button type="submit" class="btn btn-primary">Filter</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Customer</th>
+              <th>Date</th>
+              <th>Items</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (orders.length > 0) { %>
+              <% orders.forEach(order => { %>
+                <tr>
+                  <td>#<%= order.orderId %></td>
+                  <td><%= order.userId.name %> <br> <small><%= order.userId.phone %></small></td>
+                  <td><%= new Date(order.createdOn).toLocaleDateString() %> <br> <small><%= new Date(order.createdOn).toLocaleTimeString() %></small></td>
+                  <td><%= order.orderItems.length %></td>
+                  <td>₹<%= order.finalAmount.toFixed(2) %></td>
+                  <td>
+                    <select class="form-select status-dropdown <%= order.status %>" onchange="updateStatus('<%= order._id %>', this.value)">
+                      <% availableStatuses.forEach(stat => { %>
+                        <option value="<%= stat %>" <%= order.status === stat ? 'selected' : '' %>><%= stat %></option>
+                      <% }); %>
+                    </select>
+                    <span class="spinner" style="display:none;">Loading...</span>
+                  </td>
+                  <td>
+                    <a href="/admin/orders/<%= order._id %>" class="btn btn-sm btn-info">View</a>
+                  </td>
+                </tr>
+              <% }); %>
+            <% } else { %>
+              <tr>
+                <td colspan="7" class="text-center">No orders found</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+      <% for(let i = 1; i <= totalPages; i++) { %>
+        <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+          <a class="page-link" href="/admin/orders?page=<%= i %>&search=<%= search %>&status=<%= statusFilter %>"><%= i %></a>
+        </li>
+      <% } %>
+    </ul>
+  </nav>
+</section>
+
+<style>
+  .content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .search-filter { max-width: 400px; }
+  .table { width: 100%; border-collapse: collapse; }
+  .table th, .table td { padding: 10px; text-align: left; border-bottom: 1px solid #dee2e6; }
+  .status-dropdown { width: 150px; padding: 5px; border-radius: 4px; }
+  .status-dropdown.Pending { background-color: #fff3cd; color: #856404; }
+  .status-dropdown.Processing { background-color: #cce5ff; color: #004085; }
+  .status-dropdown.Shipped { background-color: #d4edda; color: #155724; }
+  .status-dropdown.Delivered { background-color: #d1e7dd; color: #0f5132; }
+  .status-dropdown.Cancelled { background-color: #f8d7da; color: #721c24; }
+  .status-dropdown['Return Request'] { background-color: #cce5ff; color: #004085; }
+  .status-dropdown.Returned { background-color: #d1e7dd; color: #0f5132; }
+  .spinner { margin-left: 10px; font-size: 14px; }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  function updateStatus(orderId, newStatus) {
+    const select = event.target;
+    const spinner = select.nextElementSibling;
+    select.disabled = true;
+    spinner.style.display = 'inline';
+
+    fetch(`/admin/updateOrderStatus/${orderId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        select.className = `form-select status-dropdown ${newStatus}`;
+        Swal.fire({ icon: 'success', title: 'Updated', text: data.message, timer: 2000 });
+      } else {
+        select.value = select.dataset.previous;
+        Swal.fire({ icon: 'error', title: 'Failed', text: data.message, timer: 2000 });
+      }
+    })
+    .catch(err => {
+      console.error('Update failed:', err);
+      select.value = select.dataset.previous;
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Network issue', timer: 2000 });
+    })
+    .finally(() => {
+      select.disabled = false;
+      spinner.style.display = 'none';
+    });
+
+    select.dataset.previous = select.value;
+  }
+
+  document.querySelectorAll('.status-dropdown').forEach(select => {
+    select.dataset.previous = select.value;
+  });
+</script>
+
+<%- include("../../views/partials/admin/footer") %>

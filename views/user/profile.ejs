@@ -1,392 +1,590 @@
 <%- include("../../views/partials/user/header") %>
 <style>
- .card-green {
-   background-color: #88c8bcb9;
- }
- .main {
-   padding: 30px 0;
- }
-
-
- .dashboard-menu {
-   background-color: #88c8bcc3;
-   border-radius: 10px;
-   padding: 15px;
-   box-shadow: 0 4px 10px rgba(255, 255, 255, 0.366);
- }
-
-
- .dashboard-menu .nav-link {
- font-weight: bold;
- color: #30683c;
- box-shadow: 0 4px 10px rgba(123, 131, 112, 0.3), 0 4px 20px rgba(0, 191, 255, 0.2);
- transition: box-shadow 0.3s ease;
-}
-
-
-.dashboard-menu .nav-link:hover {
- color: #ffffff;
- box-shadow: 0 4px 15px rgba(249, 255, 240, 0.5), 0 6px 25px rgba(0, 191, 255, 0.4);
-}
-
-
- .card {
-   border-radius: 10px;
-   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-   margin-bottom: 20px;
- }
-
-
- .card-header {
-   background-color: #487379b8;
-   color: white;
-   border-radius: 10px 10px 0 0;
- }
-
-
- .btn-success {
-   background-color: #577194;
-   border-color: #6bb87d;
- }
-
-
- .btn-success:hover {
-   background-color: #506955;
- }
-
-
- .form-group {
-   margin-bottom: 15px;
- }
-
-
- .required {
-   color: red;
- }
-
-
-  @media (max-width: 768px) {
-   .dashboard-menu {
-     padding: 10px;
-   }
-
-
-   .card {
-     margin-bottom: 15px;
-   }
- }
- .page-header.breadcrumb-wrap {
- background-color: #ffffffcd;
- padding: 15px 0;
-}
-
-
-.breadcrumb {
- display: flex;
- align-items: center;
- font-family: 'Arial', sans-serif;
- font-size: 16px;
- color: #121311;
-}
-
-
-.breadcrumb a {
- color: #007bff;
- text-decoration: none;
- position: relative;
- margin: 0 5px;
-}
-
-
-.breadcrumb a:hover {
- color: #0056b3;
-}
-
-
-.breadcrumb span {
- margin: 0 5px;
- color: #999;
-}
-
-
-.breadcrumb a::after {
- content: '';
- position: absolute;
- width: 100%;
- height: 2px;
- background: #6e6e3a;
- left: 0;
- bottom: -2px;
- transform: scaleX(0);
- transition: transform 0.3s ease;
-}
-
-
-.breadcrumb a:hover::after {
- transform: scaleX(1);
-}
-
-.card-body{
+  /* [Your existing styles remain unchanged] */
+  .card-green {
+    background-color: #88c8bcb9;
+  }
+  .main {
+    padding: 30px 0;
+  }
+  .dashboard-menu {
+    background-color: #88c8bcc3;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 4px 10px rgba(255, 255, 255, 0.366);
+  }
+  .dashboard-menu .nav-link {
     font-weight: bold;
-}
-#addAddrs{
-  margin: 41px;
-
-}
+    color: #30683c;
+    box-shadow: 0 4px 10px rgba(123, 131, 112, 0.3), 0 4px 20px rgba(0, 191, 255, 0.2);
+    transition: box-shadow 0.3s ease;
+  }
+  .dashboard-menu .nav-link:hover {
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(249, 255, 240, 0.5), 0 6px 25px rgba(0, 191, 255, 0.4);
+  }
+  .card {
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    margin-bottom: 20px;
+  }
+  .card-header {
+    background-color: #487379b8;
+    color: white;
+    border-radius: 10px 10px 0 0;
+  }
+  .btn-success {
+    background-color: #577194;
+    border-color: #6bb87d;
+  }
+  .btn-success:hover {
+    background-color: #506955;
+  }
+  .form-group {
+    margin-bottom: 15px;
+  }
+  .required {
+    color: red;
+  }
+  @media (max-width: 768px) {
+    .dashboard-menu {
+      padding: 10px;
+    }
+    .card {
+      margin-bottom: 15px;
+    }
+  }
+  .page-header.breadcrumb-wrap {
+    background-color: #ffffffcd;
+    padding: 15px 0;
+  }
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    font-family: 'Arial', sans-serif;
+    font-size: 16px;
+    color: #121311;
+  }
+  .breadcrumb a {
+    color: #007bff;
+    text-decoration: none;
+    position: relative;
+    margin: 0 5px;
+  }
+  .breadcrumb a:hover {
+    color: #0056b3;
+  }
+  .breadcrumb span {
+    margin: 0 5px;
+    color: #999;
+  }
+  .breadcrumb a::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    background: #6e6e3a;
+    left: 0;
+    bottom: -2px;
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+  }
+  .breadcrumb a:hover::after {
+    transform: scaleX(1);
+  }
+  .card-body {
+    font-weight: bold;
+  }
+  #addAddrs {
+    margin: 41px;
+  }
+  .modal-content {
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  }
+  .order-card {
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    position: relative;
+  }
+  .order-card .badge {
+    font-size: 0.9em;
+    padding: 5px 10px;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+  }
+  .order-card img {
+    width: 50px;
+    height: auto;
+    margin-right: 10px;
+  }
+  .order-details {
+    display: none;
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #eee;
+    border-radius: 5px;
+  }
+  .order-actions a {
+    margin-right: 10px;
+    font-size: 0.9em;
+  }
+  .btn-cancel {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+  }
+  .btn-cancel:hover {
+    background-color: #c82333;
+  }
+  .btn-return {
+    background-color: #ffc107;
+    color: white;
+    border: none;
+  }
+  .btn-return:hover {
+    background-color: #e0a800;
+  }
+  #returnModal .modal-body textarea,
+  #cancelModal .modal-body textarea {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  .cancelled-item {
+    text-decoration: line-through;
+    color: #dc3545;
+    opacity: 0.7;
+  }
 </style>
 
-
 <main class="main">
- <div class="page-header breadcrumb-wrap mb-3">
-   <div class="container">
-     <div class="breadcrumb">
-       <a href="#" rel="nofollow">Home</a>
-       <span></span> Profile <span></span> Account
-     </div>
-   </div>
- </div>
+  <div class="page-header breadcrumb-wrap mb-3">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="#" rel="nofollow">Home</a>
+        <span></span> Profile <span></span> Account
+      </div>
+    </div>
+  </div>
   <section class="pt-10 pb-10">
-   <div class="container">
-     <div class="row">
-       <div class="col-lg-10 m-auto">
-         <div class="row">
-           <div class="col-md-4">
-             <div class="dashboard-menu">
-               <ul class="nav flex-column" role="tablist">
-                 <li class="nav-item">
-                   <a class="nav-link active" id="dashboard-tab" data-bs-toggle="tab" href="#dashboard" role="tab" aria-controls="dashboard" aria-selected="false">
-                     <i class="fi-rs-settings-sliders mr-10"></i>Dashboard
-                   </a>
-                 </li>
-                 <li class="nav-item">
-                   <a class="nav-link" id="address-tab" data-bs-toggle="tab" href="#address" role="tab" aria-controls="address" aria-selected="true">
-                     <i class="fi-rs-marker mr-10"></i>My Address
-                   </a>
-                 </li>
-                 <li class="nav-item">
-                   <a class="nav-link" id="orders-tab" data-bs-toggle="tab" href="#orders" role="tab" aria-controls="orders" aria-selected="false">
-                     <i class="fi-rs-shopping-bag mr-10"></i>Orders
-                   </a>
-                 </li>
-                 <li class="nav-item">
-                   <a class="nav-link" id="track-orders-tab" data-bs-toggle="tab" href="#track-orders" role="tab" aria-controls="track-orders" aria-selected="false">
-                     <i class="fi-rs-shopping-cart-check mr-10"></i>Wallet Status
-                   </a>
-                 </li>
-                 <li class="nav-item">
-                   <a class="nav-link" id="track-orders-tab" data-bs-toggle="tab" href="#wallet-history" role="tab" aria-controls="track-orders" aria-selected="false">
-                     <i class="fi-rs-shopping-cart-check mr-10"></i>Wallet History
-                   </a>
-                 </li>
-                 <li class="nav-item">
-                   <a class="nav-link" id="track-orders-tab" data-bs-toggle="tab" href="#referal" role="tab" aria-controls="track-orders" aria-selected="false">
-                     <i class="fi-rs-shopping-cart-check mr-10"></i>Referals
-                   </a>
-                 </li>
-                 <li class="nav-item">
-                   <a class="nav-link" href="/logout">
-                     <i class="fi-rs-sign-out mr-10"></i>Logout
-                   </a>
-                 </li>
-               </ul>
-             </div>
-           </div>
-           <div class="col-md-8">
-             <div class="tab-content dashboard-content">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-10 m-auto">
+          <div class="row">
+            <div class="col-md-4">
+              <div class="dashboard-menu">
+                <ul class="nav flex-column" role="tablist">
+                  <li class="nav-item">
+                    <a class="nav-link active" id="dashboard-tab" data-bs-toggle="tab" href="#dashboard" role="tab" aria-controls="dashboard" aria-selected="false">
+                      <i class="fi-rs-settings-sliders mr-10"></i>Dashboard
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" id="address-tab" data-bs-toggle="tab" href="#address" role="tab" aria-controls="address" aria-selected="true">
+                      <i class="fi-rs-marker mr-10"></i>My Address
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" id="orders-tab" data-bs-toggle="tab" href="#orders" role="tab" aria-controls="orders" aria-selected="false">
+                      <i class="fi-rs-shopping-bag mr-10"></i>Orders
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" id="track-orders-tab" data-bs-toggle="tab" href="#track-orders" role="tab" aria-controls="track-orders" aria-selected="false">
+                      <i class="fi-rs-shopping-cart-check mr-10"></i>Wallet Status
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" id="track-orders-tab" data-bs-toggle="tab" href="#wallet-history" role="tab" aria-controls="track-orders" aria-selected="false">
+                      <i class="fi-rs-shopping-cart-check mr-10"></i>Wallet History
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" id="track-orders-tab" data-bs-toggle="tab" href="#referal" role="tab" aria-controls="track-orders" aria-selected="false">
+                      <i class="fi-rs-shopping-cart-check mr-10"></i>Referals
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="/logout">
+                      <i class="fi-rs-sign-out mr-10"></i>Logout
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div class="col-md-8">
+              <div class="tab-content dashboard-content">
+                <!-- Dashboard Tab -->
+                <div class="tab-pane fade" id="dashboard" role="tabpanel" aria-labelledby="dashboard-tab">
+                  <div class="card card-green">
+                    <div class="card-header">
+                      <h5 class="mb-0 text-center">User Profile</h5>
+                    </div>
+                    <div class="card-body text-center">
+                      <p class="card-text"><strong>Name: <%= user.name %></strong></p>
+                      <p class="card-text"><strong>Phone: <%= user.phone %></strong></p>
+                      <p class="card-text"><strong>Email: <%= user.email %></strong></p>
+                      <a href="/change-email" class="btn btn-sm btn-success ml-2">Change Email</a>
+                      <a href="/change-password" class="btn btn-sm btn-success">Change Password</a>
+                    </div>
+                  </div>
+                </div>
 
+                <!-- Address Tab -->
+                <div class="tab-pane fade" id="address" role="tabpanel" aria-labelledby="address-tab">
+                  <div class="row">
+                    <% if (userAddress) { %>
+                      <% userAddress.address.forEach((address) => { %>
+                        <div class="col-lg-6">
+                          <div class="card mb-3 mb-lg-0">
+                            <div class="card-header"><h5 class="mb-0"><%= address.addressType %></h5></div>
+                            <div class="card-body">
+                              <address><%= address.name %> <br><%= address.city %> <br><%= address.landMark %> <br><%= address.state %> - <%= address.pincode %></address>
+                              <p>Phone: <%= address.phone %> / <%= address.altPhone %></p>
+                              <div class="d-flex justify-content-between">
+                                <a href="/editAddress?id=<%= address._id %>" class="btn-small">Edit</a>
+                                <a href="/deleteAddress?id=<%= address._id %>" class="btn-small" onclick="return confirm('Are you sure?')">Delete</a>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      <% }) %>
+                    <% } else { %>
+                      <div class="col-lg-6"><div class="card mb-3 mb-lg-0"><div class="card-header"><h5></h5></div><div class="card-body"><address>No address</address></div></div></div>
+                    <% } %>
+                    <div><a href="/addAddress"><button id="addAddrs" class="btn btn-primary w-70">Add address</button></a></div>
+                  </div>
+                </div>
 
-               <div class="tab-pane fade show active" id="dashboard" role="tabpanel" aria-labelledby="dashboard-tab">
-                 <div class="card card-green">
-                   <div class="card-header">
-                     <h5 class="mb-0 text-center">User Profile</h5>
-                   </div>
-                   <div class="card-body text-center">
-                     <h5 class="card-title"></h5>
-                     <p class="card-text">
-                       <strong>Name:<%=user.name %></strong>
-                     </p>
-                     <p class="card-text">
-                       <strong>Phone:<%=user.phone %></strong>
-                     </p>
-                     </p>
-                     <p class="card-text">
-                       <strong>Email:<%=user.email %></strong>
-                     </p>
-                     <a href="/change-email" class="btn btn-sm btn-success ml-2">Change Email</a>
-                     <a href="/change-password" class="btn btn-sm btn-success">Change Password</a>
-                   </div>
-                 </div>
-               </div>
+                <!-- Orders Tab -->
+                <div class="tab-pane fade show active" id="orders" role="tabpanel" aria-labelledby="orders-tab">
+                  <div class="card">
+                    <div class="card-header"><h5 class="mb-0">Your Orders</h5></div>
+                    <div class="card-body">
+                      <button type="button" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#orderModal">View Orders</button>
+                    </div>
+                  </div>
+                </div>
 
+                <!-- Wallet Tab -->
+                <div class="tab-pane fade" id="track-orders" role="tabpanel" aria-labelledby="track-orders-tab">
+                  <div class="card"><div class="card-header"><h5 class="mb-0">Wallet</h5></div><div class="card-body"><p>Wallet content here</p></div></div>
+                </div>
 
-               <div
-                 class="tab-pane fade"
-                 id="address"
-                 role="tabpanel"
-                 aria-labelledby="address-tab"
-               >
-                 <div class="row">
-                <% if(userAddress){%>
-                  <% userAddress.address.forEach((address)=>{ %>
+                <!-- Wallet History Tab -->
+                <div class="tab-pane fade" id="wallet-history" role="tabpanel" aria-labelledby="orders-tab">
+                  <div class="card"><div class="card-header"><h5 class="mb-0">Wallet History</h5></div><div class="card-body"><p>History content here</p></div></div>
+                </div>
 
-                   <div class="col-lg-6">
-                     <div class="card mb-3 mb-lg-0">
-                       <div class="card-header">
-                         <h5 class="mb-0"><%=address.addressType %></h5>
-                       </div>
+                <!-- Referral Tab -->
+                <div class="tab-pane fade" id="referal" role="tabpanel" aria-labelledby="track-orders-tab">
+                  <div class="card"><div class="card-header"><h5 class="mb-0">Referal</h5></div><div class="card-body"><p>Referral content here</p></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
+  <!-- Order Modal -->
+  <div class="modal fade" id="orderModal" tabindex="-1" aria-labelledby="orderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="orderModalLabel">Your Orders</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <% if (orders && orders.length > 0) { %>
+            <div class="order-list">
+              <% orders.forEach(order => { %>
+                <div class="order-card">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <strong>Order ID: <%= order.orderId %></strong><br>
+                      <span>Items: <%= order.orderItems.length %></span><br>
+                      <span>Total: ₹<%= order.finalAmount.toFixed(2) %></span><br>
+                      <span class="badge <%= order.status === 'Delivered' ? 'bg-success' : order.status === 'Cancelled' ? 'bg-danger' : 'bg-warning' %>">
+                        <%= order.status %>
+                      </span>
+                      <span>Date: <%= new Date(order.createdOn).toLocaleDateString() %></span>
+                    </div>
+                    <button class="btn btn-primary btn-sm view-details" data-order-id="<%= order._id %>">View Details</button>
+                  </div>
+                  <div class="order-details" id="details-<%= order._id %>" style="display: none;">
+                    <h6>Order Details</h6>
+                    <p><strong>Shipping Address:</strong></p>
+                    <address>
+                      <% if (order.address && order.address.length > 0) { %>
+                        <%= order.address[0].name %> <br>
+                        <%= order.address[0].city %> <br>
+                        <%= order.address[0].landMark %> <br>
+                        <%= order.address[0].state %> - <%= order.address[0].pincode %> <br>
+                        Phone: <%= order.address[0].phone %> / <%= order.address[0].altPhone %>
+                      <% } else { %>
+                        No address available
+                      <% } %>
+                    </address>
+                    <ul class="list-unstyled">
+                      <% order.orderItems.forEach(item => { %>
+                        <li class="mb-2 item-row" data-item-id="<%= item._id %>">
+                          <img src="/uploads/product-images/<%= item.productImage %>" alt="<%= item.name %>" style="width: 50px; height: auto; margin-right: 10px;">
+                          <%= item.name %> (Size: <%= item.variants.size %>, Qty: <%= item.variants.quantity %>) - ₹<%= (item.price * item.variants.quantity).toFixed(2) %>
+                          <% if (order.status === 'Pending' || order.status === 'Processing') { %>
+                            <button class="btn btn-cancel btn-sm cancel-product" data-order-id="<%= order._id %>" data-item-id="<%= item._id %>">Cancel Product</button>
+                          <% } %>
+                          <% if (order.status === 'Delivered' && new Date(order.createdOn).getTime() + 30*24*60*60*1000 > Date.now()) { %>
+                            <button class="btn btn-return btn-sm return-product" data-order-id="<%= order._id %>" data-item-id="<%= item._id %>" data-bs-toggle="modal" data-bs-target="#returnModal">Return</button>
+                          <% } %>
+                          <% if (item.cancelStatus === 'Cancelled') { %>
+                            <span class="cancelled-item">[Cancelled]</span>
+                          <% } %>
+                        </li>
+                      <% }) %>
+                    </ul>
+                    <p><strong>Final Amount: ₹<%= order.finalAmount.toFixed(2) %></strong></p>
+                    <a href="/download-invoice/<%= order.orderId %>" class="btn btn-success btn-sm">Download Invoice</a>
+                    <% if (order.status === 'Pending' || order.status === 'Processing') { %>
+                      <button class="btn btn-danger btn-sm cancel-order" data-order-id="<%= order._id %>" data-bs-toggle="modal" data-bs-target="#cancelModal">Cancel Order</button>
+                    <% } %>
+                  </div>
+                </div>
+              <% }) %>
+            </div>
+            <nav aria-label="Page navigation">
+              <ul class="pagination justify-content-center">
+                <% for(let i = 1; i <= totalPages; i++) { %>
+                  <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                    <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                  </li>
+                <% } %>
+              </ul>
+            </nav>
+          <% } else { %>
+            <p>No orders found.</p>
+          <% } %>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-                       <div class="card-body">
-                         <address>
-                        <%=address.name %>
-                        <%=address.city %>
-                        <%=address.landMark %>
-                        <%=address.state %>
-                    
-                         </address>
-                         <p><%=address.pincode %></p>
-                         <p><%=address.phone %></p>
-                         <p><%=address.altPhone %></p>
-                      
-                         <div class="d-flex justify-content-between">
-                           <a href="/editAddress?id=<%=address._id %>" class="btn-small">Edit</a>
-                           <a href="/deleteAddress?id=<%=address._id %>" class="btn-small" onclick="return confirm('Are you sure you want to delete this address?')">Delete</a>
-                         </div>
-                        
-                       </div>
-                     </div>
-                   </div>
-                   <%}) %><%}else{%>
-                
-                   <div class="col-lg-6">
-                     <div class="card mb-3 mb-lg-0">
-                       <div class="card-header">
-                         <h5 class="mb-0"></h5>
-                       </div>
-                       <div class="card-body">
-                         <address>No address</address>
-                       </div>
-                     </div>
-                   </div>
-                   <% } %>
-              
-                   <div>
-                     <a href="/addAddress">
-                       <button id="addAddrs" class="btn btn-primary w-70">
-                         Add address
-                       </button>
-                     </a>
-                   </div>
-                 </div>
-               </div>
+  <!-- Return Reason Modal -->
+  <div class="modal fade" id="returnModal" tabindex="-1" aria-labelledby="returnModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="returnModalLabel">Enter Return Reason</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="returnReasonForm">
+            <div class="form-group">
+              <label for="returnReason">Return Reason <span class="required">*</span></label>
+              <textarea class="form-control" id="returnReason" rows="3" placeholder="Please enter the reason for return" required></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="submitReturnReason">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-
-               <div class="tab-pane fade" id="orders" role="tabpanel" aria-labelledby="orders-tab">
-                 <div class="card">
-                   <div class="card-header">
-                     <h5 class="mb-0">Your Orders</h5>
-                   </div>
-                   <div class="card-body">
-                     <div class="table-responsive">
-                       <table class="table">
-                         <thead>
-                           <tr>
-                             <th>Order</th>
-                             <th>Status</th>
-                             <th>Total</th>
-                             <th>Actions</th>
-                           </tr>
-                         </thead>
-                         <tbody>
-                           <tr>
-                             <td></td>
-                             <td></td>
-                             <td></td>
-                             <td>
-                               <a href="" class="btn-small d-block">View</a>
-                             </td>
-                           </tr>
-                         </tbody>
-                       </table>
-                     </div>
-                   </div>
-                 </div>
-               </div>
-
-
-               <div class="tab-pane fade" id="track-orders" role="tabpanel" aria-labelledby="track-orders-tab">
-                 <div class="card">
-                   <div class="card-header">
-                     <h5 class="mb-0">Wallet</h5>
-                   </div>
-                   <div class="card-body contact-from-area">
-                     <div class="row">
-                       <div class="col-lg-8 mx-auto text-center mt-90">
-                         <form>
-                           <div class="form-group">
-                             <label for="walletAmount" class="h4">Amount</label>
-                             <div class="h3"></div>
-                           </div>
-                           <button type="button" class="btn btn-success" onclick="">Add Money</button>
-                         </form>
-                       </div>
-                     </div>
-                   </div>
-                 </div>
-               </div>
-
-
-               <div class="tab-pane fade" id="wallet-history" role="tabpanel" aria-labelledby="orders-tab">
-                 <div class="card">
-                   <div class="card-header">
-                     <h5 class="mb-0">Wallet History</h5>
-                   </div>
-                   <div class="card-body">
-                     <div class="table-responsive">
-                       <table class="table">
-                         <thead>
-                           <tr>
-                             <th>Date</th>
-                             <th>Status</th>
-                             <th>Amount</th>
-                           </tr>
-                         </thead>
-                         <tbody>
-                           <tr>
-                             <td></td>
-                             <td></td>
-                             <td></td>
-                           </tr>
-                         </tbody>
-                       </table>
-                     </div>
-                   </div>
-                 </div>
-               </div>
-
-
-               <div class="tab-pane fade" id="referal" role="tabpanel" aria-labelledby="track-orders-tab">
-                 <div class="card">
-                   <div class="card-header">
-                     <h5 class="mb-0">Referal</h5>
-                   </div>
-                   <div class="card-body">
-                     <h6 class="mb-3">Refer your friends and earn money!</h6>
-                     <p>Share this link: <strong>></strong></p>
-                     <p>Earned: ₹</p>
-                   </div>
-                 </div>
-               </div>
-       </div>
-     </div>
-   </div>
- </section>
+  <!-- Cancel Reason Modal -->
+  <div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="cancelModalLabel">Enter Cancellation Reason</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="cancelReasonForm">
+            <div class="form-group">
+              <label for="cancelReason">Cancellation Reason <span class="required">*</span></label>
+              <textarea class="form-control" id="cancelReason" rows="3" placeholder="Please enter the reason for cancellation" ></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="submitCancelReason">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </main>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // View Details
+    document.querySelectorAll('.view-details').forEach(button => {
+      button.addEventListener('click', () => {
+        const orderId = button.getAttribute('data-order-id');
+        const details = document.getElementById(`details-${orderId}`);
+        details.style.display = details.style.display === 'none' ? 'block' : 'none';
+      });
+    });
+
+    // Cancel Product (Simple Confirmation with Dynamic Removal)
+    document.querySelectorAll('.cancel-product').forEach(button => {
+      button.addEventListener('click', () => {
+        const orderId = button.getAttribute('data-order-id');
+        const itemId = button.getAttribute('data-item-id');
+        const itemRow = button.closest('.item-row');
+
+        Swal.fire({
+          title: 'Are you sure you want to cancel this product?',
+          text: "This action cannot be undone!",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#dc3545',
+          cancelButtonColor: '#6c757d',
+          confirmButtonText: 'Yes, cancel it!'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            fetch(`/cancel-product/${orderId}/${itemId}`, {
+              method: 'POST',
+              headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token') || ''}` // Add token if using auth
+              },
+              body: JSON.stringify({ reason: 'User-initiated cancellation' })
+            })
+            .then(response => {
+              if (!response.ok) throw new Error('Network response was not ok');
+              return response.json();
+            })
+            .then(data => {
+              if (data.success) {
+                Swal.fire('Success', 'Product cancelled successfully!', 'success').then(() => {
+                  // Dynamically remove the item row from the DOM
+                  if (itemRow) itemRow.remove();
+                  // Update the total amount display (optional, if you want to avoid reload)
+                  const finalAmountElement = document.querySelector(`#details-${orderId} p strong`);
+                  if (finalAmountElement) {
+                    const currentAmount = parseFloat(finalAmountElement.textContent.replace('₹', '').replace(',', ''));
+                    const itemPrice = parseFloat(button.closest('li').textContent.match(/₹([\d,.]+)/)[1]);
+                    finalAmountElement.textContent = `Final Amount: ₹${(currentAmount - itemPrice).toFixed(2)}`;
+                  }
+                });
+              } else {
+                Swal.fire('Error', data.message, 'error');
+              }
+            })
+            .catch(err => {
+              Swal.fire('Error', `An error occurred while cancelling the product: ${err.message}`, 'error');
+            });
+          }
+        });
+      });
+    });
+
+    // Return Product (Using Modal)
+    document.querySelectorAll('.return-product').forEach(button => {
+      button.addEventListener('click', () => {
+        const orderId = button.getAttribute('data-order-id');
+        const itemId = button.getAttribute('data-item-id');
+        const returnModal = document.getElementById('returnModal');
+        returnModal.setAttribute('data-order-id', orderId);
+        returnModal.setAttribute('data-item-id', itemId);
+      });
+    });
+
+    // Submit Return Reason
+    document.getElementById('submitReturnReason').addEventListener('click', () => {
+      const returnReason = document.getElementById('returnReason').value.trim();
+      const orderId = document.getElementById('returnModal').getAttribute('data-order-id');
+      const itemId = document.getElementById('returnModal').getAttribute('data-item-id'); // Fixed to use data-item-id
+
+      if (!returnReason) {
+        Swal.fire('Error', 'Please enter a return reason.', 'error');
+        return;
+      }
+
+      fetch(`/return-product/${orderId}/${itemId}`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}` // Add token if using auth
+        },
+        body: JSON.stringify({ reason: returnReason })
+      })
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+      })
+      .then(data => {
+        if (data.success) {
+          Swal.fire('Success', 'Return request submitted successfully!', 'success').then(() => {
+            location.reload(); // Reload to reflect updated status
+          });
+        } else {
+          Swal.fire('Error', data.message, 'error');
+        }
+      })
+      .catch(err => {
+        Swal.fire('Error', `An error occurred while submitting the return request: ${err.message}`, 'error');
+      });
+    });
+
+    // Cancel Order (Using Modal)
+    document.querySelectorAll('.cancel-order').forEach(button => {
+      button.addEventListener('click', () => {
+        const orderId = button.getAttribute('data-order-id');
+        const cancelModal = document.getElementById('cancelModal');
+        cancelModal.setAttribute('data-order-id', orderId);
+      });
+    });
+
+    // Submit Cancel Reason
+    document.getElementById('submitCancelReason').addEventListener('click', () => {
+      const cancelReason = document.getElementById('cancelReason').value.trim();
+      const orderId = document.getElementById('cancelModal').getAttribute('data-order-id');
+
+      if (!cancelReason) {
+        Swal.fire('Error', 'Please enter a cancellation reason.', 'error');
+        return;
+      }
+
+      fetch(`/cancel-order/${orderId}`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}` // Add token if using auth
+        },
+        body: JSON.stringify({ reason: cancelReason })
+      })
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+      })
+      .then(data => {
+        if (data.success) {
+          Swal.fire('Success', 'Order cancelled successfully!', 'success').then(() => {
+            location.reload(); // Reload to reflect updated status
+          });
+        } else {
+          Swal.fire('Error', data.message, 'error');
+        }
+      })
+      .catch(err => {
+        Swal.fire('Error', `An error occurred while cancelling the order: ${err.message}`, 'error');
+      });
+    });
+  });
+</script>
 <%- include("../../views/partials/user/footer") %>
-
-
-
-
-
-
-

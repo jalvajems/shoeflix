@@ -1,5 +1,6 @@
 const User=require("../../models/userSchema")
 const Address=require("../../models/addressSchema")
+const Order=require("../../models/orderSchema")
 const nodemailer=require("nodemailer")
 const bcrypt=require("bcrypt")
 const env=require("dotenv").config()
@@ -189,27 +190,49 @@ const postNewPassword = async (req, res) => {
         return res.redirect("/PageNotFound")
     }
 }
-
-const userProfile=async (req,res)=>{
+const loadUserProfile = async (req, res) => {
     try {
-        console.log("get in to the user profile");
-        
-        const userId=req.session.user
-        const userData=await User.findById(userId)
-        const addressData=await Address.findOne({userId:userId})
-
-        res.render('profile',{
-            user:userData,
-            userAddress:addressData
+      const userId = req.session.user;
+      const userData = await User.findById(userId);
+      const addressData = await Address.findOne({ userId: userId });
+  
+      // Fetch orders with detailed population and pagination
+      const page = parseInt(req.query.page) || 1;
+      const limit = 5; // Adjust as needed
+      const skip = (page - 1) * limit;
+      const orders = await Order.find({ userId })
+        .populate({
+          path: 'orderItems.product',
+          select: 'productName productImage' // Fetch product name and images
         })
+        .skip(skip)
+        .limit(limit)
+        .lean();
+      
+      // Map order items to include product details
+      orders.forEach(order => {
+        order.orderItems = order.orderItems.map(item => ({
+          ...item,
+          name: item.product ? item.product.productName : 'Unknown Product',
+          productImage: item.product && item.product.productImage ? item.product.productImage[0] : '/public/uploads/product-images/default.jpg'
+        }));
+      });
+  
+      const totalOrders = await Order.countDocuments({ userId });
+      const totalPages = Math.ceil(totalOrders / limit);
+  
+      res.render('profile', {
+        user: userData,
+        userAddress: addressData,
+        orders,
+        currentPage: page,
+        totalPages
+      });
     } catch (error) {
-        console.error("error for retrieve profile data",error);
-        res.redirect("/pageNotFound")
-        
+      console.error("error for retrieve profile data", error);
+      res.redirect("/pageNotFound");
     }
-}
-
-
+  };
 const updateProfile = async (req, res) => {
     try {
         const userId = req.session.user
@@ -562,14 +585,14 @@ const deleteAddress = async (req, res) => {
 
 
 
-module.exports={
+module.exports = {
     getForgotPassPage,
     forgotEmailValid,
     verifyForgotPassOtp,
     getResetPassPage,
     resendOtp,
     postNewPassword,
-    userProfile,
+    userProfile: loadUserProfile,
     updateProfile,
     changeEmail,
     changeEmailValid,
@@ -584,5 +607,4 @@ module.exports={
     editAddress,
     postEditAddress,
     deleteAddress
-
-}
+  };

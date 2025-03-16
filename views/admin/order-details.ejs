@@ -1,0 +1,136 @@
+<%- include("../../views/partials/admin/header") %>
+
+<div class="container-fluid py-4">
+  <div class="row">
+    <div class="col-12">
+      <h2 class="mb-4">Order Details</h2>
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          Order ID: #<%= order.orderId %>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <p><strong>Total Amount:</strong> ₹<%= order.finalAmount.toFixed(2) %></p>
+              <p><strong>Payment Method:</strong> <%= order.paymentMethod || 'N/A' %></p>
+              <p><strong>Status:</strong> <span class="badge <%= order.status === 'Delivered' ? 'bg-success' : order.status === 'Cancelled' ? 'bg-danger' : 'bg-info' %>"><%= order.status %></span></p>
+              <p><strong>Order Date:</strong> <%= new Date(order.createdOn).toLocaleString() %></p>
+            </div>
+            <div class="col-md-6">
+              <p><strong>Shipping Address:</strong></p>
+              <% if (order.address && order.address.length > 0) { %>
+                <% const shippingAddress = order.address[0]; %>
+                <address>
+                  <%= shippingAddress.name || 'N/A' %><br>
+                  <%= shippingAddress.city || 'N/A' %>, <%= shippingAddress.state || 'N/A' %> - <%= shippingAddress.pincode || 'N/A' %><br>
+                  Landmark: <%= shippingAddress.landMark || 'N/A' %><br>
+                  Phone: <%= shippingAddress.phone || 'N/A' %>
+                </address>
+              <% } else { %>
+                <p>N/A</p>
+              <% } %>
+            </div>
+          </div>
+
+          <h5 class="mt-4">Items</h5>
+          <div class="list-group">
+            <% order.orderItems.forEach(item => { %>
+              <div class="list-group-item">
+                <div class="d-flex">
+                  <!-- Prepend /uploads/product-images/ to the image path -->
+                  <img src="<%= item.product && item.product.productImage && item.product.productImage.length > 0 ? '/uploads/product-images/' + item.product.productImage[0] : '/default-image.jpg' %>" alt="<%= item.name || 'Product' %>" class="img-thumbnail" style="width: 80px; height: 80px; object-fit: cover;">
+                  <div class="ms-3">
+                    <h6><%= item.name || 'Unknown Product' %></h6>
+                    <p>Price: ₹<%= item.price.toFixed(2) %> (Qty: <%= item.variants.quantity %>)</p>
+                    <p>Size: <%= item.variants.size %></p>
+                    <p>Cancel Status: <%= item.cancelStatus %></p>
+                    <p>Return Status: <%= item.returnStatus %></p>
+                    <% if (item.returnStatus === 'Requested') { %>
+                      <p>Reason: <%= item.returnReason || 'Not provided' %></p>
+                      <p>Requested: <%= item.returnRequestedAt ? new Date(item.returnRequestedAt).toLocaleString() : 'N/A' %></p>
+                      <button class="btn btn-success btn-sm me-2" onclick="approveReturn('<%= order._id %>', '<%= item._id %>')">Approve</button>
+                      <button class="btn btn-danger btn-sm" onclick="rejectReturn('<%= order._id %>', '<%= item._id %>')">Reject</button>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+            <% }); %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  function approveReturn(orderId, productId) {
+    Swal.fire({
+      title: 'Confirm Approval',
+      text: 'Are you sure you want to approve this return?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes',
+      cancelButtonText: 'No'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        fetch('/admin/approve-return', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId, productId })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            Swal.fire('Success', data.message, 'success').then(() => location.reload());
+          } else {
+            Swal.fire('Error', data.message, 'error');
+          }
+        })
+        .catch(err => Swal.fire('Error', 'Network issue', 'error'));
+      }
+    });
+  }
+
+  function rejectReturn(orderId, productId) {
+    Swal.fire({
+      title: 'Confirm Rejection',
+      text: 'Are you sure you want to reject this return?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes',
+      cancelButtonText: 'No'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        fetch('/admin/reject-return', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId, productId })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            Swal.fire('Success', data.message, 'success').then(() => location.reload());
+          } else {
+            Swal.fire('Error', data.message, 'error');
+          }
+        })
+        .catch(err => Swal.fire('Error', 'Network issue', 'error'));
+      }
+    });
+  }
+</script>
+
+<style>
+  .card { border: 1px solid #e3e6f0; border-radius: 0.35rem; }
+  .card-header { padding: 1rem; }
+  .badge { padding: 0.25rem 0.5rem; font-size: 0.875rem; }
+  .bg-success { background-color: #28a745; color: #fff; }
+  .bg-danger { background-color: #dc3545; color: #fff; }
+  .bg-info { background-color: #17a2b8; color: #fff; }
+  address { margin-bottom: 0; font-style: normal; line-height: 1.5; }
+  .img-thumbnail { border: none; }
+  .list-group-item { border: none; padding: 1rem; }
+</style>
+
+<%- include("../../views/partials/admin/footer") %>
