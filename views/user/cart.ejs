@@ -1,5 +1,116 @@
 <%- include("../../views/partials/user/header") %>
 
+<style>
+    .breadcrumbs, .colorlib-product {
+        padding: 20px 0;
+    }
+
+    .process-wrap {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 30px;
+    }
+
+    .process {
+        flex: 1;
+        padding: 10px;
+        border-bottom: 2px solid #ddd;
+    }
+
+    .process.active {
+        border-bottom: 2px solid #28a745;
+        font-weight: bold;
+    }
+
+    .product-name, .product-cart {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .one-forth, .one-eight {
+        flex: 1;
+        text-align: center;
+        padding: 0 10px;
+    }
+
+    .one-forth {
+        text-align: left;
+        display: flex;
+        align-items: center;
+    }
+
+    .product-img {
+        width: 100px;
+        height: 100px;
+        background-size: cover;
+        background-position: center;
+        margin-right: 10px;
+    }
+
+    .quantity-control {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .quantity-control button, .quantity-input {
+        margin: 0 5px;
+        padding: 5px;
+        width: 40px;
+        text-align: center;
+    }
+
+    .total-wrap {
+        margin-top: 20px;
+        border: 1px solid #eee;
+        padding: 15px;
+        background: #f9f9f9;
+    }
+
+    .btn-primary {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+    }
+
+    .btn-primary:hover {
+        background-color: #218838;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 5px;
+    }
+
+    .btn-danger:hover {
+        background-color: #c82333;
+    }
+
+    @media (max-width: 768px) {
+        .product-name, .product-cart {
+            flex-direction: column;
+            text-align: left;
+        }
+
+        .one-forth, .one-eight {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .total-wrap {
+            margin-top: 20px;
+        }
+    }
+</style>
+
 <div class="breadcrumbs">
     <div class="container">
         <div class="row">
@@ -39,7 +150,7 @@
                             <span>Product Details</span>
                         </div>
                         <div class="one-eight text-center">
-                            <span>Size</span> <!-- New column for size -->
+                            <span>Size</span>
                         </div>
                         <div class="one-eight text-center">
                             <span>Price</span>
@@ -181,7 +292,12 @@
                     if (data.removed) {
                         input.closest(".product-cart").remove();
                         updateTotal();
-                        Swal.fire("Success", "Item removed from cart", "success");
+                        Swal.fire({
+                            title: "Success",
+                            text: "Item removed from cart",
+                            icon: "success",
+                            confirmButtonColor: "#28a745"
+                        });
                     } else {
                         input.value = data.quantity;
                         const itemTotalElement = input.closest(".product-cart").querySelector(".one-eight:nth-child(5) span");
@@ -191,11 +307,21 @@
                         updateTotal();
                     }
                 } else {
-                    Swal.fire("Error", data.message || "Failed to update cart", "error");
+                    Swal.fire({
+                        title: "Error",
+                        text: data.message || "Failed to update cart",
+                        icon: "error",
+                        confirmButtonColor: "#dc3545"
+                    });
                 }
             } catch (error) {
                 console.error("Error updating quantity:", error);
-                Swal.fire("Error", "Failed to update quantity", "error");
+                Swal.fire({
+                    title: "Error",
+                    text: "Failed to update quantity",
+                    icon: "error",
+                    confirmButtonColor: "#dc3545"
+                });
             }
         }
 
@@ -210,8 +336,8 @@
                 const grandTotalElement = document.querySelector(".grand-total span:last-child strong");
 
                 if (subtotalElement && grandTotalElement) {
-                    subtotalElement.textContent = `₹${total}`;
-                    grandTotalElement.textContent = `₹${total}`;
+                    subtotalElement.textContent = `₹${total.toFixed(2)}`; // Ensure 2 decimal places
+                    grandTotalElement.textContent = `₹${total.toFixed(2)}`;
                 }
 
                 if (totals.length === 0) {
@@ -219,28 +345,73 @@
                 }
             } catch (error) {
                 console.error("Error updating total:", error);
+                Swal.fire({
+                    title: "Error",
+                    text: "Failed to update cart totals",
+                    icon: "error",
+                    confirmButtonColor: "#dc3545"
+                });
             }
         }
 
-        // Remove item
+        // Remove item with confirmation
         document.querySelectorAll(".remove-item").forEach(btn => {
             btn.addEventListener("click", async function() {
                 const cartItemId = this.closest(".product-cart").dataset.cartItemId;
-                try {
-                    const response = await fetch(`/remove-from-cart/${cartItemId}`, {
-                        method: "DELETE"
-                    });
-                    const data = await response.json();
 
-                    if (data.status) {
-                        this.closest(".product-cart").remove();
-                        updateTotal();
-                        Swal.fire("Success", "Item removed from cart", "success");
-                    } else {
-                        Swal.fire("Error", data.message, "error");
+                // Show SweetAlert2 confirmation dialog
+                const result = await Swal.fire({
+                    title: "Are you sure?",
+                    text: "Do you want to remove this item from your cart?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#dc3545",
+                    cancelButtonColor: "#6c757d",
+                    confirmButtonText: "Yes, remove it!",
+                    cancelButtonText: "Cancel"
+                });
+
+                // Proceed only if the user confirms
+                if (result.isConfirmed) {
+                    try {
+                        const response = await fetch(`/remove-from-cart/${cartItemId}`, {
+                            method: "DELETE",
+                            headers: { "Content-Type": "application/json" }
+                        });
+
+                        const data = await response.json();
+
+                        if (data.status) {
+                            // Remove the item from the DOM
+                            this.closest(".product-cart").remove();
+                            // Update the total price
+                            updateTotal();
+                            // Show success message
+                            Swal.fire({
+                                title: "Success",
+                                text: "Item removed from cart",
+                                icon: "success",
+                                confirmButtonColor: "#28a745"
+                            });
+                        } else {
+                            // Show error message if the removal failed
+                            Swal.fire({
+                                title: "Error",
+                                text: data.message || "Failed to remove item",
+                                icon: "error",
+                                confirmButtonColor: "#dc3545"
+                            });
+                        }
+                    } catch (error) {
+                        console.error("Error removing item:", error);
+                        // Show error message if the request fails
+                        Swal.fire({
+                            title: "Error",
+                            text: "Failed to remove item due to a server error",
+                            icon: "error",
+                            confirmButtonColor: "#dc3545"
+                        });
                     }
-                } catch (error) {
-                    Swal.fire("Error", "Failed to remove item", "error");
                 }
             });
         });

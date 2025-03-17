@@ -67,6 +67,8 @@ const addToCart = async (req, res) => {
           items: [{
             productId,
             quantity,
+
+            
             size, // Make sure size is included here
             price: product.salePrice,
             totalPrice: product.salePrice * quantity

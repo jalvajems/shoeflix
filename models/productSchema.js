@@ -42,6 +42,15 @@ const productSchema = new Schema({
         type: Number,
         default: 0
     },
+    averageRating: { 
+        type: Number,
+        default: 0
+    }, 
+    ratingCount:
+    { 
+    type: Number,
+    default: 0 
+    },
     variants: [
         {
             size: {

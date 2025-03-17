@@ -1,5 +1,5 @@
 const Product = require("../../models/productSchema");
-const User=require("../../models/userSchema")
+const User = require("../../models/userSchema");
 const Category = require("../../models/categorySchema");
 const Offer = require("../../models/offerSchema");
 
@@ -43,7 +43,6 @@ const productDetails = async (req, res) => {
         let bestDiscount = 0;
         let bestOfferName = "";
 
-        // Check product offers
         for (const offer of productOffers) {
             let discount;
             if (offer.discountType === "percentage") {
@@ -58,7 +57,6 @@ const productDetails = async (req, res) => {
             }
         }
 
-        // Check category offers
         for (const offer of categoryOffers) {
             let discount;
             if (offer.discountType === "percentage") {
@@ -73,10 +71,15 @@ const productDetails = async (req, res) => {
             }
         }
 
+        // Fetch related products with ratings (if available in schema)
         const relatedProduct = await Product.find({
             category: findCategory,
             _id: { $ne: productId }
-        }).sort({ createdAt: -1 }).limit(4);
+        })
+            .sort({ createdAt: -1 })
+            .limit(4)
+            .select("productName productImage salePrice regularPrice averageRating ratingCount");
+console.log("related products========",relatedProduct);
 
         return res.render("product-details", {
             user: userData,
