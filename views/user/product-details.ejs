@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
-    <title> Shoeflix</title>
+    <title>Shoeflix</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -25,6 +25,7 @@
                     <ul class="navbar-nav me-auto">
                         <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
                         <li class="nav-item"><a class="nav-link" href="/shop">Shop</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/wishlist">Wishlist</a></li>
                     </ul>
                     <div class="d-flex align-items-center">
                         <a href="/cart" class="btn btn-sm btn-outline-dark"><i class="fas fa-shopping-cart me-1"></i> Cart</a>
@@ -59,6 +60,11 @@
                                 <% product.productImage.forEach((image, index) => { %>
                                     <div class="carousel-item <%= index === 0 ? 'active' : '' %>">
                                         <img src="/uploads/product-images/<%= image %>" class="d-block w-100 product-img" alt="<%= product.productName %>">
+                                        <% if (index === 0) { %>
+                                            <button class="wishlist-btn" onclick="toggleWishlist('<%= product._id %>', event)" title="Add to Wishlist">
+                                                <span class="icon-heart-o"></span>
+                                            </button>
+                                        <% } %>
                                     </div>
                                 <% }); %>
                             </div>
@@ -74,8 +80,14 @@
                     <div class="col-lg-6">
                         <h2 class="product-title mb-3"><%= product.productName %></h2>
                         <div class="mb-3 d-flex align-items-center gap-3 flex-wrap">
-                            <h3 class="me-3 mb-0 text-success">₹<%= product.salePrice %></h3>
-                            <strike><h4 class="me-3 mb-0 text-muted">₹<%= product.regularPrice %></h4></strike>
+                            <% if (bestOffer) { %>
+                                <h3 class="me-3 mb-0 text-success">₹<%= (product.regularPrice - bestOffer.discount).toFixed(2) %></h3>
+                                <strike><h4 class="me-3 mb-0 text-muted">₹<%= product.regularPrice.toFixed(2) %></h4></strike>
+                                <p class="text-success">Offer Applied: <%= bestOffer.name %> (Save ₹<%= bestOffer.discount.toFixed(2) %>)</p>
+                            <% } else { %>
+                                <h3 class="me-3 mb-0 text-success">₹<%= product.salePrice.toFixed(2) %></h3>
+                                <strike><h4 class="me-3 mb-0 text-muted">₹<%= product.regularPrice.toFixed(2) %></h4></strike>
+                            <% } %>
                         </div>
                         <p><%= product.description %></p>
                         <div><h4>Category: <%= category.name %></h4></div>
@@ -117,147 +129,273 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-      document.addEventListener("DOMContentLoaded", function() {
-          const sizeOptions = document.querySelectorAll(".size-option");
-          const stockInfo = document.getElementById("stock-info");
-          const quantityInput = document.getElementById("quantity");
-          const minusBtn = document.querySelector(".quantity-minus");
-          const plusBtn = document.querySelector(".quantity-plus");
-          const form = document.getElementById("addToCartForm");
-          let selectedSize = null;
-          const MAX_PER_PRODUCT = 5; // Maximum allowed quantity per product
-      
-          // Size selection handling
-          sizeOptions.forEach(option => {
-              option.addEventListener("click", function() {
-                  sizeOptions.forEach(opt => opt.classList.remove("active"));
-                  this.classList.add("active");
-                  selectedSize = this.dataset.size;
-                  const stock = parseInt(this.dataset.stock);
-                  
-                  // Update stock info display
-                  if (stock <= 0) {
-                      stockInfo.textContent = "Out of stock";
-                      quantityInput.value = 0;
-                      quantityInput.disabled = true;
-                  } else {
-                      stockInfo.textContent = `Available stock: ${stock} items`;
-                      quantityInput.max = Math.min(stock, MAX_PER_PRODUCT);
-                      quantityInput.value = 1;
-                      quantityInput.disabled = false;
-                  }
-              });
-          });
-      
-          // Quantity controls
-          minusBtn.addEventListener("click", () => {
-              let value = parseInt(quantityInput.value);
-              if (value > 1) {
-                  quantityInput.value = value - 1;
-              }
-          });
-      
-          plusBtn.addEventListener("click", () => {
-              let value = parseInt(quantityInput.value);
-              let max = parseInt(quantityInput.max);
-              if (value < max) {
-                  quantityInput.value = value + 1;
-              } else if (max === MAX_PER_PRODUCT) {
-                  Swal.fire("Limit Reached", `Maximum ${MAX_PER_PRODUCT} items allowed per product`, "warning");
-              } else {
-                  Swal.fire("Out of Stock", "Cannot add more than available stock", "warning");
-              }
-          });
-      
-          // Form submission handling
-          form.addEventListener("submit", async function(e) {
-              e.preventDefault();
-      
-              if (!selectedSize) {
-                  Swal.fire("Warning", "Please select a size", "warning");
-                  return;
-              }
-      
-              const quantity = parseInt(quantityInput.value);
-              const stock = parseInt(document.querySelector(".size-option.active").dataset.stock);
-      
-              // Validation checks
-              if (stock <= 0) {
-                  Swal.fire("Error", "This item is out of stock", "error");
-                  return;
-              }
-      
-              if (quantity <= 0) {
-                  Swal.fire("Warning", "Please select a valid quantity", "warning");
-                  return;
-              }
-      
-              if (quantity > stock) {
-                  Swal.fire("Error", `Only ${stock} items available in stock`, "error");
-                  return;
-              }
-      
-              if (quantity > MAX_PER_PRODUCT) {
-                  Swal.fire("Error", `Maximum ${MAX_PER_PRODUCT} items allowed per product`, "error");
-                  return;
-              }
-      
-              const data = {
-                  productId: form.querySelector("[name='productId']").value,
-                  size: selectedSize,
-                  quantity: quantity
-              };
-      
-              try {
-                  const response = await fetch("/add-to-cart", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify(data)
-                  });
-                  const result = await response.json();
-      
-                  if (result.status) {
-                      Swal.fire({
-                          title: "Success",
-                          text: result.message,
-                          icon: "success",
-                          confirmButtonText: "OK"
-                      }).then(() => {
-                          // Optional: Update stock display after successful addition
-                          const newStock = stock - quantity;
-                          document.querySelector(".size-option.active").dataset.stock = newStock;
-                          stockInfo.textContent = `Available stock: ${newStock} items`;
-                          if (newStock <= 0) {
-                              quantityInput.disabled = true;
-                              stockInfo.textContent = "Out of stock";
-                          }
-                      });
-                  } else {
-                      Swal.fire("Error", result.message, "error");
-                  }
-              } catch (error) {
-                  Swal.fire("Error", "Failed to add to cart. Please try again.", "error");
-              }
-          });
-      
-          // Input validation for manual entry
-          quantityInput.addEventListener("change", function() {
-              const stock = selectedSize ? parseInt(document.querySelector(".size-option.active").dataset.stock) : 0;
-              let value = parseInt(this.value);
-              
-              if (isNaN(value) || value < 1) {
-                  this.value = 1;
-                  Swal.fire("Warning", "Quantity must be at least 1", "warning");
-              } else if (value > stock) {
-                  this.value = stock;
-                  Swal.fire("Error", `Only ${stock} items available in stock`, "error");
-              } else if (value > MAX_PER_PRODUCT) {
-                  this.value = MAX_PER_PRODUCT;
-                  Swal.fire("Error", `Maximum ${MAX_PER_PRODUCT} items allowed per product`, "error");
-              }
-          });
-      });
-      </script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const sizeOptions = document.querySelectorAll(".size-option");
+            const stockInfo = document.getElementById("stock-info");
+            const quantityInput = document.getElementById("quantity");
+            const minusBtn = document.querySelector(".quantity-minus");
+            const plusBtn = document.querySelector(".quantity-plus");
+            const form = document.getElementById("addToCartForm");
+            let selectedSize = null;
+            const MAX_PER_PRODUCT = 5;
+
+            sizeOptions.forEach(option => {
+                option.addEventListener("click", function() {
+                    sizeOptions.forEach(opt => opt.classList.remove("active"));
+                    this.classList.add("active");
+                    selectedSize = this.dataset.size;
+                    const stock = parseInt(this.dataset.stock);
+                    
+                    if (stock <= 0) {
+                        stockInfo.textContent = "Out of stock";
+                        quantityInput.value = 0;
+                        quantityInput.disabled = true;
+                    } else {
+                        stockInfo.textContent = `Available stock: ${stock} items`;
+                        quantityInput.max = Math.min(stock, MAX_PER_PRODUCT);
+                        quantityInput.value = 1;
+                        quantityInput.disabled = false;
+                    }
+                });
+            });
+
+            minusBtn.addEventListener("click", () => {
+                let value = parseInt(quantityInput.value);
+                if (value > 1) {
+                    quantityInput.value = value - 1;
+                }
+            });
+
+            plusBtn.addEventListener("click", () => {
+                let value = parseInt(quantityInput.value);
+                let max = parseInt(quantityInput.max);
+                if (value < max) {
+                    quantityInput.value = value + 1;
+                } else if (max === MAX_PER_PRODUCT) {
+                    Swal.fire("Limit Reached", `Maximum ${MAX_PER_PRODUCT} items allowed per product`, "warning");
+                } else {
+                    Swal.fire("Out of Stock", "Cannot add more than available stock", "warning");
+                }
+            });
+
+            form.addEventListener("submit", async function(e) {
+                e.preventDefault();
+
+                if (!selectedSize) {
+                    Swal.fire("Warning", "Please select a size", "warning");
+                    return;
+                }
+
+                const quantity = parseInt(quantityInput.value);
+                const stock = parseInt(document.querySelector(".size-option.active").dataset.stock);
+
+                if (stock <= 0) {
+                    Swal.fire("Error", "This item is out of stock", "error");
+                    return;
+                }
+
+                if (quantity <= 0) {
+                    Swal.fire("Warning", "Please select a valid quantity", "warning");
+                    return;
+                }
+
+                if (quantity > stock) {
+                    Swal.fire("Error", `Only ${stock} items available in stock`, "error");
+                    return;
+                }
+
+                if (quantity > MAX_PER_PRODUCT) {
+                    Swal.fire("Error", `Maximum ${MAX_PER_PRODUCT} items allowed per product`, "error");
+                    return;
+                }
+
+                const data = {
+                    productId: form.querySelector("[name='productId']").value,
+                    size: selectedSize,
+                    quantity: quantity
+                };
+
+                try {
+                    const response = await fetch("/add-to-cart", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(data)
+                    });
+                    const result = await response.json();
+
+                    if (result.status) {
+                        Swal.fire({
+                            title: "Success",
+                            text: result.message,
+                            icon: "success",
+                            confirmButtonText: "OK"
+                        }).then(() => {
+                            const newStock = stock - quantity;
+                            document.querySelector(".size-option.active").dataset.stock = newStock;
+                            stockInfo.textContent = `Available stock: ${newStock} items`;
+                            if (newStock <= 0) {
+                                quantityInput.disabled = true;
+                                stockInfo.textContent = "Out of stock";
+                            }
+                        });
+                    } else {
+                        Swal.fire("Error", result.message, "error");
+                    }
+                } catch (error) {
+                    Swal.fire("Error", "Failed to add to cart. Please try again.", "error");
+                }
+            });
+
+            quantityInput.addEventListener("change", function() {
+                const stock = selectedSize ? parseInt(document.querySelector(".size-option.active").dataset.stock) : 0;
+                let value = parseInt(this.value);
+                
+                if (isNaN(value) || value < 1) {
+                    this.value = 1;
+                    Swal.fire("Warning", "Quantity must be at least 1", "warning");
+                } else if (value > stock) {
+                    this.value = stock;
+                    Swal.fire("Error", `Only ${stock} items available in stock`, "error");
+                } else if (value > MAX_PER_PRODUCT) {
+                    this.value = MAX_PER_PRODUCT;
+                    Swal.fire("Error", `Maximum ${MAX_PER_PRODUCT} items allowed per product`, "error");
+                }
+            });
+
+            // Wishlist Functionality
+            async function checkWishlistStatus(productId) {
+                try {
+                    const response = await fetch('/check-wishlist', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ productId })
+                    });
+                    if (!response.ok) {
+                        if (response.status === 401) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Login Required',
+                                text: 'Please log in to manage your wishlist.',
+                                confirmButtonColor: '#46698f'
+                            }).then(() => {
+                                window.location.href = '/login';
+                            });
+                            return false;
+                        }
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    console.log('Check wishlist response:', data); // Debug log
+                    if (!data.success) {
+                        console.error('Check wishlist failed:', data.message);
+                        return false;
+                    }
+                    return data.isInWishlist || false;
+                } catch (error) {
+                    console.error('Error checking wishlist status:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to check wishlist status. Please try again.',
+                        confirmButtonColor: '#46698f'
+                    });
+                    return false;
+                }
+            }
+
+            async function toggleWishlist(productId, event) {
+                event.preventDefault();
+                const button = event.target.closest('.wishlist-btn');
+                console.log('Toggle wishlist clicked for product:', productId); // Debug log
+
+                try {
+                    const isInWishlist = await checkWishlistStatus(productId);
+                    console.log('Is in wishlist:', isInWishlist); // Debug log
+
+                    if (isInWishlist) {
+                        Swal.fire({
+                            title: 'Remove from Wishlist?',
+                            text: "Do you want to remove this item from your wishlist?",
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#46698f',
+                            cancelButtonColor: '#d33',
+                            confirmButtonText: 'Yes, remove it!'
+                        }).then(async (result) => {
+                            if (result.isConfirmed) {
+                                const response = await fetch('/remove-from-wishlist', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ productId })
+                                });
+                                const data = await response.json();
+                                console.log('Remove from wishlist response:', data); // Debug log
+
+                                if (data.success) {
+                                    button.classList.remove('added');
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Removed',
+                                        text: 'Item removed from wishlist!',
+                                        confirmButtonColor: '#46698f'
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Failed',
+                                        text: data.message || 'Failed to remove from wishlist',
+                                        confirmButtonColor: '#46698f'
+                                    });
+                                }
+                            }
+                        });
+                    } else {
+                        const response = await fetch('/add-to-wishlist', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ productId })
+                        });
+                        const data = await response.json();
+                        console.log('Add to wishlist response:', data); // Debug log
+
+                        if (data.success) {
+                            button.classList.add('added');
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Added',
+                                text: 'Product added to wishlist!',
+                                confirmButtonColor: '#46698f'
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Failed',
+                                text: data.message || 'Failed to add to wishlist',
+                                confirmButtonColor: '#46698f'
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error toggling wishlist:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Something went wrong. Please try again.',
+                        confirmButtonColor: '#46698f'
+                    });
+                }
+            }
+
+            // Initialize wishlist button state on page load
+            const productId = '<%= product._id %>';
+            checkWishlistStatus(productId).then(isInWishlist => {
+                const wishlistBtn = document.querySelector('.wishlist-btn');
+                if (wishlistBtn && isInWishlist) {
+                    wishlistBtn.classList.add('added');
+                }
+            });
+        });
+    </script>
     <style>
         .size-option {
             cursor: pointer;
@@ -273,6 +411,37 @@
         .quantity-control input {
             width: 50px;
             text-align: center;
+        }
+        .wishlist-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s, color 0.3s;
+            z-index: 10;
+        }
+        .wishlist-btn:hover {
+            background: rgba(255, 255, 255, 1);
+            color: #ff2020;
+        }
+        .wishlist-btn .icon-heart-o::before {
+            content: "\2661";
+            font-size: 18px;
+        }
+        .wishlist-btn.added .icon-heart-o::before {
+            content: "\2665";
+            color: #ff2020;
+        }
+        .carousel-item {
+            position: relative;
         }
     </style>
 </body>

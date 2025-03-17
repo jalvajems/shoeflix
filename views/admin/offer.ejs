@@ -1,0 +1,147 @@
+<%- include("../../views/partials/admin/header") %>
+
+<main class="main-wrap">
+    <section class="content-main">
+        <div class="content-header">
+            <h2 class="content-title">Add New Offer</h2>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <form id="offerForm" action="/admin/offer" method="POST">
+                    <div class="form-group">
+                        <label for="name">Offer Name:</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="type">Offer Type:</label>
+                        <select class="form-control" id="type" name="type" required>
+                            <option value="">Select Type</option>
+                            <option value="product">Product Offer</option>
+                            <option value="category">Category Offer</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="productField">
+                        <label for="productId">Select Product:</label>
+                        <select class="form-control" id="productId" name="productId">
+                            <option value="">Select Product</option>
+                            <% products.forEach(product => { %>
+                                <option value="<%= product._id %>"><%= product.productName %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div class="form-group hidden" id="categoryField">
+                        <label for="categoryId">Select Category:</label>
+                        <select class="form-control" id="categoryId" name="categoryId">
+                            <option value="">Select Category</option>
+                            <% categories.forEach(category => { %>
+                                <option value="<%= category._id %>"><%= category.name %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="discountType">Discount Type:</label>
+                        <select class="form-control" id="discountType" name="discountType" required>
+                            <option value="percentage">Percentage</option>
+                            <option value="amount">Fixed Amount</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="discountValue">Discount Value:</label>
+                        <input type="number" class="form-control" id="discountValue" name="discountValue" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="startDate">Start Date:</label>
+                        <input type="date" class="form-control" id="startDate" name="startDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="endDate">End Date:</label>
+                        <input type="date" class="form-control" id="endDate" name="endDate" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Offer</button>
+                </form>
+            </div>
+        </div>
+    </section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.getElementById("type").addEventListener("change", function () {
+        const productField = document.getElementById("productField");
+        const categoryField = document.getElementById("categoryField");
+        if (this.value === "product") {
+            productField.classList.remove("hidden");
+            categoryField.classList.add("hidden");
+            document.getElementById("productId").required = true;
+            document.getElementById("categoryId").required = false;
+        } else if (this.value === "category") {
+            productField.classList.add("hidden");
+            categoryField.classList.remove("hidden");
+            document.getElementById("productId").required = false;
+            document.getElementById("categoryId").required = true;
+        } else {
+            productField.classList.add("hidden");
+            categoryField.classList.add("hidden");
+        }
+    });
+
+    // SweetAlert2 for form submission
+    document.getElementById("offerForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "Do you want to add this offer?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, add it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const formData = {
+                    name: document.getElementById("name").value,
+                    type: document.getElementById("type").value,
+                    discountType: document.getElementById("discountType").value,
+                    discountValue: document.getElementById("discountValue").value,
+                    productId: document.getElementById("productId").value,
+                    categoryId: document.getElementById("categoryId").value,
+                    startDate: document.getElementById("startDate").value,
+                    endDate: document.getElementById("endDate").value
+                };
+
+                fetch('/admin/offer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire(
+                            'Success!',
+                            'Offer added successfully.',
+                            'success'
+                        ).then(() => {
+                            window.location.href = '/admin/offer-list';
+                        });
+                    } else {
+                        Swal.fire(
+                            'Error!',
+                            data.message || 'Failed to add offer.',
+                            'error'
+                        );
+                    }
+                })
+                .catch(error => {
+                    Swal.fire(
+                        'Error!',
+                        'An error occurred while adding the offer.',
+                        'error'
+                    );
+                });
+            }
+        });
+    });
+</script>
+<%- include("../../views/partials/admin/footer") %>

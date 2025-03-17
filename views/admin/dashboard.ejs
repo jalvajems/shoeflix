@@ -1,11 +1,263 @@
 <%- include("../../views/partials/admin/header") %>
-<section class="content-main">
-    <div class="content-header">
-        <div>
-            <h2 class="content-title card-title">Dashboard </h2>
-        </div>
-       
-    </div>
-</section>
-<%- include("../../views/partials/admin/footer") %>
+<style>
+  .card {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+  .table-responsive {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  .form-select,
+  .form-control {
+    margin-bottom: 10px;
+  }
+  .error-message {
+    color: red;
+    font-size: 0.9em;
+    display: none;
+  }
+</style>
 
+<section class="content-main">
+  <div class="content-header">
+    <div>
+      <h2 class="content-title card-title">Dashboard</h2>
+      <p>Sales Report and Overview</p>
+    </div>
+    <div>
+      <div class="dropdown">
+        <button
+          class="btn btn-primary dropdown-toggle"
+          type="button"
+          id="downloadReportDropdown"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          Download Report
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="downloadReportDropdown">
+          <li>
+            <a
+              class="dropdown-item"
+              href="/admin/download/excel?filter=<%= selectedFilter %>&startDate=<%= startDate %>&endDate=<%= endDate %>"
+            >
+              Export Excel</a
+            >
+          </li>
+          <li>
+            <a
+              class="dropdown-item"
+              href="/admin/download/pdf?filter=<%= selectedFilter %>&startDate=<%= startDate %>&endDate=<%= endDate %>"
+            >
+              Export PDF</a
+            >
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <form action="/admin/dashboard" method="GET" id="filterForm" onsubmit="return validateForm(event)">
+        <div class="row">
+          <div class="col-md-3">
+            <label class="form-label">Filter:</label>
+            <select name="filter" class="form-select" onchange="toggleDateInputs(this)">
+              <option value="daily" <%= selectedFilter === 'daily' ? 'selected' : '' %>>Daily</option>
+              <option value="weekly" <%= selectedFilter === 'weekly' ? 'selected' : '' %>>Weekly</option>
+              <option value="monthly" <%= selectedFilter === 'monthly' ? 'selected' : '' %>>Monthly</option>
+              <option value="yearly" <%= selectedFilter === 'yearly' ? 'selected' : '' %>>Yearly</option>
+              <option value="custom" <%= selectedFilter === 'custom' ? 'selected' : '' %>>Custom</option>
+            </select>
+          </div>
+          <div
+            class="col-md-3"
+            id="startDateDiv"
+            <%= selectedFilter !== 'custom' ? 'style="display:none"' : '' %>
+          >
+            <label class="form-label">Start Date:</label>
+            <input type="date" name="startDate" class="form-control" value="<%= startDate %>" />
+            <div id="startDateError" class="error-message"></div>
+          </div>
+          <div
+            class="col-md-3"
+            id="endDateDiv"
+            <%= selectedFilter !== 'custom' ? 'style="display:none"' : '' %>
+          >
+            <label class="form-label">End Date:</label>
+            <input type="date" name="endDate" class="form-control" value="<%= endDate %>" />
+            <div id="endDateError" class="error-message"></div>
+          </div>
+          <div class="col-md-3 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary">Apply Filter</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body">
+          <h6>Total Sales</h6>
+          <h4>₹<%= totalSales.toFixed(2) %></h4>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body">
+          <h6>Total Orders</h6>
+          <h4><%= totalOrders %></h4>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body">
+          <h6>Total Discount</h6>
+          <h4>₹<%= totalDiscount.toFixed(2) %></h4>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body">
+          <h6>Total Coupon Discount</h6>
+          <h4>₹<%= (totalCouponDiscount || 0).toFixed(2) %></h4>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <h4>Sales Details</h4>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Date</th>
+              <th>Products</th>
+              <th>Total Price</th>
+              <th>Discount</th>
+              <th>Coupon Code</th>
+              <th>Coupon Discount</th>
+              <th>Final Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% orders.forEach(order => { %>
+            <tr>
+              <td><%= order.orderId %></td>
+              <td><%= order.createdOn.toLocaleDateString() %></td>
+              <td>
+                <% order.orderedItems.forEach(item => { %>
+                <div>
+                  <%= item.product?.productName || 'N/A' %> (Qty: <%= item.quantity || 0 %>)
+                </div>
+                <% }) %>
+              </td>
+              <td>₹<%= order.totalPrice.toFixed(2) %></td>
+              <td>₹<%= order.discount.toFixed(2) %></td>
+              <td><%= order.couponCode || 'N/A' %></td>
+              <td>₹<%= (order.couponDiscount || 0).toFixed(2) %></td>
+              <td>₹<%= order.finalAmount.toFixed(2) %></td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+
+      <% if (totalPages > 1) { %>
+      <nav class="mt-3">
+        <ul class="pagination justify-content-center">
+          <% for (let i = 1; i <= totalPages; i++) { %>
+          <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+            <a
+              class="page-link"
+              href="/admin/dashboard?page=<%= i %>&filter=<%= selectedFilter %>&startDate=<%= startDate %>&endDate=<%= endDate %>"
+            >
+              <%= i %>
+            </a>
+          </li>
+          <% } %>
+        </ul>
+      </nav>
+      <% } %>
+    </div>
+  </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  function toggleDateInputs(select) {
+    const startDateDiv = document.getElementById('startDateDiv');
+    const endDateDiv = document.getElementById('endDateDiv');
+    const isCustom = select.value === 'custom';
+    startDateDiv.style.display = isCustom ? 'block' : 'none';
+    endDateDiv.style.display = isCustom ? 'block' : 'none';
+  }
+
+  function validateForm(event) {
+    event.preventDefault();
+
+    const filter = document.querySelector('select[name="filter"]').value;
+    const startDateInput = document.querySelector('input[name="startDate"]');
+    const endDateInput = document.querySelector('input[name="endDate"]');
+    const startDateError = document.getElementById('startDateError');
+    const endDateError = document.getElementById('endDateError');
+
+    startDateError.style.display = 'none';
+    endDateError.style.display = 'none';
+    startDateError.textContent = '';
+    endDateError.textContent = '';
+
+    if (filter !== 'custom') {
+      event.target.submit();
+      return true;
+    }
+
+    const startDate = startDateInput.value;
+    const endDate = endDateInput.value;
+    const today = new Date().toISOString().split('T')[0];
+
+    if (!startDate) {
+      startDateError.textContent = 'Start date is required.';
+      startDateError.style.display = 'block';
+      return false;
+    }
+    if (!endDate) {
+      endDateError.textContent = 'End date is required.';
+      endDateError.style.display = 'block';
+      return false;
+    }
+
+    if (new Date(endDate) < new Date(startDate)) {
+      endDateError.textContent = 'End date cannot be before start date.';
+      endDateError.style.display = 'block';
+      return false;
+    }
+
+    if (startDate > today) {
+      startDateError.textContent = 'Start date cannot be in the future.';
+      startDateError.style.display = 'block';
+      return false;
+    }
+    if (endDate > today) {
+      endDateError.textContent = 'End date cannot be in the future.';
+      endDateError.style.display = 'block';
+      return false;
+    }
+
+    event.target.submit();
+    return true;
+  }
+</script>
+
+<%- include("../../views/partials/admin/footer") %>

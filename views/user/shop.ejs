@@ -11,8 +11,6 @@
    align-items: center;
    margin-bottom: 20px;
  }
-
-
  .search-form {
    display: flex;
    align-items: center;
@@ -22,8 +20,6 @@
    max-width: 250px;
    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
  }
-
-
  .search-input {
    flex: 1;
    padding: 8px 10px;
@@ -32,8 +28,6 @@
    outline: none;
    background-color: transparent;
  }
-
-
  .search-button {
    padding: 8px 15px;
    background-color: #1e918b;
@@ -45,8 +39,6 @@
    margin-right: 5px;
    transition: background-color 0.3s, transform 0.2s;
  }
-
-
  .search-button:hover {
    background-color: #0056b3;
    transform: scale(1.05);
@@ -60,51 +52,35 @@
    width: 250px;
    text-align: center;
  }
-
-
  .filter-section {
    margin-bottom: 20px;
  }
-
-
  .filter-title {
    font-weight: bold;
    margin-bottom: 10px;
    font-size: 16px;
    color: #333;
  }
-
-
  .filter-item {
    margin: 5px 0;
  }
-
-
  .filter-item a {
    text-decoration: none;
    color: #333;
  }
-
-
  .filter-item a:hover {
    color: #007bff;
  }
-
-
  .product-list-container {
    display: flex;
    gap: 20px;
  }
-
-
  .product-grid {
    display: flex;
    flex-wrap: wrap;
    gap: 20px;
    width: calc(100% - 270px);
  }
-
-
  .product-card {
    width: calc(33.333% - 20px);
    border: 1px solid #ddd;
@@ -113,27 +89,38 @@
    text-align: center;
    position: relative;
  }
-
-
  .product-card img {
    max-width: 100%;
    height: auto;
    border-radius: 5px;
  }
-
-
  .wishlist-btn {
    position: absolute;
    top: 8px;
    right: 8px;
    background-color: rgba(237, 247, 247, 0.8);
-   color: #fff;
-   padding: 8px;
+   border: none;
    border-radius: 50%;
+   width: 32px;
+   height: 32px;
    cursor: pointer;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   transition: background 0.3s, color 0.3s;
  }
-
-
+ .wishlist-btn:hover {
+   background: rgba(255, 255, 255, 1);
+   color: #ff2020;
+ }
+ .wishlist-btn .icon-heart-o::before {
+   content: "\2661";
+   font-size: 16px;
+ }
+ .wishlist-btn.added .icon-heart-o::before {
+   content: "\2665";
+   color: #ff2020;
+ }
  .add-to-cart-btn {
    background-color: #46698f;
    color: #fff;
@@ -144,16 +131,12 @@
    width: 100%;
    margin-top: 10px;
  }
-
-
  .pagination {
    display: flex;
    justify-content: center;
    gap: 10px;
    margin: 20px 0;
  }
-
-
  .pagination a {
    padding: 8px 12px;
    background-color: #f0f0f0;
@@ -161,29 +144,21 @@
    color: #333;
    text-decoration: none;
  }
-
-
  .pagination .active {
    background-color: #007bff;
    color: #fff;
  }
-
-
  .price-filter {
    padding: 10px;
    background-color: #f9f9f9;
    border-radius: 8px;
    margin-top: 20px;
  }
-
-
- .price-filter .price-options {
+ .price-options {
    display: flex;
    flex-direction: column;
    gap: 10px;
  }
-
-
  .price-button {
    padding: 12px 20px;
    background-color: #f1f1f1;
@@ -195,25 +170,18 @@
    text-align: center;
    font-size: 14px;
  }
-
-
  .price-button:hover {
    background-color: #007bff;
    color: white;
    transform: scale(1.05);
  }
-
-
  .price-button:active {
    transform: scale(0.95);
  }
-
-
  .category-brand-container {
    text-align: center;
  }
 </style>
-
 
 <div class="main-container">
  <section class="shop-page container">
@@ -240,74 +208,198 @@
            </ul>
          </div>
        </div>
-
-      
        <div class="price-filter">
         <div class="filter-title">Filter by Price</div>
         <form id="price-filter-form">
             <div class="price-options">
-                <a href="/filterPrice?gt=0&lt=5000"><button type="button" class="price-button">Under ₹5000</button></a>
-                <a href="/filterPrice?gt=5000&lt=6000"><button type="button" class="price-button">₹5000 - ₹6000</button></a>
-                <a href="/filterPrice?gt=6000&lt=7500"><button type="button" class="price-button">₹6000- ₹7500</button></a>
-                <a href="/filterPrice?gt=7500&lt=1000000"><button type="button" class="price-button">Above ₹7500</button></a>
+                <a href="/filterPrice?gt=0<=5000"><button type="button" class="price-button">Under ₹5000</button></a>
+                <a href="/filterPrice?gt=5000<=6000"><button type="button" class="price-button">₹5000 - ₹6000</button></a>
+                <a href="/filterPrice?gt=6000<=7500"><button type="button" class="price-button">₹6000- ₹7500</button></a>
+                <a href="/filterPrice?gt=7500<=1000000"><button type="button" class="price-button">Above ₹7500</button></a>
             </div>
         </form>
-    </div>
+       </div>
      </aside>
 
-
-
-<main class="product-grid">
-  <% if (products && products.length > 0) { %>
-    <% products.forEach(function(product) { %>
-      <div class="product-card">
-        <span class="wishlist-btn" onclick="">❤️</span>
-        
-        <a href="/productDetails/<%= product._id %>">
-          <img src="/uploads/product-images/<%= product.productImage[0] %>" alt="<%= product.productName %>" />
-          <h4><%= product.productName %></h4>
-          <p> 
-            Price: ₹<%= product.salePrice.toLocaleString('en-IN') %>
-            <% if (product.regularPrice) { %>
-              <span class="text-muted">
-                <strike>₹<%= product.regularPrice.toLocaleString('en-IN') %></strike>
-              </span>
-            <% } %>
-          </p>
-        </a>
-        <button class="add-to-cart-btn" onclick="addToCart('<%= product._id %>')">Add to Cart</button>
-      </div>
-    <% }); %>
-  <% } else { %>
-    <div class="no-products">
-      <p>No products available at the moment.</p>
-    </div>
-  <% } %>
-</main>
+     <main class="product-grid">
+       <% if (products && products.length > 0) { %>
+         <% products.forEach(function(product) { %>
+           <div class="product-card">
+             <button class="wishlist-btn" onclick="toggleWishlist('<%= product._id %>', event)" title="Add to Wishlist">
+               <span class="icon-heart-o"></span>
+             </button>
+             <a href="/productDetails/<%= product._id %>">
+               <img src="/uploads/product-images/<%= product.productImage[0] %>" alt="<%= product.productName %>" />
+               <h4><%= product.productName %></h4>
+               <p> 
+                 Price: ₹<%= product.salePrice.toLocaleString('en-IN') %>
+                 <% if (product.regularPrice) { %>
+                   <span class="text-muted">
+                     <strike>₹<%= product.regularPrice.toLocaleString('en-IN') %></strike>
+                   </span>
+                 <% } %>
+               </p>
+             </a>
+             <button class="add-to-cart-btn" onclick="addToCart('<%= product._id %>')">Add to Cart</button>
+           </div>
+         <% }); %>
+       <% } else { %>
+         <div class="no-products">
+           <p>No products available at the moment.</p>
+         </div>
+       <% } %>
+     </main>
    </div>
 
-
-<!-- Pagination -->
-<div class="pagination">
-  <% if (currentPage > 1) { %>
-    <a class="btn" href="/shop?page=<%= currentPage - 1 %>">Prev</a>
-  <% } %>
-
-
-  <% for (let i = 1; i <= totalPages; i++) { %>
-    <a class="btn <%= currentPage === i ? 'active' : '' %>" href="/shop?page=<%= i %>"><%= i %></a>
-  <% } %>
-
-
-  <% if (currentPage < totalPages) { %>
-    <a class="btn" href="/shop?page=<%= currentPage + 1 %>">Next</a>
-  <% } %>
-</div>
-
-
+   <!-- Pagination -->
+   <div class="pagination">
+     <% if (currentPage > 1) { %>
+       <a class="btn" href="/shop?page=<%= currentPage - 1 %>">Prev</a>
+     <% } %>
+     <% for (let i = 1; i <= totalPages; i++) { %>
+       <a class="btn <%= currentPage === i ? 'active' : '' %>" href="/shop?page=<%= i %>"><%= i %></a>
+     <% } %>
+     <% if (currentPage < totalPages) { %>
+       <a class="btn" href="/shop?page=<%= currentPage + 1 %>">Next</a>
+     <% } %>
+   </div>
  </section>
 </div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  // Existing addToCart function (unchanged)
+  function addToCart(productId) {
+    // Your existing add-to-cart logic here
+    console.log('Add to cart:', productId); // Placeholder
+  }
+
+  // Wishlist Functions
+  async function checkWishlistStatus(productId) {
+    try {
+      const response = await fetch('/check-wishlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId })
+      });
+      if (!response.ok) {
+        if (response.status === 401) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Login Required',
+            text: 'Please log in to manage your wishlist.',
+            confirmButtonColor: '#46698f'
+          }).then(() => {
+            window.location.href = '/login';
+          });
+          return false;
+        }
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data.success ? data.isInWishlist : false;
+    } catch (error) {
+      console.error('Error checking wishlist status:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to check wishlist status.',
+        confirmButtonColor: '#46698f'
+      });
+      return false;
+    }
+  }
+
+  async function toggleWishlist(productId, event) {
+    event.preventDefault();
+    const button = event.target.closest('.wishlist-btn');
+
+    try {
+      const isInWishlist = await checkWishlistStatus(productId);
+
+      if (isInWishlist) {
+        Swal.fire({
+          title: 'Remove from Wishlist?',
+          text: "Do you want to remove this item from your wishlist?",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#46698f',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Yes, remove it!'
+        }).then(async (result) => {
+          if (result.isConfirmed) {
+            const response = await fetch('/remove-from-wishlist', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ productId })
+            });
+            const data = await response.json();
+
+            if (data.success) {
+              button.classList.remove('added');
+              Swal.fire({
+                icon: 'success',
+                title: 'Removed',
+                text: 'Item removed from wishlist!',
+                confirmButtonColor: '#46698f'
+              });
+            } else {
+              Swal.fire({
+                icon: 'error',
+                title: 'Failed',
+                text: data.message || 'Failed to remove from wishlist',
+                confirmButtonColor: '#46698f'
+              });
+            }
+          }
+        });
+      } else {
+        const response = await fetch('/add-to-wishlist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId })
+        });
+        const data = await response.json();
+
+        if (data.success) {
+          button.classList.add('added');
+          Swal.fire({
+            icon: 'success',
+            title: 'Added',
+            text: 'Product added to wishlist!',
+            confirmButtonColor: '#46698f'
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Failed',
+            text: data.message || 'Failed to add to wishlist',
+            confirmButtonColor: '#46698f'
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling wishlist:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Something went wrong. Please try again.',
+        confirmButtonColor: '#46698f'
+      });
+    }
+  }
+
+  // Initialize wishlist button states on page load
+  document.addEventListener('DOMContentLoaded', async () => {
+    const wishlistButtons = document.querySelectorAll('.wishlist-btn');
+    for (const button of wishlistButtons) {
+      const productId = button.getAttribute('onclick').match(/'(.*?)'/)[1];
+      const isInWishlist = await checkWishlistStatus(productId);
+      if (isInWishlist) {
+        button.classList.add('added');
+      }
+    }
+  });
+</script>
 <%- include("../../views/partials/user/footer") %>
-
-
