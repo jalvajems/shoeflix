@@ -43,6 +43,8 @@ router
 router.get('/logout',userController.logout)
 //profile managment=============================
 router.get('/productDetails/:id',userAuth,productController.productDetails)
+router.post("/submit-review", productController.submitReview);
+
 router.get("/forgot-password",profileController.getForgotPassPage)
 router.post("/forgot-email-valid",profileController.forgotEmailValid)
 router.post("/verify-passForgot-otp", profileController.verifyForgotPassOtp)
@@ -84,9 +86,9 @@ router.get("/cart", userAuth, cartController.loadCart);
 router.post("/add-to-cart", userAuth, cartController.addToCart);
 router.post("/update-cart/:cartItemId", userAuth, cartController.updateCartQuantity);
 router.delete("/remove-from-cart/:cartItemId", userAuth, cartController.removeFromCart);
+router.get("/validate-cart-for-checkout", cartController.validateCartForCheckout);
 
 //checkout======================================================
-
 router.get('/checkout', userAuth, checkoutController.loadCheckoutPage);
 router.post('/checkout', userAuth, checkoutController.processCheckout);
 router.post('/create-razorpay-order', userAuth, checkoutController.createRazorpayOrder);

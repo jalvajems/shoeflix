@@ -2,7 +2,7 @@ const Product = require("../../models/productSchema");
 const User = require("../../models/userSchema");
 const Category = require("../../models/categorySchema");
 const Offer = require("../../models/offerSchema");
-
+const Review = require("../../models/reviewSchema");
 const productDetails = async (req, res) => {
     try {
         const userId = req.session.user;
@@ -19,6 +19,9 @@ const productDetails = async (req, res) => {
         }
 
         const findCategory = product.category;
+
+        // Fetch reviews for the product
+        const reviews = await Review.find({ productId }).populate("userId", "name");
 
         // Fetch active offers for the product and its category
         const currentDate = new Date();
@@ -79,13 +82,15 @@ const productDetails = async (req, res) => {
             .sort({ createdAt: -1 })
             .limit(4)
             .select("productName productImage salePrice regularPrice averageRating ratingCount");
-console.log("related products========",relatedProduct);
+
+        console.log("related products========", relatedProduct);
 
         return res.render("product-details", {
             user: userData,
             product: product,
             category: findCategory,
             relatedProduct,
+            reviews, // Pass reviews to the view
             bestOffer: bestOffer ? { name: bestOfferName, discount: bestDiscount } : null
         });
     } catch (error) {
@@ -94,6 +99,47 @@ console.log("related products========",relatedProduct);
     }
 };
 
+// Handle review submission
+const submitReview = async (req, res) => {
+    try {
+        const { productId, rating, comment } = req.body;
+        const userId = req.session.user;
+
+        if (!userId) {
+            return res.status(401).json({ success: false, message: "Please log in to submit a review." });
+        }
+
+        // Check if user has already reviewed this product
+        const existingReview = await Review.findOne({ productId, userId });
+        if (existingReview) {
+            return res.status(400).json({ success: false, message: "You have already reviewed this product." });
+        }
+
+        // Create new review
+        const review = new Review({
+            productId,
+            userId,
+            rating,
+            comment
+        });
+        await review.save();
+
+        // Update product's average rating and rating count
+        const reviews = await Review.find({ productId });
+        const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+        await Product.findByIdAndUpdate(productId, {
+            averageRating: avgRating,
+            ratingCount: reviews.length
+        });
+
+        res.status(200).json({ success: true, message: "Review submitted successfully!" });
+    } catch (error) {
+        console.error("Error submitting review:", error);
+        res.status(500).json({ success: false, message: "Failed to submit review." });
+    }
+};
+
 module.exports = {
-    productDetails
+    productDetails,
+    submitReview
 };

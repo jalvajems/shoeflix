@@ -108,8 +108,7 @@
         .total-wrap {
             margin-top: 20px;
         }
-    }
-</style>
+    }</style>
 
 <div class="breadcrumbs">
     <div class="container">
@@ -211,7 +210,7 @@
                                             <div class="grand-total">
                                                 <p><span><strong>Total:</strong></span> <span><strong>₹<%= totalPrice !== undefined ? totalPrice : '0' %></strong></span></p>
                                             </div>
-                                            <p><a href="/checkout" class="btn btn-primary">Proceed to Checkout</a></p>
+                                            <p><a href="#" id="proceedToCheckout" class="btn btn-primary">Proceed to Checkout</a></p>
                                         </div>
                                     </div>
                                 </div>
@@ -292,12 +291,7 @@
                     if (data.removed) {
                         input.closest(".product-cart").remove();
                         updateTotal();
-                        Swal.fire({
-                            title: "Success",
-                            text: "Item removed from cart",
-                            icon: "success",
-                            confirmButtonColor: "#28a745"
-                        });
+                        Swal.fire("Success", "Item removed from cart", "success");
                     } else {
                         input.value = data.quantity;
                         const itemTotalElement = input.closest(".product-cart").querySelector(".one-eight:nth-child(5) span");
@@ -307,21 +301,11 @@
                         updateTotal();
                     }
                 } else {
-                    Swal.fire({
-                        title: "Error",
-                        text: data.message || "Failed to update cart",
-                        icon: "error",
-                        confirmButtonColor: "#dc3545"
-                    });
+                    Swal.fire("Error", data.message || "Failed to update cart", "error");
                 }
             } catch (error) {
                 console.error("Error updating quantity:", error);
-                Swal.fire({
-                    title: "Error",
-                    text: "Failed to update quantity",
-                    icon: "error",
-                    confirmButtonColor: "#dc3545"
-                });
+                Swal.fire("Error", "Failed to update quantity", "error");
             }
         }
 
@@ -336,8 +320,8 @@
                 const grandTotalElement = document.querySelector(".grand-total span:last-child strong");
 
                 if (subtotalElement && grandTotalElement) {
-                    subtotalElement.textContent = `₹${total.toFixed(2)}`; // Ensure 2 decimal places
-                    grandTotalElement.textContent = `₹${total.toFixed(2)}`;
+                    subtotalElement.textContent = `₹${total}`;
+                    grandTotalElement.textContent = `₹${total}`;
                 }
 
                 if (totals.length === 0) {
@@ -345,75 +329,80 @@
                 }
             } catch (error) {
                 console.error("Error updating total:", error);
-                Swal.fire({
-                    title: "Error",
-                    text: "Failed to update cart totals",
-                    icon: "error",
-                    confirmButtonColor: "#dc3545"
-                });
             }
         }
 
-        // Remove item with confirmation
+        // Remove item
         document.querySelectorAll(".remove-item").forEach(btn => {
             btn.addEventListener("click", async function() {
                 const cartItemId = this.closest(".product-cart").dataset.cartItemId;
+                try {
+                    const response = await fetch(`/remove-from-cart/${cartItemId}`, {
+                        method: "DELETE"
+                    });
+                    const data = await response.json();
 
-                // Show SweetAlert2 confirmation dialog
-                const result = await Swal.fire({
-                    title: "Are you sure?",
-                    text: "Do you want to remove this item from your cart?",
-                    icon: "warning",
-                    showCancelButton: true,
-                    confirmButtonColor: "#dc3545",
-                    cancelButtonColor: "#6c757d",
-                    confirmButtonText: "Yes, remove it!",
-                    cancelButtonText: "Cancel"
+                    if (data.status) {
+                        this.closest(".product-cart").remove();
+                        updateTotal();
+                        Swal.fire("Success", "Item removed from cart", "success");
+                    } else {
+                        Swal.fire("Error", data.message, "error");
+                    }
+                } catch (error) {
+                    Swal.fire("Error", "Failed to remove item", "error");
+                }
+            });
+        });
+
+        // Proceed to Checkout Validation
+        document.getElementById("proceedToCheckout").addEventListener("click", async function(e) {
+            e.preventDefault(); // Prevent default navigation
+
+            try {
+                const response = await fetch("/validate-cart-for-checkout", {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" }
                 });
+                const data = await response.json();
 
-                // Proceed only if the user confirms
-                if (result.isConfirmed) {
-                    try {
-                        const response = await fetch(`/remove-from-cart/${cartItemId}`, {
-                            method: "DELETE",
-                            headers: { "Content-Type": "application/json" }
-                        });
-
-                        const data = await response.json();
-
-                        if (data.status) {
-                            // Remove the item from the DOM
-                            this.closest(".product-cart").remove();
-                            // Update the total price
-                            updateTotal();
-                            // Show success message
-                            Swal.fire({
-                                title: "Success",
-                                text: "Item removed from cart",
-                                icon: "success",
-                                confirmButtonColor: "#28a745"
-                            });
-                        } else {
-                            // Show error message if the removal failed
-                            Swal.fire({
-                                title: "Error",
-                                text: data.message || "Failed to remove item",
-                                icon: "error",
-                                confirmButtonColor: "#dc3545"
-                            });
-                        }
-                    } catch (error) {
-                        console.error("Error removing item:", error);
-                        // Show error message if the request fails
+                if (data.status) {
+                    // If cart is valid, proceed to checkout
+                    window.location.href = "/checkout";
+                } else {
+                    // If there are unavailable items, show detailed SweetAlert
+                    if (data.unavailableItems && data.unavailableItems.length > 0) {
+                        const unavailableList = data.unavailableItems.map(item => 
+                            `<li>${item.name}: ${item.reason}</li>`
+                        ).join("");
                         Swal.fire({
-                            title: "Error",
-                            text: "Failed to remove item due to a server error",
+                            icon: "warning",
+                            title: "Cannot Proceed to Checkout",
+                            html: `
+                                <p>Some items in your cart are unavailable:</p>
+                                <ul style="text-align: left;">${unavailableList}</ul>
+                                <p>Please remove or update these items to continue.</p>
+                            `,
+                            confirmButtonColor: "#2481e4"
+                        });
+                    } else {
+                        Swal.fire({
                             icon: "error",
-                            confirmButtonColor: "#dc3545"
+                            title: "Checkout Error",
+                            text: data.message || "An error occurred while validating your cart.",
+                            confirmButtonColor: "#2481e4"
                         });
                     }
                 }
-            });
+            } catch (error) {
+                console.error("Error validating cart:", error);
+                Swal.fire({
+                    icon: "error",
+                    title: "Validation Error",
+                    text: "An error occurred while checking your cart. Please try again.",
+                    confirmButtonColor: "#2481e4"
+                });
+            }
         });
     });
 </script>

@@ -243,6 +243,80 @@
                 <% } %>
             </div>
         </section>
+        <!-- Reviews and Ratings Section -->
+<section class="reviews-section py-5">
+    <div class="container">
+        <h3 class="text-center mb-4">Customer Reviews</h3>
+
+        <!-- Display Average Rating -->
+        <div class="text-center mb-4">
+            <% if (product.averageRating > 0) { %>
+                <div class="average-rating">
+                    <h5>Average Rating: <%= product.averageRating.toFixed(1) %> / 5</h5>
+                    <div class="stars mb-2">
+                        <% for (let i = 1; i <= 5; i++) { %>
+                            <i class="fas fa-star <%= i <= Math.round(product.averageRating) ? 'text-warning' : 'text-muted' %>"></i>
+                        <% } %>
+                        <span class="ms-2 text-muted">(<%= product.ratingCount %> reviews)</span>
+                    </div>
+                </div>
+            <% } else { %>
+                <p class="text-muted">No reviews yet. Be the first to review this product!</p>
+            <% } %>
+        </div>
+
+        <!-- Review Submission Form -->
+        <% if (user) { %>
+            <div class="review-form mb-5">
+                <h5 class="mb-3">Write a Review</h5>
+                <form id="reviewForm">
+                    <input type="hidden" name="productId" value="<%= product._id %>">
+                    <div class="mb-3">
+                        <label for="rating" class="form-label">Rating</label>
+                        <div class="star-rating">
+                            <input type="radio" name="rating" value="5" id="star5" required><label for="star5"><i class="fas fa-star"></i></label>
+                            <input type="radio" name="rating" value="4" id="star4"><label for="star4"><i class="fas fa-star"></i></label>
+                            <input type="radio" name="rating" value="3" id="star3"><label for="star3"><i class="fas fa-star"></i></label>
+                            <input type="radio" name="rating" value="2" id="star2"><label for="star2"><i class="fas fa-star"></i></label>
+                            <input type="radio" name="rating" value="1" id="star1"><label for="star1"><i class="fas fa-star"></i></label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="comment" class="form-label">Your Review</label>
+                        <textarea class="form-control" name="comment" id="comment" rows="3" required placeholder="Share your thoughts about the product..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit Review</button>
+                </form>
+            </div>
+        <% } else { %>
+            <p class="text-center mb-5"><a href="/login">Log in</a> to write a review.</p>
+        <% } %>
+
+        <!-- Display Reviews -->
+        <div class="reviews-list">
+            <% if (reviews && reviews.length > 0) { %>
+                <% reviews.forEach(review => { %>
+                    <div class="review mb-4 p-3 border rounded bg-light">
+                        <div class="d-flex justify-content-between mb-2">
+                            <div>
+                                <strong><%= review.userId.name %></strong>
+                                <div class="stars">
+                                    <% for (let i = 1; i <= 5; i++) { %>
+                                        <i class="fas fa-star <%= i <= review.rating ? 'text-warning' : 'text-muted' %>"></i>
+                                    <% } %>
+                                </div>
+                            </div>
+                            <small class="text-muted"><%= new Date(review.createdAt).toLocaleDateString() %></small>
+                        </div>
+                        <p class="mb-0"><%= review.comment %></p>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <p class="text-center text-muted">No reviews yet.</p>
+            <% } %>
+        </div>
+    </div>
+</section>
 
         <!-- Footer Partial -->
         <%- include("../../views/partials/user/footer") %>

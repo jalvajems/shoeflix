@@ -2,29 +2,28 @@ const Coupon = require('../../models/couponSchema');
 const Cart = require('../../models/cartSchema');
 
 const getActiveCoupons = async (req, res) => {
-    try {
-      const userId = req.session.user;
-      if (!userId) {
-        return res.status(401).json({ success: false, message: 'User not authenticated' });
-      }
-  
-      const activeCoupons = await Coupon.find({
-        isActive: true,
-        expireOn: { $gt: new Date() },
-        userIds: { $nin: [userId] }, // Exclude coupons the user has already used
-        $or: [
-          { maxUses: { $exists: false } }, // No maxUses limit
-          { $expr: { $gt: ['$maxUses', '$usedCount'] } } // Compare maxUses > usedCount
-        ]
-      }).select('name offerPrice discountPercentage minimumPrice');
-  
-      console.log('Active coupons found:', activeCoupons);
-      res.status(200).json({ success: true, coupons: activeCoupons });
-    } catch (error) {
-      console.error('Error fetching active coupons:', error);
-      res.status(500).json({ success: false, message: 'Error fetching coupons', error: error.message });
+  try {
+    const userId = req.session.user;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'User not authenticated' });
     }
-  };
+
+    const activeCoupons = await Coupon.find({
+      isActive: true,
+      expireOn: { $gt: new Date() },
+      userIds: { $nin: [userId] },
+      $or: [
+        { maxUses: { $exists: false } },
+        { $expr: { $gt: ['$maxUses', '$usedCount'] } }
+      ]
+    }).select('name offerPrice discountPercentage minimumPrice');
+
+    res.status(200).json({ success: true, coupons: activeCoupons });
+  } catch (error) {
+    console.error('Error fetching active coupons:', error);
+    res.status(500).json({ success: false, message: 'Error fetching coupons', error: error.message });
+  }
+};
 
 const applyCoupon = async (req, res) => {
   try {
@@ -61,6 +60,13 @@ const applyCoupon = async (req, res) => {
       });
     }
 
+    if (coupon.maxUses && coupon.usedCount >= coupon.maxUses) {
+      return res.status(400).json({
+        success: false,
+        message: 'Coupon has reached its maximum usage limit',
+      });
+    }
+
     if (orderTotal < coupon.minimumPrice) {
       return res.status(400).json({
         success: false,
@@ -73,18 +79,11 @@ const applyCoupon = async (req, res) => {
       discountAmount = Math.min(coupon.offerPrice, orderTotal);
     } else if (coupon.discountPercentage > 0) {
       discountAmount = (orderTotal * coupon.discountPercentage) / 100;
-      discountAmount = Math.min(discountAmount, orderTotal); // Cap at orderTotal
+      discountAmount = Math.min(discountAmount, orderTotal);
     }
 
-    if (coupon.maxUses && coupon.usedCount >= coupon.maxUses) {
-        return res.status(400).json({
-          success: false,
-          message: 'Coupon has reached its maximum usage limit',
-        });
-      }
-    coupon.userIds.push(userId);
-    coupon.usedCount += 1;
-    await coupon.save();
+    // Store coupon in session (don’t update userIds/usedCount until order is placed)
+    req.session.appliedCoupon = couponCode;
 
     const newTotal = orderTotal - discountAmount;
 
@@ -102,25 +101,16 @@ const applyCoupon = async (req, res) => {
 
 const removeCoupon = async (req, res) => {
   try {
-    const { couponCode } = req.body;
     const userId = req.session.user;
-
     if (!userId) {
       return res.status(401).json({ success: false, message: 'User not found' });
     }
 
-    if (!couponCode) {
-      return res.status(400).json({ success: false, message: 'Coupon code is required' });
+    if (!req.session.appliedCoupon) {
+      return res.status(400).json({ success: false, message: 'No coupon applied' });
     }
 
-    const coupon = await Coupon.findOne({ name: couponCode });
-    if (!coupon) {
-      return res.status(404).json({ success: false, message: 'Coupon not found' });
-    }
-
-    coupon.userIds = coupon.userIds.filter(id => id.toString() !== userId);
-    coupon.usedCount = Math.max(0, coupon.usedCount - 1); // Adjust used count
-    await coupon.save();
+    delete req.session.appliedCoupon; // Simply remove from session
 
     res.json({ success: true, message: 'Coupon removed successfully' });
   } catch (error) {
@@ -129,4 +119,4 @@ const removeCoupon = async (req, res) => {
   }
 };
 
-module.exports = {getActiveCoupons, applyCoupon, removeCoupon };
+module.exports = { getActiveCoupons, applyCoupon, removeCoupon };

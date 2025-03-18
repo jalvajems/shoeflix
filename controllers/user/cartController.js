@@ -3,6 +3,8 @@ const User = require("../../models/userSchema");
 const Product = require("../../models/productSchema");
 const Cart = require("../../models/cartSchema");
 
+
+
 const loadCart = async (req, res) => {
     try {
         const userId = req.session.user;
@@ -183,10 +185,70 @@ const removeFromCart = async (req, res) => {
         return res.status(500).json({ status: false, message: "Internal Server Error" });
     }
 };
+const validateCartForCheckout = async (req, res) => {
+  try {
+      const userId = req.session.user;
+      if (!userId) {
+          return res.json({ status: false, message: "User not authenticated" });
+      }
+
+      const cart = await Cart.findOne({ userId }).populate("items.productId");
+      if (!cart || cart.items.length === 0) {
+          return res.json({ status: false, message: "Your cart is empty" });
+      }
+
+      const unavailableItems = [];
+
+      for (const item of cart.items) {
+          const product = item.productId;
+
+          // Check if product exists, is not blocked, and is available
+          if (!product || product.isBlocked || product.status !== "Available") {
+              unavailableItems.push({
+                  name: product?.productName || "Unknown Product",
+                  reason: product?.isBlocked ? "Product is blocked" : "Product is unavailable"
+              });
+              continue;
+          }
+
+          // Find the variant matching the size in the cart
+          const variant = product.variants.find(v => v.size === item.size);
+          if (!variant) {
+              unavailableItems.push({
+                  name: product.productName,
+                  reason: `Size ${item.size} is not available`
+              });
+              continue;
+          }
+
+          // Check stock availability
+          if (variant.quantity < item.quantity) {
+              unavailableItems.push({
+                  name: product.productName,
+                  reason: `Insufficient stock for size ${item.size}. Available: ${variant.quantity}, Requested: ${item.quantity}`
+              });
+          }
+      }
+
+      if (unavailableItems.length > 0) {
+          return res.json({
+              status: false,
+              message: "Some items in your cart are unavailable",
+              unavailableItems
+          });
+      }
+
+      return res.json({ status: true, message: "Cart is valid for checkout" });
+  } catch (error) {
+      console.error("Error validating cart for checkout:", error);
+      return res.status(500).json({ status: false, message: "Internal server error" });
+  }
+};
 
 module.exports = {
     loadCart,
     addToCart,
     updateCartQuantity,
-    removeFromCart
+    removeFromCart,
+    validateCartForCheckout
 };
