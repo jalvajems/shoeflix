@@ -141,12 +141,14 @@ const addOffer = async (req, res) => {
 
 const updateOffer = async (req, res) => {
     try {
+        console.log("reached edit offer");
+        
         const { offerId } = req.params;
         const { name, discountType, discountValue, startDate, endDate, status } = req.body;
 
         const offer = await Offer.findById(offerId);
         if (!offer) {
-            return res.status(404).render("error", { message: "Offer not found" });
+            return res.status(404).json({ success: false, message: "Offer not found" });
         }
 
         if (offer.type === "product") {
@@ -172,13 +174,12 @@ const updateOffer = async (req, res) => {
             }
         }
 
-        res.redirect("/admin/offer-list");
+        res.status(200).json({ success: true, message: "Offer updated successfully" });
     } catch (error) {
         console.error("Error updating offer:", error);
-        res.status(500).render("error", { message: "Error updating offer" });
+        res.status(500).json({ success: false, message: "Error updating offer" });
     }
 };
-
 const removeOffer = async (req, res) => {
     try {
         const { offerId } = req.params;

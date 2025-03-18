@@ -36,7 +36,10 @@ app.use(express.static(path.join(__dirname,"public")))
 
 app.use("/",userRouter)
 app.use("/admin",adminRouter)
-
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.redirect('/admin/pageerror');
+});
 app.listen(PORT,()=>{
     console.log(`running on http://localhost:${PORT}`)
 })

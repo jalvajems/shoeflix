@@ -154,23 +154,27 @@
           <tbody>
             <% orders.forEach(order => { %>
             <tr>
-              <td><%= order.orderId %></td>
-              <td><%= order.createdOn.toLocaleDateString() %></td>
-              <td>
-                <% order.orderedItems.forEach(item => { %>
-                <div>
-                  <%= item.product?.productName || 'N/A' %> (Qty: <%= item.quantity || 0 %>)
-                </div>
-                <% }) %>
-              </td>
-              <td>₹<%= order.totalPrice.toFixed(2) %></td>
-              <td>₹<%= order.discount.toFixed(2) %></td>
-              <td><%= order.couponCode || 'N/A' %></td>
-              <td>₹<%= (order.couponDiscount || 0).toFixed(2) %></td>
-              <td>₹<%= order.finalAmount.toFixed(2) %></td>
+                <td><%= order.orderId || 'N/A' %></td>
+                <td><%= order.createdOn ? order.createdOn.toLocaleDateString() : 'N/A' %></td>
+                <td>
+                    <% if (order.orderItems && Array.isArray(order.orderItems)) { %>
+                        <% order.orderItems.forEach(item => { %>
+                            <div>
+                                <%= item.product?.productName || 'N/A' %> (Qty: <%= item.variants?.quantity || 0 %>)
+                            </div>
+                        <% }) %>
+                    <% } else { %>
+                        <div>No items</div>
+                    <% } %>
+                </td>
+                <td>₹<%= order.totalPrice ? order.totalPrice.toFixed(2) : '0.00' %></td>
+                <td>₹<%= order.discount ? order.discount.toFixed(2) : '0.00' %></td>
+                <td><%= order.couponCode || 'N/A' %></td>
+                <td>₹<%= (order.couponDiscount || 0).toFixed(2) %></td>
+                <td>₹<%= order.finalAmount ? order.finalAmount.toFixed(2) : '0.00' %></td>
             </tr>
             <% }) %>
-          </tbody>
+        </tbody>
         </table>
       </div>
 
@@ -193,7 +197,6 @@
     </div>
   </div>
 </section>
-
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
   function toggleDateInputs(select) {
@@ -258,6 +261,7 @@
     event.target.submit();
     return true;
   }
+
 </script>
 
 <%- include("../../views/partials/admin/footer") %>

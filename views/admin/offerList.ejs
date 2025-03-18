@@ -56,7 +56,7 @@
                 <h5 class="modal-title">Edit Offer</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form id="editOfferForm" action="/admin/offer-update" method="POST">
+            <form id="editOfferForm"  method="POST">
                 <div class="modal-body">
                     <input type="hidden" name="offerId" id="editOfferId">
                     <div class="form-group">
@@ -127,44 +127,44 @@
         });
 
         $("#editOfferForm").submit(function (e) {
-            e.preventDefault();
-            const formData = $(this).serialize();
-            const offerId = $("#editOfferId").val();
-            Swal.fire({
-                title: 'Are you sure?',
-                text: "Do you want to update this offer?",
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, update it!'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: `/admin/offer-update/${offerId}`,
-                        method: "PUT",
-                        data: formData,
-                        success: function (response) {
-                            Swal.fire(
-                                'Success!',
-                                'Offer updated successfully.',
-                                'success'
-                            ).then(() => {
-                                window.location.reload();
-                            });
-                        },
-                        error: function () {
-                            Swal.fire(
-                                'Error!',
-                                'Failed to update offer.',
-                                'error'
-                            );
-                        }
+    e.preventDefault(); // Prevent default form submission
+    const formData = $(this).serialize();
+    const offerId = $("#editOfferId").val();
+
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "Do you want to update this offer?",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, update it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: `/admin/offer-update/${offerId}`, // Dynamic URL with offerId
+                method: "PUT",
+                data: formData,
+                success: function (response) {
+                    Swal.fire(
+                        'Success!',
+                        'Offer updated successfully.',
+                        'success'
+                    ).then(() => {
+                        window.location.reload();
                     });
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    Swal.fire(
+                        'Error!',
+                        'Failed to update offer: ' + errorThrown,
+                        'error'
+                    );
                 }
             });
-        });
-
+        }
+    });
+});
         $(".delete-offer").click(function (e) {
             e.preventDefault();
             const offerId = $(this).data("id");
