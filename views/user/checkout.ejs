@@ -8,6 +8,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="stylesheet" href="/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <style>
            .edit-btn {
         background-color: #2481e4;
@@ -296,16 +298,15 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const addressCards = document.querySelectorAll('.address-card');
-      const checkoutForm = document.getElementById('checkoutForm');
-      const couponInput = document.querySelector('.coupon-input');
-      const applyCouponBtn = document.querySelector('.apply-coupon-btn');
-      const removeCouponBtn = document.querySelector('.remove-coupon-btn');
-      const couponMessage = document.querySelector('.coupon-message');
-      const couponList = document.getElementById('couponList');
-      const finalAmountSpan = document.getElementById('final-amount');
-      let appliedCoupon = '<%= appliedCoupon || '' %>';
-
+    const addressCards = document.querySelectorAll('.address-card');
+    const checkoutForm = document.getElementById('checkoutForm');
+    const couponInput = document.querySelector('.coupon-input');
+    const applyCouponBtn = document.querySelector('.apply-coupon-btn');
+    const removeCouponBtn = document.querySelector('.remove-coupon-btn');
+    const couponMessage = document.querySelector('.coupon-message');
+    const couponList = document.getElementById('couponList');
+    const finalAmountSpan = document.getElementById('final-amount');
+    let appliedCoupon = '<%= appliedCoupon || '' %>';
       async function loadActiveCoupons() {
         try {
           const response = await fetch('/get-active-coupons', {
@@ -438,107 +439,171 @@
       }
 
       checkoutForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const addressId = document.querySelector('input[name="deliveryAddressId"]:checked')?.value;
-        if (!addressId) {
-          Swal.fire({
-            icon: 'warning',
-            title: 'Address Required',
-            text: 'Please select a delivery address',
-            confirmButtonColor: '#2481e4'
-          });
-          return;
-        }
-
-        const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value;
-        if (!paymentMethod) {
-          Swal.fire({
-            icon: 'warning',
-            title: 'Payment Method Required',
-            text: 'Please select a payment method',
-            confirmButtonColor: '#2481e4'
-          });
-          return;
-        }
-
-        const finalAmount = parseFloat(finalAmountSpan.textContent.replace('₹', ''));
-        const submitButton = checkoutForm.querySelector('button[type="submit"]');
-        submitButton.disabled = true;
-        submitButton.textContent = 'Processing...';
-
-        let processingDialog;
-        try {
-          processingDialog = Swal.fire({
-            title: 'Processing Order',
-            text: 'Please wait while we process your order...',
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            didOpen: () => Swal.showLoading()
-          });
-
-          const orderData = { addressId, paymentMethod, couponCode: appliedCoupon || null };
-          if (paymentMethod === 'Razorpay') {
-            await handleRazorpayPayment(addressId, finalAmount, appliedCoupon);
-          } else {
-            const response = await fetch('/checkout', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(orderData)
-            });
-            const data = await response.json();
-            if (data.success) {
-              await handlePaymentSuccess(data.orderId);
-            } else {
-              throw new Error(data.message || 'Failed to place order');
-            }
-          }
-        } catch (error) {
-          console.error('Error processing order:', error);
-          Swal.fire({
-            icon: 'error',
-            title: 'Order Failed',
-            text: error.message || 'There was an error processing your order.',
-            confirmButtonColor: '#2481e4'
-          });
-        } finally {
-          if (processingDialog) Swal.close();
-          submitButton.disabled = false;
-          submitButton.textContent = 'Place Order';
-        }
-      });
-
-      async function handleRazorpayPayment(addressId, amount, couponCode) {
-        const response = await fetch('/create-razorpay-order', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ addressId, couponCode })
-        });
-        const orderData = await response.json();
-        if (!orderData.success) throw new Error(orderData.message);
-
-        const options = {
-          key: orderData.razorpayKeyId,
-          amount: orderData.amount,
-          currency: 'INR',
-          name: 'Shoeflix',
-          description: 'Order Payment',
-          order_id: orderData.razorpayOrderId,
-          handler: async (response) => await verifyPayment(response, orderData.orderId),
-          prefill: {
-            name: '<%= user.name %>',
-            email: '<%= user.email || "" %>',
-            contact: '<%= user.phone || "" %>'
-          },
-          theme: { color: '#2481e4' }
-        };
-        const rzp = new Razorpay(options);
-        rzp.open();
-        rzp.on('payment.failed', async (response) => {
-          await handlePaymentDismissal(orderData.orderId, addressId, response.error.description);
-          await initializeRetryPayment(orderData.orderId, amount, addressId);
-        });
+      e.preventDefault();
+      const addressId = document.querySelector('input[name="deliveryAddressId"]:checked')?.value;
+      if (!addressId) {
+        Toastify({
+          text: "Please select a delivery address",
+          duration: 3000,
+          gravity: "top",
+          position: "right",
+          backgroundColor: "#ff4444",
+        }).showToast();
+        return;
       }
 
+      const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value;
+      if (!paymentMethod) {
+        Toastify({
+          text: "Please select a payment method",
+          duration: 3000,
+          gravity: "top",
+          position: "right",
+          backgroundColor: "#ff4444",
+        }).showToast();
+        return;
+      }
+
+      const finalAmount = parseFloat(finalAmountSpan.textContent.replace('₹', ''));
+      const submitButton = checkoutForm.querySelector('button[type="submit"]');
+      submitButton.disabled = true;
+      submitButton.textContent = 'Processing...';
+
+      let processingDialog;
+      try {
+        processingDialog = Swal.fire({
+          title: 'Processing Order',
+          text: 'Please wait while we process your order...',
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          didOpen: () => Swal.showLoading()
+        });
+
+        const orderData = { addressId, paymentMethod, couponCode: appliedCoupon || null };
+        if (paymentMethod === 'Razorpay') {
+          await handleRazorpayPayment(addressId, finalAmount, appliedCoupon);
+        } else {
+          const response = await fetch('/checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderData)
+          });
+          const data = await response.json();
+          if (data.success) {
+            await handlePaymentSuccess(data.orderId);
+          } else {
+            throw new Error(data.error || 'Failed to place order');
+          }
+        }
+      } catch (error) {
+        console.error('Error processing order:', error);
+        Toastify({
+          text: error.message || 'There was an error processing your order.',
+          duration: 5000,
+          gravity: "top",
+          position: "right",
+          backgroundColor: "#ff4444",
+        }).showToast();
+      } finally {
+        if (processingDialog) Swal.close();
+        submitButton.disabled = false;
+        submitButton.textContent = 'Place Order';
+      }
+    });
+
+    async function handleRazorpayPayment(addressId, amount, couponCode) {
+      const response = await fetch('/create-razorpay-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ addressId, couponCode })
+      });
+      const orderData = await response.json();
+      if (!orderData.success) {
+        Toastify({
+          text: orderData.message,
+          duration: 5000,
+          gravity: "top",
+          position: "right",
+          backgroundColor: "#ff4444",
+        }).showToast();
+        throw new Error(orderData.message);
+      }
+
+      const options = {
+        key: orderData.razorpayKeyId,
+        amount: orderData.amount,
+        currency: 'INR',
+        name: 'Shoeflix',
+        description: 'Order Payment',
+        order_id: orderData.razorpayOrderId,
+        handler: async (response) => await verifyPayment(response, orderData.orderId),
+        prefill: {
+          name: '<%= user.name %>',
+          email: '<%= user.email || "" %>',
+          contact: '<%= user.phone || "" %>'
+        },
+        theme: { color: '#2481e4' }
+      };
+      const rzp = new Razorpay(options);
+      rzp.open();
+      rzp.on('payment.failed', async (response) => {
+        await handlePaymentDismissal(orderData.orderId, addressId, response.error.description);
+        await initializeRetryPayment(orderData.orderId, amount, addressId);
+      });
+    }
+
+    async function handlePaymentSuccess(orderId) {
+      Toastify({
+        text: "Order placed successfully! Redirecting...",
+        duration: 3000,
+        gravity: "top",
+        position: "right",
+        backgroundColor: "#00b09b",
+      }).showToast();
+      setTimeout(() => {
+        window.location.href = `/thank-you?orderId=${orderId}`;
+      }, 2000);
+    }
+    async function handleRazorpayPayment(addressId, amount, couponCode) {
+      const response = await fetch('/create-razorpay-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ addressId, couponCode })
+      });
+      const orderData = await response.json();
+      if (!orderData.success) {
+        Toastify({
+          text: orderData.message,
+          duration: 5000,
+          gravity: "top",
+          position: "right",
+          backgroundColor: "#ff4444",
+        }).showToast();
+        throw new Error(orderData.message);
+      }
+
+      const options = {
+        key: orderData.razorpayKeyId,
+        amount: orderData.amount,
+        currency: 'INR',
+        name: 'Shoeflix',
+        description: 'Order Payment',
+        order_id: orderData.razorpayOrderId,
+        handler: async (response) => await verifyPayment(response, orderData.orderId),
+        prefill: {
+          name: '<%= user.name %>',
+          email: '<%= user.email || "" %>',
+          contact: '<%= user.phone || "" %>'
+        },
+        theme: { color: '#2481e4' }
+      };
+      const rzp = new Razorpay(options);
+      rzp.open();
+      rzp.on('payment.failed', async (response) => {
+        await handlePaymentDismissal(orderData.orderId, addressId, response.error.description);
+        await initializeRetryPayment(orderData.orderId, amount, addressId);
+      });
+    }
       async function verifyPayment(response, orderId) {
         const verifyResponse = await fetch('/verify-razorpay-payment', {
           method: 'POST',
