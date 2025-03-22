@@ -235,174 +235,184 @@
 </div>
 
 <%- include("../../views/partials/user/footer") %>
-
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        // Quantity controls
-        document.querySelectorAll(".quantity-minus").forEach(btn => {
-            btn.addEventListener("click", async function() {
-                const cartItemId = this.closest(".product-cart").dataset.cartItemId;
-                const input = this.nextElementSibling;
-                let quantity = parseInt(input.value);
-                if (quantity > 1) {
-                    quantity--;
-                    updateQuantity(cartItemId, quantity, input);
-                }
-            });
+    document.addEventListener("DOMContentLoaded", function () {
+      const MAX_PER_PRODUCT = 5;
+  
+      // Quantity controls
+      document.querySelectorAll(".quantity-minus").forEach((btn) => {
+        btn.addEventListener("click", async function () {
+          const cartItemId = this.closest(".product-cart").dataset.cartItemId;
+          const input = this.nextElementSibling;
+          let quantity = parseInt(input.value);
+          if (quantity > 1) {
+            quantity--;
+            updateQuantity(cartItemId, quantity, input);
+          }
         });
-
-        document.querySelectorAll(".quantity-plus").forEach(btn => {
-            btn.addEventListener("click", async function() {
-                const cartItemId = this.closest(".product-cart").dataset.cartItemId;
-                const input = this.previousElementSibling;
-                let quantity = parseInt(input.value);
-                if (quantity < 5) {
-                    quantity++;
-                    updateQuantity(cartItemId, quantity, input);
-                }
-            });
+      });
+  
+      document.querySelectorAll(".quantity-plus").forEach((btn) => {
+        btn.addEventListener("click", async function () {
+          const cartItemId = this.closest(".product-cart").dataset.cartItemId;
+          const input = this.previousElementSibling;
+          let quantity = parseInt(input.value);
+          if (quantity < MAX_PER_PRODUCT) {
+            quantity++;
+            updateQuantity(cartItemId, quantity, input);
+          } else {
+            Toastify({
+              text: `Maximum quantity limit of ${MAX_PER_PRODUCT} reached for this product.`,
+              duration: 3000,
+              gravity: "top",
+              position: "right",
+              backgroundColor: "#ff4444",
+            }).showToast();
+          }
         });
-
-        document.querySelectorAll(".quantity-input").forEach(input => {
-            input.addEventListener("change", function() {
-                const cartItemId = this.closest(".product-cart").dataset.cartItemId;
-                let quantity = parseInt(this.value);
-                if (quantity >= 1 && quantity <= 5) {
-                    updateQuantity(cartItemId, quantity, this);
-                } else {
-                    this.value = Math.max(1, Math.min(5, quantity));
-                }
-            });
-        });
-
-        async function updateQuantity(cartItemId, quantity, input) {
-            try {
-                console.log("Updating cart item:", cartItemId, "to quantity:", quantity);
-                const response = await fetch(`/update-cart/${cartItemId}`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ quantity, cartItemId })
-                });
-                const data = await response.json();
-                console.log("Response data:", data);
-                
-                if (data.status) {
-                    if (data.removed) {
-                        input.closest(".product-cart").remove();
-                        updateTotal();
-                        Swal.fire("Success", "Item removed from cart", "success");
-                    } else {
-                        input.value = data.quantity;
-                        const itemTotalElement = input.closest(".product-cart").querySelector(".one-eight:nth-child(5) span");
-                        if (itemTotalElement) {
-                            itemTotalElement.textContent = `₹${data.itemTotal}`;
-                        }
-                        updateTotal();
-                    }
-                } else {
-                    Swal.fire("Error", data.message || "Failed to update cart", "error");
-                }
-            } catch (error) {
-                console.error("Error updating quantity:", error);
-                Swal.fire("Error", "Failed to update quantity", "error");
+      });
+  
+      document.querySelectorAll(".quantity-input").forEach((input) => {
+        input.addEventListener("change", function () {
+          const cartItemId = this.closest(".product-cart").dataset.cartItemId;
+          let quantity = parseInt(this.value);
+          if (quantity >= 1 && quantity <= MAX_PER_PRODUCT) {
+            updateQuantity(cartItemId, quantity, this);
+          } else {
+            this.value = Math.max(1, Math.min(MAX_PER_PRODUCT, quantity));
+            if (quantity > MAX_PER_PRODUCT) {
+              Toastify({
+                text: `Maximum quantity limit of ${MAX_PER_PRODUCT} reached for this product.`,
+                duration: 3000,
+                gravity: "top",
+                position: "right",
+                backgroundColor: "#ff4444",
+              }).showToast();
             }
+          }
+        });
+      });
+  
+      async function updateQuantity(cartItemId, quantity, input) {
+        try {
+          const response = await fetch(`/update-cart/${cartItemId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ quantity, cartItemId }),
+          });
+          const data = await response.json();
+  
+          if (data.status) {
+            input.value = data.quantity;
+            const itemTotalElement = input.closest(".product-cart").querySelector(".one-eight:nth-child(5) span");
+            if (itemTotalElement) {
+              itemTotalElement.textContent = `₹${data.itemTotal}`;
+            }
+            updateTotal();
+          } else {
+            Swal.fire("Error", data.message || "Failed to update cart", "error");
+            input.value = input.defaultValue; // Reset to previous value
+          }
+        } catch (error) {
+          console.error("Error updating quantity:", error);
+          Swal.fire("Error", "Failed to update quantity", "error");
         }
-
-        function updateTotal() {
-            try {
-                const totalElements = document.querySelectorAll(".product-cart .one-eight:nth-child(5) span");
-                const totals = Array.from(totalElements)
-                    .map(span => parseFloat(span.textContent.replace("₹", "")) || 0);
-                const total = totals.reduce((acc, val) => acc + val, 0);
-
-                const subtotalElement = document.querySelector(".sub span:last-child");
-                const grandTotalElement = document.querySelector(".grand-total span:last-child strong");
-
-                if (subtotalElement && grandTotalElement) {
-                    subtotalElement.textContent = `₹${total}`;
-                    grandTotalElement.textContent = `₹${total}`;
-                }
-
-                if (totals.length === 0) {
-                    location.reload();
-                }
-            } catch (error) {
-                console.error("Error updating total:", error);
-            }
+      }
+  
+      function updateTotal() {
+        try {
+          const totalElements = document.querySelectorAll(".product-cart .one-eight:nth-child(5) span");
+          const totals = Array.from(totalElements).map((span) => parseFloat(span.textContent.replace("₹", "")) || 0);
+          const total = totals.reduce((acc, val) => acc + val, 0);
+  
+          const subtotalElement = document.querySelector(".sub span:last-child");
+          const grandTotalElement = document.querySelector(".grand-total span:last-child strong");
+  
+          if (subtotalElement && grandTotalElement) {
+            subtotalElement.textContent = `₹${total}`;
+            grandTotalElement.textContent = `₹${total}`;
+          }
+  
+          if (totals.length === 0) {
+            location.reload();
+          }
+        } catch (error) {
+          console.error("Error updating total:", error);
         }
-
-        // Remove item
-        document.querySelectorAll(".remove-item").forEach(btn => {
-            btn.addEventListener("click", async function() {
-                const cartItemId = this.closest(".product-cart").dataset.cartItemId;
-                try {
-                    const response = await fetch(`/remove-from-cart/${cartItemId}`, {
-                        method: "DELETE"
-                    });
-                    const data = await response.json();
-
-                    if (data.status) {
-                        this.closest(".product-cart").remove();
-                        updateTotal();
-                        Swal.fire("Success", "Item removed from cart", "success");
-                    } else {
-                        Swal.fire("Error", data.message, "error");
-                    }
-                } catch (error) {
-                    Swal.fire("Error", "Failed to remove item", "error");
-                }
+      }
+  
+      // Remove item
+      document.querySelectorAll(".remove-item").forEach((btn) => {
+        btn.addEventListener("click", async function () {
+          const cartItemId = this.closest(".product-cart").dataset.cartItemId;
+          try {
+            const response = await fetch(`/remove-from-cart/${cartItemId}`, {
+              method: "DELETE",
             });
-        });
-
-        // Proceed to Checkout Validation
-        document.getElementById("proceedToCheckout").addEventListener("click", async function(e) {
-            e.preventDefault(); // Prevent default navigation
-
-            try {
-                const response = await fetch("/validate-cart-for-checkout", {
-                    method: "GET",
-                    headers: { "Content-Type": "application/json" }
-                });
-                const data = await response.json();
-
-                if (data.status) {
-                    // If cart is valid, proceed to checkout
-                    window.location.href = "/checkout";
-                } else {
-                    // If there are unavailable items, show detailed SweetAlert
-                    if (data.unavailableItems && data.unavailableItems.length > 0) {
-                        const unavailableList = data.unavailableItems.map(item => 
-                            `<li>${item.name}: ${item.reason}</li>`
-                        ).join("");
-                        Swal.fire({
-                            icon: "warning",
-                            title: "Cannot Proceed to Checkout",
-                            html: `
-                                <p>Some items in your cart are unavailable:</p>
-                                <ul style="text-align: left;">${unavailableList}</ul>
-                                <p>Please remove or update these items to continue.</p>
-                            `,
-                            confirmButtonColor: "#2481e4"
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: "error",
-                            title: "Checkout Error",
-                            text: data.message || "An error occurred while validating your cart.",
-                            confirmButtonColor: "#2481e4"
-                        });
-                    }
-                }
-            } catch (error) {
-                console.error("Error validating cart:", error);
-                Swal.fire({
-                    icon: "error",
-                    title: "Validation Error",
-                    text: "An error occurred while checking your cart. Please try again.",
-                    confirmButtonColor: "#2481e4"
-                });
+            const data = await response.json();
+  
+            if (data.status) {
+              this.closest(".product-cart").remove();
+              updateTotal();
+              Swal.fire("Success", "Item removed from cart", "success");
+            } else {
+              Swal.fire("Error", data.message, "error");
             }
+          } catch (error) {
+            Swal.fire("Error", "Failed to remove item", "error");
+          }
         });
+      });
+  
+      // Proceed to Checkout Validation
+      document.getElementById("proceedToCheckout").addEventListener("click", async function (e) {
+        e.preventDefault();
+  
+        try {
+          const response = await fetch("/validate-cart-for-checkout", {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          });
+          const data = await response.json();
+  
+          if (data.status) {
+            window.location.href = "/checkout";
+          } else {
+            if (data.unavailableItems && data.unavailableItems.length > 0) {
+              const unavailableList = data.unavailableItems
+                .map((item) => `<li>${item.name}: ${item.reason}</li>`)
+                .join("");
+              Swal.fire({
+                icon: "warning",
+                title: "Cannot Proceed to Checkout",
+                html: `
+                  <p>Some items in your cart are unavailable:</p>
+                  <ul style="text-align: left;">${unavailableList}</ul>
+                  <p>Please remove or update these items to continue.</p>
+                `,
+                confirmButtonColor: "#2481e4",
+              });
+            } else {
+              Swal.fire({
+                icon: "error",
+                title: "Checkout Error",
+                text: data.message || "An error occurred while validating your cart.",
+                confirmButtonColor: "#2481e4",
+              });
+            }
+          }
+        } catch (error) {
+          console.error("Error validating cart:", error);
+          Swal.fire({
+            icon: "error",
+            title: "Validation Error",
+            text: "An error occurred while checking your cart. Please try again.",
+            confirmButtonColor: "#2481e4",
+          });
+        }
+      });
     });
-</script>
+  </script>

@@ -32,7 +32,7 @@ const loadOrderList = async (req, res) => {
       currentPage: page,
       search,
       statusFilter,
-      availableStatuses: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Return Request', 'Returned']
+      availableStatuses: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Cancellation Requested', 'Returned']
     });
   } catch (error) {
     console.error('Error loading orders:', error);
@@ -47,15 +47,13 @@ const loadOrderDetails = async (req, res) => {
     const order = await Order.findById(orderId)
       .populate('userId', 'name phone')
       .populate({
-        path: 'orderItems.product', 
-        select: 'productName productImage' 
+        path: 'orderItems.product',
+        select: 'productName productImage'
       });
 
     if (!order) {
       return res.status(404).render('admin/pageerror', { message: 'Order not found' });
     }
-
-    console.log('Populated Order:', JSON.stringify(order, null, 2));
 
     res.render('order-details', { order });
   } catch (error) {
@@ -63,6 +61,7 @@ const loadOrderDetails = async (req, res) => {
     res.status(500).render('pageerror', { message: 'Failed to load order details' });
   }
 };
+
 // Update Order Status
 const updateOrderStatus = async (req, res) => {
   try {
@@ -86,12 +85,14 @@ const updateOrderStatus = async (req, res) => {
     if (status === 'Delivered') order.invoiceDate = new Date();
     await order.save();
 
-    res.json({ success: true, message: 'Order status updated successfully' });
+    res.json({ success: true, message: 'Order status updated successfully', reload: true });
   } catch (error) {
     console.error('Error updating order status:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
+
+// Approve Return Request
 const approveReturnRequest = async (req, res) => {
   try {
     const { orderId, productId } = req.body;
@@ -106,13 +107,10 @@ const approveReturnRequest = async (req, res) => {
       return res.status(400).json({ success: false, message: 'No active return request for this item' });
     }
 
-    // Calculate refund amount
     const refundAmount = item.price * item.variants.quantity;
 
-    // Update item status
     item.returnStatus = 'Approved';
 
-    // Update product stock
     const product = await Product.findById(item.product);
     if (product) {
       const variant = product.variants.find(v => v.size === item.variants.size);
@@ -124,11 +122,9 @@ const approveReturnRequest = async (req, res) => {
       }
     }
 
-    // Update wallet if payment method is not COD
     if (order.paymentMethod !== 'Cash on Delivery') {
       const user = await User.findById(order.userId._id);
       if (user) {
-        // Find the pending transaction
         const transaction = user.walletHistory.find(
           tx => tx.orderId.toString() === orderId && tx.itemId.toString() === productId && tx.status === 'Pending'
         );
@@ -136,7 +132,6 @@ const approveReturnRequest = async (req, res) => {
           transaction.status = 'Completed';
           user.wallet += refundAmount;
         } else {
-          // Fallback: Add a completed transaction if no pending one exists (shouldn't happen)
           user.walletHistory.push({
             transactionId: `TXN-${Date.now()}`,
             type: 'credit',
@@ -152,7 +147,6 @@ const approveReturnRequest = async (req, res) => {
       }
     }
 
-    // Update order status if all items are processed
     const allProcessed = order.orderItems.every(i =>
       i.cancelStatus === 'Cancelled' || i.returnStatus === 'Approved' || i.returnStatus === 'Rejected'
     );
@@ -161,12 +155,14 @@ const approveReturnRequest = async (req, res) => {
     }
 
     await order.save();
-    res.json({ success: true, message: 'Return approved successfully' });
+    res.json({ success: true, message: 'Return approved successfully', reload: true });
   } catch (error) {
     console.error('Error approving return:', error);
     res.status(500).json({ success: false, message: 'Failed to approve return' });
   }
 };
+
+// Reject Return Request
 const rejectReturnRequest = async (req, res) => {
   try {
     const { orderId, productId } = req.body;
@@ -181,10 +177,8 @@ const rejectReturnRequest = async (req, res) => {
       return res.status(400).json({ success: false, message: 'No active return request for this item' });
     }
 
-    // Update item status
     item.returnStatus = 'Rejected';
 
-    // Remove pending transaction from wallet history
     if (order.paymentMethod !== 'Cash on Delivery') {
       const user = await User.findById(order.userId._id);
       if (user) {
@@ -198,7 +192,6 @@ const rejectReturnRequest = async (req, res) => {
       }
     }
 
-    // Update order status if all items are processed
     const allProcessed = order.orderItems.every(i =>
       i.cancelStatus === 'Cancelled' || i.returnStatus === 'Approved' || i.returnStatus === 'Rejected'
     );
@@ -207,16 +200,100 @@ const rejectReturnRequest = async (req, res) => {
     }
 
     await order.save();
-    res.json({ success: true, message: 'Return rejected successfully' });
+    res.json({ success: true, message: 'Return rejected successfully', reload: true });
   } catch (error) {
     console.error('Error rejecting return:', error);
     res.status(500).json({ success: false, message: 'Failed to reject return' });
   }
 };
+
+// Approve Cancellation Request
+const approveCancellationRequest = async (req, res) => {
+  try {
+    const { orderId } = req.body;
+
+    const order = await Order.findById(orderId).populate('userId');
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    if (order.status !== 'Cancellation Requested') {
+      return res.status(400).json({ success: false, message: 'No active cancellation request for this order' });
+    }
+
+    order.status = 'Cancelled';
+    order.cancellationApprovedAt = new Date();
+
+    if (order.paymentMethod !== 'Cash on Delivery') {
+      const user = await User.findById(order.userId._id);
+      if (user) {
+        const refundAmount = order.finalAmount;
+        user.wallet += refundAmount;
+        user.walletHistory.push({
+          transactionId: `TXN-${Date.now()}`,
+          type: 'credit',
+          amount: refundAmount,
+          status: 'Completed',
+          orderId: order._id,
+          description: `Refund for cancelled order #${order.orderId}`
+        });
+        await user.save();
+      }
+    }
+
+    for (const item of order.orderItems) {
+      const product = await Product.findById(item.product);
+      if (product) {
+        const variant = product.variants.find(v => v.size === item.variants.size);
+        if (variant) {
+          variant.quantity += item.variants.quantity;
+          product.totalStock += item.variants.quantity;
+          product.status = product.totalStock > 0 ? 'Available' : 'Out of stock';
+          await product.save();
+        }
+      }
+    }
+
+    await order.save();
+    res.json({ success: true, message: 'Cancellation approved successfully', reload: true });
+  } catch (error) {
+    console.error('Error approving cancellation:', error);
+    res.status(500).json({ success: false, message: 'Failed to approve cancellation' });
+  }
+};
+
+// Reject Cancellation Request
+const rejectCancellationRequest = async (req, res) => {
+  try {
+    const { orderId } = req.body;
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    if (order.status !== 'Cancellation Requested') {
+      return res.status(400).json({ success: false, message: 'No active cancellation request for this order' });
+    }
+
+    order.status = order.cancellationRequestedAt > order.createdOn ? 'Processing' : 'Pending';
+    order.cancellationReason = '';
+    order.cancellationRequestedAt = null;
+    await order.save();
+
+    res.json({ success: true, message: 'Cancellation request rejected successfully', reload: true });
+  } catch (error) {
+    console.error('Error rejecting cancellation:', error);
+    res.status(500).json({ success: false, message: 'Failed to reject cancellation' });
+  }
+};
+
 module.exports = {
   loadOrderList,
   loadOrderDetails,
   updateOrderStatus,
   approveReturnRequest,
-  rejectReturnRequest
+  rejectReturnRequest,
+  approveCancellationRequest,
+  rejectCancellationRequest
 };

@@ -10,11 +10,11 @@
                 <form id="offerForm" action="/admin/offer" method="POST">
                     <div class="form-group">
                         <label for="name">Offer Name:</label>
-                        <input type="text" class="form-control" id="name" name="name" required>
+                        <input type="text" class="form-control" id="name" name="name" >
                     </div>
                     <div class="form-group">
                         <label for="type">Offer Type:</label>
-                        <select class="form-control" id="type" name="type" required>
+                        <select class="form-control" id="type" name="type" >
                             <option value="">Select Type</option>
                             <option value="product">Product Offer</option>
                             <option value="category">Category Offer</option>
@@ -40,22 +40,22 @@
                     </div>
                     <div class="form-group">
                         <label for="discountType">Discount Type:</label>
-                        <select class="form-control" id="discountType" name="discountType" required>
+                        <select class="form-control" id="discountType" name="discountType" >
                             <option value="percentage">Percentage</option>
                             <option value="amount">Fixed Amount</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="discountValue">Discount Value:</label>
-                        <input type="number" class="form-control" id="discountValue" name="discountValue" min="0" required>
+                        <input type="number" class="form-control" id="discountValue" name="discountValue" min="0" >
                     </div>
                     <div class="form-group">
                         <label for="startDate">Start Date:</label>
-                        <input type="date" class="form-control" id="startDate" name="startDate" required>
+                        <input type="date" class="form-control" id="startDate" name="startDate" >
                     </div>
                     <div class="form-group">
                         <label for="endDate">End Date:</label>
-                        <input type="date" class="form-control" id="endDate" name="endDate" required>
+                        <input type="date" class="form-control" id="endDate" name="endDate" >
                     </div>
                     <button type="submit" class="btn btn-primary">Add Offer</button>
                 </form>
@@ -63,30 +63,94 @@
         </div>
     </section>
 </main>
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+    // Toggle Product/Category fields based on Offer Type
     document.getElementById("type").addEventListener("change", function () {
         const productField = document.getElementById("productField");
         const categoryField = document.getElementById("categoryField");
+        const productId = document.getElementById("productId");
+        const categoryId = document.getElementById("categoryId");
+
         if (this.value === "product") {
             productField.classList.remove("hidden");
             categoryField.classList.add("hidden");
-            document.getElementById("productId").required = true;
-            document.getElementById("categoryId").required = false;
+            productId.required = true;
+            categoryId.required = false;
         } else if (this.value === "category") {
             productField.classList.add("hidden");
             categoryField.classList.remove("hidden");
-            document.getElementById("productId").required = false;
-            document.getElementById("categoryId").required = true;
+            productId.required = false;
+            categoryId.required = true;
         } else {
             productField.classList.add("hidden");
             categoryField.classList.add("hidden");
+            productId.required = false;
+            categoryId.required = false;
         }
     });
 
-    // SweetAlert2 for form submission
-    document.getElementById("offerForm").addEventListener("submit", function(e) {
+    // Form Submission with Validation
+    document.getElementById("offerForm").addEventListener("submit", function (e) {
         e.preventDefault();
+
+        // Get form values
+        const name = document.getElementById("name").value.trim();
+        const type = document.getElementById("type").value;
+        const productId = document.getElementById("productId").value;
+        const categoryId = document.getElementById("categoryId").value;
+        const discountType = document.getElementById("discountType").value;
+        const discountValue = parseFloat(document.getElementById("discountValue").value);
+        const startDate = document.getElementById("startDate").value;
+        const endDate = document.getElementById("endDate").value;
+
+        // Validation checks
+        let errors = [];
+
+        if (!name) {
+            errors.push("Offer Name is required.");
+        }
+
+        if (!type) {
+            errors.push("Offer Type is required.");
+        } else if (type === "product" && !productId) {
+            errors.push("Please select a Product for Product Offer.");
+        } else if (type === "category" && !categoryId) {
+            errors.push("Please select a Category for Category Offer.");
+        }
+
+        if (isNaN(discountValue) || discountValue <= 0) {
+            errors.push("Discount Value must be a positive number.");
+        } else if (discountType === "percentage" && discountValue > 100) {
+            errors.push("Percentage discount cannot exceed 100%.");
+        }
+
+        if (!startDate) {
+            errors.push("Start Date is required.");
+        }
+
+        if (!endDate) {
+            errors.push("End Date is required.");
+        } else if (startDate && endDate && new Date(endDate) <= new Date(startDate)) {
+            errors.push("End Date must be after Start Date.");
+        }
+
+        if (new Date(startDate) < new Date().setHours(0, 0, 0, 0)) {
+            errors.push("Start Date cannot be in the past.");
+        }
+
+        // If there are errors, show them and stop submission
+        if (errors.length > 0) {
+            Swal.fire({
+                title: 'Validation Error',
+                html: errors.join("<br>"),
+                icon: 'error'
+            });
+            return;
+        }
+
+        // If validation passes, proceed with confirmation
         Swal.fire({
             title: 'Are you sure?',
             text: "Do you want to add this offer?",
@@ -98,14 +162,14 @@
         }).then((result) => {
             if (result.isConfirmed) {
                 const formData = {
-                    name: document.getElementById("name").value,
-                    type: document.getElementById("type").value,
-                    discountType: document.getElementById("discountType").value,
-                    discountValue: document.getElementById("discountValue").value,
-                    productId: document.getElementById("productId").value,
-                    categoryId: document.getElementById("categoryId").value,
-                    startDate: document.getElementById("startDate").value,
-                    endDate: document.getElementById("endDate").value
+                    name,
+                    type,
+                    discountType,
+                    discountValue,
+                    productId: type === "product" ? productId : null,
+                    categoryId: type === "category" ? categoryId : null,
+                    startDate,
+                    endDate
                 };
 
                 fetch('/admin/offer', {
@@ -144,4 +208,5 @@
         });
     });
 </script>
+
 <%- include("../../views/partials/admin/footer") %>

@@ -116,6 +116,16 @@
     .shop-now-btn:hover {
         background: #1e918b;
     }
+    /* New styles for validation */
+    .out-of-stock {
+        color: #dc3545;
+        font-weight: bold;
+        cursor: not-allowed;
+    }
+    .blocked-product {
+        opacity: 0.6;
+        pointer-events: none;
+    }
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -137,23 +147,30 @@
     <% } else { %>
         <div class="wishlist-grid">
             <% wishlist.products.forEach((item, index) => { %>
-                <div class="wishlist-item" data-product-id="<%= item.productId._id %>">
+                <div class="wishlist-item <%= item.productId.isBlocked ? 'blocked-product' : '' %>" 
+                     data-product-id="<%= item.productId._id %>">
                     <a href="/productDetails/<%= item.productId._id %>">
                         <img src="/uploads/product-images/<%= item.productId.productImage[0] %>" 
                              alt="<%= item.productId.productName %>">
                     </a>
                     <h3 class="item-title">
                         <%= item.productId.productName %>
+                        <% if (item.productId.isBlocked) { %>
+                            <span class="blocked-product">(Blocked)</span>
+                        <% } %>
                     </h3>
                     <p class="item-price">₹<%= item.productId.salePrice.toLocaleString('en-IN') %></p>
                     
                     <!-- Size Selection -->
                     <div class="sizes mb-3 d-flex flex-wrap gap-2 justify-content-center">
                         <% item.productId.variants.forEach(variant => { %>
-                            <div class="size-option" 
+                            <div class="size-option <%= variant.quantity === 0 ? 'out-of-stock' : '' %>" 
                                  data-size="<%= variant.size %>" 
                                  data-stock="<%= variant.quantity %>">
                                 <%= variant.size %>
+                                <% if (variant.quantity === 0) { %>
+                                    <span>(Out of Stock)</span>
+                                <% } %>
                             </div>
                         <% }); %>
                     </div>
@@ -161,13 +178,15 @@
                         Select a size to see available stock
                     </div>
 
-                    <button class="add-to-cart-btn" 
-                            onclick="addToCartFromWishlist('<%= item.productId._id %>', '<%= item.productId.productName %>')">
-                        Add to Cart
-                    </button>
-                    <button class="remove-item" onclick="removeFromWishlist('<%= item.productId._id %>')">
-                        Remove from wishlist
-                    </button>
+                    <% if (!item.productId.isBlocked) { %>
+                        <button class="add-to-cart-btn" 
+                                onclick="addToCartFromWishlist('<%= item.productId._id %>', '<%= item.productId.productName %>')">
+                            Add to Cart
+                        </button>
+                        <button class="remove-item" onclick="removeFromWishlist('<%= item.productId._id %>')">
+                            Remove from wishlist
+                        </button>
+                    <% } %>
                 </div>
             <% }); %>
         </div>
@@ -176,7 +195,6 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // Size Selection Logic
         const wishlistItems = document.querySelectorAll('.wishlist-item');
         wishlistItems.forEach(item => {
             const productId = item.dataset.productId;
@@ -185,6 +203,8 @@
 
             sizeOptions.forEach(option => {
                 option.addEventListener('click', function() {
+                    if (this.classList.contains('out-of-stock')) return;
+
                     sizeOptions.forEach(opt => opt.classList.remove('active'));
                     this.classList.add('active');
                     const stock = parseInt(this.dataset.stock);
@@ -247,8 +267,7 @@
                     });
                     const data = await response.json();
 
-                    if (data.status) { // Assuming your /add-to-cart returns { status: true } on success
-                        // Remove from wishlist
+                    if (data.status) {
                         const removeResponse = await fetch('/remove-from-wishlist', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },

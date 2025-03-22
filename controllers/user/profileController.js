@@ -196,15 +196,16 @@ const loadUserProfile = async (req, res) => {
       const userData = await User.findById(userId);
       const addressData = await Address.findOne({ userId: userId });
   
-      // Fetch orders with detailed population and pagination
+      // Fetch orders with detailed population, pagination, and sorting by createdOn in descending order
       const page = parseInt(req.query.page) || 1;
-      const limit = 5; // Adjust as needed
+      const limit = 5; 
       const skip = (page - 1) * limit;
       const orders = await Order.find({ userId })
         .populate({
           path: 'orderItems.product',
-          select: 'productName productImage' // Fetch product name and images
+          select: 'productName productImage' 
         })
+        .sort({ createdOn: -1 }) // Sort by createdOn field in descending order (latest first)
         .skip(skip)
         .limit(limit)
         .lean();
@@ -233,6 +234,7 @@ const loadUserProfile = async (req, res) => {
       res.redirect("/pageNotFound");
     }
   };
+  
 const updateProfile = async (req, res) => {
     try {
         const userId = req.session.user

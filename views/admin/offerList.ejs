@@ -61,26 +61,26 @@
                     <input type="hidden" name="offerId" id="editOfferId">
                     <div class="form-group">
                         <label for="editName">Offer Name:</label>
-                        <input type="text" class="form-control" id="editName" name="name" required>
+                        <input type="text" class="form-control" id="editName" name="name" >
                     </div>
                     <div class="form-group">
                         <label for="editDiscountType">Discount Type:</label>
-                        <select class="form-control" id="editDiscountType" name="discountType" required>
+                        <select class="form-control" id="editDiscountType" name="discountType" >
                             <option value="percentage">Percentage</option>
                             <option value="amount">Fixed Amount</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="editDiscountValue">Discount Value:</label>
-                        <input type="number" class="form-control" id="editDiscountValue" name="discountValue" min="0" required>
+                        <input type="number" class="form-control" id="editDiscountValue" name="discountValue" min="0" >
                     </div>
                     <div class="form-group">
                         <label for="editStartDate">Start Date:</label>
-                        <input type="date" class="form-control" id="editStartDate" name="startDate" required>
+                        <input type="date" class="form-control" id="editStartDate" name="startDate" >
                     </div>
                     <div class="form-group">
                         <label for="editEndDate">End Date:</label>
-                        <input type="date" class="form-control" id="editEndDate" name="endDate" required>
+                        <input type="date" class="form-control" id="editEndDate" name="endDate" >
                     </div>
                     <div class="form-group">
                         <label for="editStatus">Status:</label>
@@ -101,15 +101,16 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> <!-- Updated to latest version for compatibility -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     $(document).ready(function () {
+        // Edit Offer Click Handler
         $(".edit-offer").click(function (e) {
             e.preventDefault();
             const offerId = $(this).data("id");
             $.get(`/admin/offer/${offerId}`, function (data) {
                 if (data.success) {
-                    const offer = data.offer; // Access the nested offer object
+                    const offer = data.offer;
                     $("#editOfferId").val(offer._id);
                     $("#editName").val(offer.name);
                     $("#editDiscountType").val(offer.discountType);
@@ -126,45 +127,95 @@
             });
         });
 
+        // Form Validation and Submission
         $("#editOfferForm").submit(function (e) {
-    e.preventDefault(); // Prevent default form submission
-    const formData = $(this).serialize();
-    const offerId = $("#editOfferId").val();
+            e.preventDefault();
 
-    Swal.fire({
-        title: 'Are you sure?',
-        text: "Do you want to update this offer?",
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, update it!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.ajax({
-                url: `/admin/offer-update/${offerId}`, // Dynamic URL with offerId
-                method: "PUT",
-                data: formData,
-                success: function (response) {
-                    Swal.fire(
-                        'Success!',
-                        'Offer updated successfully.',
-                        'success'
-                    ).then(() => {
-                        window.location.reload();
+            // Get form values
+            const name = $("#editName").val().trim();
+            const discountType = $("#editDiscountType").val();
+            const discountValue = parseFloat($("#editDiscountValue").val());
+            const startDate = $("#editStartDate").val();
+            const endDate = $("#editEndDate").val();
+            const status = $("#editStatus").val();
+
+            // Validation checks
+            let errors = [];
+
+            if (!name) {
+                errors.push("Offer Name is required.");
+            }
+
+            if (isNaN(discountValue) || discountValue <= 0) {
+                errors.push("Discount Value must be a positive number.");
+            } else if (discountType === "percentage" && discountValue > 100) {
+                errors.push("Percentage discount cannot exceed 100%.");
+            }
+
+            if (!startDate) {
+                errors.push("Start Date is required.");
+            }
+
+            if (!endDate) {
+                errors.push("End Date is required.");
+            } else if (startDate && endDate && new Date(endDate) <= new Date(startDate)) {
+                errors.push("End Date must be after Start Date.");
+            }
+
+            if (new Date(startDate) < new Date().setHours(0, 0, 0, 0)) {
+                errors.push("Start Date cannot be in the past.");
+            }
+
+            // If there are errors, show them and stop submission
+            if (errors.length > 0) {
+                Swal.fire({
+                    title: 'Validation Error',
+                    html: errors.join("<br>"),
+                    icon: 'error'
+                });
+                return;
+            }
+
+            // If validation passes, proceed with confirmation
+            const formData = $(this).serialize();
+            const offerId = $("#editOfferId").val();
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "Do you want to update this offer?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, update it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: `/admin/offer-update/${offerId}`,
+                        method: "PUT",
+                        data: formData,
+                        success: function (response) {
+                            Swal.fire(
+                                'Success!',
+                                'Offer updated successfully.',
+                                'success'
+                            ).then(() => {
+                                window.location.reload();
+                            });
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            Swal.fire(
+                                'Error!',
+                                'Failed to update offer: ' + errorThrown,
+                                'error'
+                            );
+                        }
                     });
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    Swal.fire(
-                        'Error!',
-                        'Failed to update offer: ' + errorThrown,
-                        'error'
-                    );
                 }
             });
-        }
-    });
-});
+        });
+
+        // Delete Offer Handler (unchanged)
         $(".delete-offer").click(function (e) {
             e.preventDefault();
             const offerId = $(this).data("id");

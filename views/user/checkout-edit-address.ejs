@@ -6,42 +6,66 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .error-message {
+      color: red;
+      font-size: 0.8em;
+      margin-top: 5px;
+      display: none;
+    }
+    .is-invalid {
+      border-color: red;
+    }
+  </style>
 </head>
 <body>
   <div class="container mt-5">
     <h2>Edit Address</h2>
-    <form action="/api/addresses/<%= address._id %>" method="POST" class="p-3 border">
+    <form action="/api/addresses/<%= address._id %>/edit" method="POST" class="p-3 border" id="editAddressForm" novalidate>
       <div class="form-group">
         <label>Address Type <span class="text-danger">*</span></label>
-        <input type="text" name="addressType" class="form-control" value="<%= address.addressType %>" required>
+        <select name="addressType" class="form-control" required>
+          <option value="">Select type</option>
+          <option value="Home" <%= address.addressType === 'Home' ? 'selected' : '' %>>Home</option>
+          <option value="Work" <%= address.addressType === 'Work' ? 'selected' : '' %>>Work</option>
+          <option value="Other" <%= address.addressType === 'Other' ? 'selected' : '' %>>Other</option>
+        </select>
+        <div class="error-message" id="addressTypeError">Please select an address type</div>
       </div>
       <div class="form-group">
         <label>Name <span class="text-danger">*</span></label>
         <input type="text" name="name" class="form-control" value="<%= address.name %>" required>
+        <div class="error-message" id="nameError">Name must be 2-50 characters long</div>
       </div>
       <div class="form-group">
         <label>Landmark <span class="text-danger">*</span></label>
         <input type="text" name="landMark" class="form-control" value="<%= address.landMark %>" required>
+        <div class="error-message" id="landMarkError">Landmark must be 2-100 characters</div>
       </div>
       <div class="form-group">
         <label>City <span class="text-danger">*</span></label>
         <input type="text" name="city" class="form-control" value="<%= address.city %>" required>
+        <div class="error-message" id="cityError">City must be 2-50 characters</div>
       </div>
       <div class="form-group">
         <label>State <span class="text-danger">*</span></label>
         <input type="text" name="state" class="form-control" value="<%= address.state %>" required>
+        <div class="error-message" id="stateError">State must be 2-50 characters</div>
       </div>
       <div class="form-group">
         <label>Pincode <span class="text-danger">*</span></label>
         <input type="number" name="pincode" class="form-control" value="<%= address.pincode %>" required>
+        <div class="error-message" id="pincodeError">Pincode must be 6 digits</div>
       </div>
       <div class="form-group">
         <label>Phone <span class="text-danger">*</span></label>
         <input type="text" name="phone" class="form-control" value="<%= address.phone %>" pattern="[0-9]{10}" required>
+        <div class="error-message" id="phoneError">Phone must be 10 digits</div>
       </div>
       <div class="form-group">
         <label>Alternate Phone <span class="text-danger">*</span></label>
         <input type="text" name="altPhone" class="form-control" value="<%= address.altPhone %>" pattern="[0-9]{10}" required>
+        <div class="error-message" id="altPhoneError">Alternate phone must be 10 digits</div>
       </div>
       <div class="form-check">
         <input type="checkbox" class="form-check-input" name="isDefault" value="true" <%= address.isDefault ? 'checked' : '' %>>
@@ -50,6 +74,104 @@
       <button type="submit" class="btn btn-primary">Save Changes</button>
     </form>
   </div>
-  <script src="/js/address.js"></script>
+
+  <script>
+    document.getElementById('editAddressForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      let isValid = true;
+
+      // Address Type validation
+      const addressType = this.addressType.value;
+      if (!addressType) {
+        document.getElementById('addressTypeError').style.display = 'block';
+        this.addressType.classList.add('is-invalid');
+        isValid = false;
+      } else {
+        document.getElementById('addressTypeError').style.display = 'none';
+        this.addressType.classList.remove('is-invalid');
+      }
+
+      // Name validation
+      const name = this.name.value.trim();
+      if (!name || name.length < 2 || name.length > 50) {
+        document.getElementById('nameError').style.display = 'block';
+        this.name.classList.add('is-invalid');
+        isValid = false;
+      } else {
+        document.getElementById('nameError').style.display = 'none';
+        this.name.classList.remove('is-invalid');
+      }
+
+      // Landmark validation
+      const landMark = this.landMark.value.trim();
+      if (!landMark || landMark.length < 2 || landMark.length > 100) {
+        document.getElementById('landMarkError').style.display = 'block';
+        this.landMark.classList.add('is-invalid');
+        isValid = false;
+      } else {
+        document.getElementById('landMarkError').style.display = 'none';
+        this.landMark.classList.remove('is-invalid');
+      }
+
+      // City validation
+      const city = this.city.value.trim();
+      if (!city || city.length < 2 || city.length > 50) {
+        document.getElementById('cityError').style.display = 'block';
+        this.city.classList.add('is-invalid');
+        isValid = false;
+      } else {
+        document.getElementById('cityError').style.display = 'none';
+        this.city.classList.remove('is-invalid');
+      }
+
+      // State validation
+      const state = this.state.value.trim();
+      if (!state || state.length < 2 || state.length > 50) {
+        document.getElementById('stateError').style.display = 'block';
+        this.state.classList.add('is-invalid');
+        isValid = false;
+      } else {
+        document.getElementById('stateError').style.display = 'none';
+        this.state.classList.remove('is-invalid');
+      }
+
+      // Pincode validation
+      const pincode = this.pincode.value;
+      if (!pincode || !/^\d{6}$/.test(pincode)) {
+        document.getElementById('pincodeError').style.display = 'block';
+        this.pincode.classList.add('is-invalid');
+        isValid = false;
+      } else {
+        document.getElementById('pincodeError').style.display = 'none';
+        this.pincode.classList.remove('is-invalid');
+      }
+
+      // Phone validation
+      const phone = this.phone.value;
+      if (!phone || !/^\d{10}$/.test(phone)) {
+        document.getElementById('phoneError').style.display = 'block';
+        this.phone.classList.add('is-invalid');
+        isValid = false;
+      } else {
+        document.getElementById('phoneError').style.display = 'none';
+        this.phone.classList.remove('is-invalid');
+      }
+
+      // Alternate Phone validation
+      const altPhone = this.altPhone.value;
+      if (!altPhone || !/^\d{10}$/.test(altPhone)) {
+        document.getElementById('altPhoneError').style.display = 'block';
+        this.altPhone.classList.add('is-invalid');
+        isValid = false;
+      } else {
+        document.getElementById('altPhoneError').style.display = 'none';
+        this.altPhone.classList.remove('is-invalid');
+      }
+
+      if (isValid) {
+        this.submit();
+      }
+    });
+  </script>
 </body>
 </html>

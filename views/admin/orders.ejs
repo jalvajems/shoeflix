@@ -87,7 +87,7 @@
   .status-dropdown.Shipped { background-color: #d4edda; color: #155724; }
   .status-dropdown.Delivered { background-color: #d1e7dd; color: #0f5132; }
   .status-dropdown.Cancelled { background-color: #f8d7da; color: #721c24; }
-  .status-dropdown['Return Request'] { background-color: #cce5ff; color: #004085; }
+  .status-dropdown['Cancellation Requested'] { background-color: #fff3cd; color: #856404; }
   .status-dropdown.Returned { background-color: #d1e7dd; color: #0f5132; }
   .spinner { margin-left: 10px; font-size: 14px; }
 </style>
@@ -109,7 +109,9 @@
     .then(data => {
       if (data.success) {
         select.className = `form-select status-dropdown ${newStatus}`;
-        Swal.fire({ icon: 'success', title: 'Updated', text: data.message, timer: 2000 });
+        if (data.reload) {
+          window.location.reload(); // Auto-reload on success
+        }
       } else {
         select.value = select.dataset.previous;
         Swal.fire({ icon: 'error', title: 'Failed', text: data.message, timer: 2000 });

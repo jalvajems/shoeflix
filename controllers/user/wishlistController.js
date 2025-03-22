@@ -12,7 +12,16 @@ const loadWishlist = async (req, res) => {
         }
 
         const user = await User.findById(userId);
-        const wishlist = await Wishlist.findOne({ userId }).populate('products.productId');
+        const wishlist = await Wishlist.findOne({ userId })
+            .populate({
+                path: 'products.productId',
+                match: { isBlocked: false } 
+            });
+
+        // Filter out products with  (blocked products)
+        if (wishlist) {
+            wishlist.products = wishlist.products.filter(item => item.productId !== null);
+        }
 
         res.render('wishlist', {
             user,
@@ -32,6 +41,12 @@ const addToWishlist = async (req, res) => {
 
         if (!userId) {
             return res.status(401).json({ success: false, message: 'Please log in to add to wishlist' });
+        }
+
+        // Check if product exists and is not blocked============
+        const product = await Product.findOne({ _id: productId, isBlocked: false });
+        if (!product) {
+            return res.status(404).json({ success: false, message: 'Product not available' });
         }
 
         let wishlist = await Wishlist.findOne({ userId });
@@ -59,7 +74,7 @@ const addToWishlist = async (req, res) => {
     }
 };
 
-// Remove from Wishlist
+// Remove from Wishlist===============
 const removeFromWishlist = async (req, res) => {
     try {
         const userId = req.session.user;
@@ -98,7 +113,7 @@ const removeFromWishlist = async (req, res) => {
     }
 };
 
-// Check if Product is in Wishlist
+// Check if Product is in Wishlist with validation============
 const checkWishlist = async (req, res) => {
     try {
         const userId = req.session.user;
@@ -106,6 +121,11 @@ const checkWishlist = async (req, res) => {
 
         if (!userId) {
             return res.status(401).json({ success: false, message: 'Please log in to check wishlist' });
+        }
+
+        const product = await Product.findOne({ _id: productId, isBlocked: false });
+        if (!product) {
+            return res.status(404).json({ success: false, message: 'Product not available' });
         }
 
         const wishlist = await Wishlist.findOne({ userId });

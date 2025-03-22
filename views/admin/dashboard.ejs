@@ -18,6 +18,12 @@
     font-size: 0.9em;
     display: none;
   }
+  .chart-container {
+    position: relative;
+    margin: auto;
+    height: 400px;
+    width: 100%;
+  }
 </style>
 
 <section class="content-main">
@@ -128,12 +134,50 @@
       <div class="card">
         <div class="card-body">
           <h6>Total Coupon Discount</h6>
-          <h4>₹<%= (totalCouponDiscount || 0).toFixed(2) %></h4>
+          <h4>₹<%= totalCouponDiscount.toFixed(2) %></h4>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- Graphs Section -->
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h4>Top 10 Best Selling Products</h4>
+          <div class="chart-container">
+            <canvas id="bestProductsChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h4>Top 10 Best Selling Categories</h4>
+          <div class="chart-container">
+            <canvas id="bestCategoriesChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-body">
+          <h4>Sales Report</h4>
+          <div class="chart-container">
+            <canvas id="salesChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sales Details Table -->
   <div class="card">
     <div class="card-body">
       <h4>Sales Details</h4>
@@ -154,27 +198,27 @@
           <tbody>
             <% orders.forEach(order => { %>
             <tr>
-                <td><%= order.orderId || 'N/A' %></td>
-                <td><%= order.createdOn ? order.createdOn.toLocaleDateString() : 'N/A' %></td>
-                <td>
-                    <% if (order.orderItems && Array.isArray(order.orderItems)) { %>
-                        <% order.orderItems.forEach(item => { %>
-                            <div>
-                                <%= item.product?.productName || 'N/A' %> (Qty: <%= item.variants?.quantity || 0 %>)
-                            </div>
-                        <% }) %>
-                    <% } else { %>
-                        <div>No items</div>
-                    <% } %>
-                </td>
-                <td>₹<%= order.totalPrice ? order.totalPrice.toFixed(2) : '0.00' %></td>
-                <td>₹<%= order.discount ? order.discount.toFixed(2) : '0.00' %></td>
-                <td><%= order.couponCode || 'N/A' %></td>
-                <td>₹<%= (order.couponDiscount || 0).toFixed(2) %></td>
-                <td>₹<%= order.finalAmount ? order.finalAmount.toFixed(2) : '0.00' %></td>
+              <td><%= order.orderId || 'N/A' %></td>
+              <td><%= order.createdOn ? order.createdOn.toLocaleDateString() : 'N/A' %></td>
+              <td>
+                <% if (order.orderItems && Array.isArray(order.orderItems)) { %>
+                  <% order.orderItems.forEach(item => { %>
+                    <div>
+                      <%= item.product?.productName || 'N/A' %> (Qty: <%= item.variants?.quantity || 0 %>)
+                    </div>
+                  <% }) %>
+                <% } else { %>
+                  <div>No items</div>
+                <% } %>
+              </td>
+              <td>₹<%= order.totalPrice ? order.totalPrice.toFixed(2) : '0.00' %></td>
+              <td>₹<%= order.discount ? order.discount.toFixed(2) : '0.00' %></td>
+              <td><%= order.couponCode || 'N/A' %></td>
+              <td>₹<%= (order.couponDiscount || 0).toFixed(2) %></td>
+              <td>₹<%= order.finalAmount ? order.finalAmount.toFixed(2) : '0.00' %></td>
             </tr>
             <% }) %>
-        </tbody>
+          </tbody>
         </table>
       </div>
 
@@ -197,6 +241,9 @@
     </div>
   </div>
 </section>
+
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
   function toggleDateInputs(select) {
@@ -209,7 +256,6 @@
 
   function validateForm(event) {
     event.preventDefault();
-
     const filter = document.querySelector('select[name="filter"]').value;
     const startDateInput = document.querySelector('input[name="startDate"]');
     const endDateInput = document.querySelector('input[name="endDate"]');
@@ -262,6 +308,74 @@
     return true;
   }
 
+  // Chart for Best Selling Products
+  const bestProductsCtx = document.getElementById('bestProductsChart').getContext('2d');
+  const bestProductsChart = new Chart(bestProductsCtx, {
+    type: 'bar',
+    data: {
+      labels: <%- JSON.stringify(bestSellingProducts.map(p => p.productName)) %>,
+      datasets: [{
+        label: 'Total Sold',
+        data: <%- JSON.stringify(bestSellingProducts.map(p => p.totalSold)) %>,
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+
+  // Chart for Best Selling Categories
+  const bestCategoriesCtx = document.getElementById('bestCategoriesChart').getContext('2d');
+  const bestCategoriesChart = new Chart(bestCategoriesCtx, {
+    type: 'bar',
+    data: {
+      labels: <%- JSON.stringify(bestCategories.map(c => c.categoryName)) %>,
+      datasets: [{
+        label: 'Total Sold',
+        data: <%- JSON.stringify(bestCategories.map(c => c.totalSold)) %>,
+        backgroundColor: 'rgba(153, 102, 255, 0.2)',
+        borderColor: 'rgba(153, 102, 255, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+
+  // Chart for Sales Report
+  const salesCtx = document.getElementById('salesChart').getContext('2d');
+  const salesChart = new Chart(salesCtx, {
+    type: 'line',
+    data: {
+      labels: <%-JSON.stringify(salesData.map(s => s.date)) %>,
+      datasets: [{
+        label: 'Total Sales (₹)',
+        data: <%- JSON.stringify(salesData.map(s => s.totalSales)) %>,
+        fill: false,
+        borderColor: 'rgba(255, 99, 132, 1)',
+        tension: 0.1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
 </script>
 
 <%- include("../../views/partials/admin/footer") %>

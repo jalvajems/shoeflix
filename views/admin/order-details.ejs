@@ -13,8 +13,14 @@
             <div class="col-md-6">
               <p><strong>Total Amount:</strong> ₹<%= order.finalAmount.toFixed(2) %></p>
               <p><strong>Payment Method:</strong> <%= order.paymentMethod || 'N/A' %></p>
-              <p><strong>Status:</strong> <span class="badge <%= order.status === 'Delivered' ? 'bg-success' : order.status === 'Cancelled' ? 'bg-danger' : 'bg-info' %>"><%= order.status %></span></p>
+              <p><strong>Status:</strong> <span class="badge <%= order.status === 'Delivered' ? 'bg-success' : order.status === 'Cancelled' ? 'bg-danger' : order.status === 'Cancellation Requested' ? 'bg-warning' : 'bg-info' %>"><%= order.status %></span></p>
               <p><strong>Order Date:</strong> <%= new Date(order.createdOn).toLocaleString() %></p>
+              <% if (order.status === 'Cancellation Requested') { %>
+                <p><strong>Cancellation Reason:</strong> <%= order.cancellationReason || 'Not provided' %></p>
+                <p><strong>Requested At:</strong> <%= order.cancellationRequestedAt ? new Date(order.cancellationRequestedAt).toLocaleString() : 'N/A' %></p>
+                <button class="btn btn-success btn-sm me-2" onclick="approveCancellation('<%= order._id %>')">Approve Cancellation</button>
+                <button class="btn btn-danger btn-sm" onclick="rejectCancellation('<%= order._id %>')">Reject Cancellation</button>
+              <% } %>
             </div>
             <div class="col-md-6">
               <p><strong>Shipping Address:</strong></p>
@@ -37,7 +43,6 @@
             <% order.orderItems.forEach(item => { %>
               <div class="list-group-item">
                 <div class="d-flex">
-                  <!-- Prepend /uploads/product-images/ to the image path -->
                   <img src="<%= item.product && item.product.productImage && item.product.productImage.length > 0 ? '/uploads/product-images/' + item.product.productImage[0] : '/default-image.jpg' %>" alt="<%= item.name || 'Product' %>" class="img-thumbnail" style="width: 80px; height: 80px; object-fit: cover;">
                   <div class="ms-3">
                     <h6><%= item.name || 'Unknown Product' %></h6>
@@ -82,7 +87,9 @@
         .then(res => res.json())
         .then(data => {
           if (data.success) {
-            Swal.fire('Success', data.message, 'success').then(() => location.reload());
+            if (data.reload) {
+              window.location.href = '/admin/orders'; // Redirect to Order List
+            }
           } else {
             Swal.fire('Error', data.message, 'error');
           }
@@ -110,7 +117,69 @@
         .then(res => res.json())
         .then(data => {
           if (data.success) {
-            Swal.fire('Success', data.message, 'success').then(() => location.reload());
+            if (data.reload) {
+              window.location.href = '/admin/orders'; // Redirect to Order List
+            }
+          } else {
+            Swal.fire('Error', data.message, 'error');
+          }
+        })
+        .catch(err => Swal.fire('Error', 'Network issue', 'error'));
+      }
+    });
+  }
+
+  function approveCancellation(orderId) {
+    Swal.fire({
+      title: 'Confirm Approval',
+      text: 'Are you sure you want to approve this cancellation?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes',
+      cancelButtonText: 'No'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        fetch('/admin/approve-cancellation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            if (data.reload) {
+              window.location.href = '/admin/orders'; // Redirect to Order List
+            }
+          } else {
+            Swal.fire('Error', data.message, 'error');
+          }
+        })
+        .catch(err => Swal.fire('Error', 'Network issue', 'error'));
+      }
+    });
+  }
+
+  function rejectCancellation(orderId) {
+    Swal.fire({
+      title: 'Confirm Rejection',
+      text: 'Are you sure you want to reject this cancellation?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes',
+      cancelButtonText: 'No'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        fetch('/admin/reject-cancellation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            if (data.reload) {
+              window.location.href = '/admin/orders'; // Redirect to Order List
+            }
           } else {
             Swal.fire('Error', data.message, 'error');
           }
@@ -128,6 +197,7 @@
   .bg-success { background-color: #28a745; color: #fff; }
   .bg-danger { background-color: #dc3545; color: #fff; }
   .bg-info { background-color: #17a2b8; color: #fff; }
+  .bg-warning { background-color: #ffc107; color: #212529; }
   address { margin-bottom: 0; font-style: normal; line-height: 1.5; }
   .img-thumbnail { border: none; }
   .list-group-item { border: none; padding: 1rem; }

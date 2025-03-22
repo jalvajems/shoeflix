@@ -13,29 +13,35 @@
         <div class="col-md-4">
           <form id="addCouponForm">
             <h5 class="card-title mb-4">Add New Coupon</h5>
-            <div class="mb-3">
+            <div class="mb-3 position-relative">
               <label class="form-label">Coupon Code</label>
-              <input type="text" class="form-control" name="name" placeholder="Enter coupon code" required>
+              <input type="text" class="form-control" name="name" placeholder="Enter coupon code" >
+              <small class="text-danger error-message" id="nameError"></small>
             </div>
-            <div class="mb-3">
+            <div class="mb-3 position-relative">
               <label class="form-label">Offer Price (₹)</label>
               <input type="number" class="form-control" name="offerPrice" placeholder="Fixed discount" min="0" max="10000">
+              <small class="text-danger error-message" id="offerPriceError"></small>
             </div>
-            <div class="mb-3">
+            <div class="mb-3 position-relative">
               <label class="form-label">Discount Percentage (%)</label>
               <input type="number" class="form-control" name="discountPercentage" placeholder="Percentage discount" min="0" max="100">
+              <small class="text-danger error-message" id="discountPercentageError"></small>
             </div>
-            <div class="mb-3">
+            <div class="mb-3 position-relative">
               <label class="form-label">Minimum Purchase Amount (₹)</label>
-              <input type="number" class="form-control" name="minimumPrice" placeholder="Min purchase amount" required>
+              <input type="number" class="form-control" name="minimumPrice" placeholder="Min purchase amount">
+              <small class="text-danger error-message" id="minimumPriceError"></small>
             </div>
-            <div class="mb-3">
+            <div class="mb-3 position-relative">
               <label class="form-label">Expiry Date</label>
-              <input type="date" class="form-control" name="expireOn" required>
+              <input type="date" class="form-control" name="expireOn">
+              <small class="text-danger error-message" id="expireOnError"></small>
             </div>
-            <div class="mb-3">
+            <div class="mb-3 position-relative">
               <label class="form-label">Max Uses</label>
               <input type="number" class="form-control" name="maxUses" placeholder="Leave blank for unlimited">
+              <small class="text-danger error-message" id="maxUsesError"></small>
             </div>
             <button type="submit" class="btn btn-primary">Create Coupon</button>
           </form>
@@ -128,29 +134,35 @@
         <div class="modal-body">
           <form id="editCouponForm">
             <input type="hidden" id="editCouponId" name="couponId">
-            <div class="mb-3">
+            <div class="mb-3 position-relative">
               <label class="form-label">Coupon Code</label>
               <input type="text" class="form-control" id="editCouponName" name="name" readonly>
+              <small class="text-danger error-message" id="editNameError"></small>
             </div>
-            <div class="mb-3">
+            <div class="mb-3 position-relative">
               <label class="form-label">Offer Price (₹)</label>
               <input type="number" class="form-control" id="editOfferPrice" name="offerPrice" min="0" max="10000">
+              <small class="text-danger error-message" id="editOfferPriceError"></small>
             </div>
-            <div class="mb-3">
+            <div class="mb-3 position-relative">
               <label class="form-label">Discount Percentage (%)</label>
               <input type="number" class="form-control" id="editDiscountPercentage" name="discountPercentage" min="0" max="100">
+              <small class="text-danger error-message" id="editDiscountPercentageError"></small>
             </div>
-            <div class="mb-3">
+            <div class="mb-3 position-relative">
               <label class="form-label">Minimum Purchase Amount (₹)</label>
-              <input type="number" class="form-control" id="editMinimumPrice" name="minimumPrice" required>
+              <input type="number" class="form-control" id="editMinimumPrice" name="minimumPrice" >
+              <small class="text-danger error-message" id="editMinimumPriceError"></small>
             </div>
-            <div class="mb-3">
+            <div class="mb-3 position-relative">
               <label class="form-label">Expiry Date</label>
-              <input type="date" class="form-control" id="editExpiryDate" name="expireOn" required>
+              <input type="date" class="form-control" id="editExpiryDate" name="expireOn" >
+              <small class="text-danger error-message" id="editExpireOnError"></small>
             </div>
-            <div class="mb-3">
+            <div class="mb-3 position-relative">
               <label class="form-label">Max Uses</label>
               <input type="number" class="form-control" id="editMaxUses" name="maxUses">
+              <small class="text-danger error-message" id="editMaxUsesError"></small>
             </div>
             <div class="mb-3">
               <div class="form-check">
@@ -173,28 +185,136 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const addCouponForm = document.getElementById('addCouponForm');
+      const editCouponForm = document.getElementById('editCouponForm');
+
+      // Validation function for both forms
+      function validateForm(form, isEdit = false) {
+        let isValid = true;
+        const formData = new FormData(form);
+        
+        const requiredFields = isEdit 
+          ? ['minimumPrice', 'expireOn']
+          : ['name', 'minimumPrice', 'expireOn'];
+        
+        // Clear previous error messages
+        form.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+
+        // Check required fields
+        requiredFields.forEach(field => {
+          const input = form.querySelector(`[name="${field}"]`);
+          const value = formData.get(field).trim();
+          const errorElement = form.querySelector(`#${isEdit ? 'edit' : ''}${field.charAt(0).toUpperCase() + field.slice(1)}Error`);
+
+          if (!value) {
+            errorElement.textContent = 'This field is required';
+            isValid = false;
+          }
+        });
+
+        if (!isValid) return false;
+
+        // Get form values
+        const name = formData.get('name')?.trim().toUpperCase() || '';
+        const offerPrice = parseFloat(formData.get('offerPrice')) || 0;
+        const discountPercentage = parseFloat(formData.get('discountPercentage')) || 0;
+        const minimumPrice = parseFloat(formData.get('minimumPrice'));
+        const expireOn = new Date(formData.get('expireOn'));
+        const maxUses = formData.get('maxUses') ? parseInt(formData.get('maxUses')) : null;
+
+        // Patterns
+        const couponCodePattern = /^[A-Z0-9-]+$/;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Coupon code validation (only for add form)
+        if (!isEdit) {
+          if (name.length < 4 || name.length > 20) {
+            document.getElementById('nameError').textContent = 'Coupon code must be between 4 and 20 characters';
+            isValid = false;
+          } else if (!couponCodePattern.test(name)) {
+            document.getElementById('nameError').textContent = 'Coupon code can only contain uppercase letters, numbers, and hyphens';
+            isValid = false;
+          }
+        }
+
+        // Discount validation
+        if (offerPrice === 0 && discountPercentage === 0) {
+          Swal.fire('Error', 'Either offer price or discount percentage must be provided', 'error');
+          isValid = false;
+        }
+        if (offerPrice < 0 || offerPrice > 10000) {
+          document.getElementById(`${isEdit ? 'edit' : ''}OfferPriceError`).textContent = 'Offer price must be between 0 and 10,000';
+          isValid = false;
+        }
+        if (discountPercentage < 0 || discountPercentage > 100) {
+          document.getElementById(`${isEdit ? 'edit' : ''}DiscountPercentageError`).textContent = 'Discount percentage must be between 0 and 100';
+          isValid = false;
+        }
+
+        // Minimum price validation
+        if (isNaN(minimumPrice) || minimumPrice <= 0) {
+          document.getElementById(`${isEdit ? 'edit' : ''}MinimumPriceError`).textContent = 'Minimum purchase amount must be a positive number';
+          isValid = false;
+        } else if (minimumPrice > 100000) {
+          document.getElementById(`${isEdit ? 'edit' : ''}MinimumPriceError`).textContent = 'Minimum purchase amount cannot exceed 100,000';
+          isValid = false;
+        } else if (offerPrice >= minimumPrice && offerPrice > 0) {
+          document.getElementById(`${isEdit ? 'edit' : ''}OfferPriceError`).textContent = 'Offer price must be less than minimum purchase amount';
+          isValid = false;
+        }
+
+        // Expiry date validation
+        if (isNaN(expireOn.getTime()) || expireOn < today) {
+          document.getElementById(`${isEdit ? 'edit' : ''}ExpireOnError`).textContent = 'Expiration date must be today or in the future';
+          isValid = false;
+        }
+
+        // Max uses validation
+        if (maxUses !== null && (isNaN(maxUses) || maxUses < 1 || !Number.isInteger(maxUses))) {
+          document.getElementById(`${isEdit ? 'edit' : ''}MaxUsesError`).textContent = 'Max uses must be a positive integer';
+          isValid = false;
+        }
+
+        return isValid;
+      }
+
+      // Add coupon form submission
       addCouponForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const formData = new FormData(addCouponForm);
-        const data = Object.fromEntries(formData);
-        const response = await fetch('/admin/coupon', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
-        });
-        const result = await response.json();
-        Swal.fire({
-          title: result.status ? 'Success!' : 'Error!',
-          text: result.message,
-          icon: result.status ? 'success' : 'error',
-        }).then(() => window.location.reload());
+        
+        if (!validateForm(addCouponForm)) {
+          return;
+        }
+
+        try {
+          const formData = new FormData(addCouponForm);
+          const data = Object.fromEntries(formData);
+          const response = await fetch('/admin/coupon', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+          });
+          const result = await response.json();
+          Swal.fire({
+            title: result.status ? 'Success!' : 'Error!',
+            text: result.message,
+            icon: result.status ? 'success' : 'error',
+          }).then(() => {
+            if (result.status) window.location.reload();
+          });
+        } catch (error) {
+          Swal.fire('Error!', 'Something went wrong', 'error');
+        }
       });
 
+      // Filter buttons
       document.querySelectorAll('#showAllBtn, #showActiveBtn, #showExpiredBtn').forEach(btn => {
         btn.addEventListener('click', () => {
           const filter = btn.id.replace('Btn', '');
           document.querySelectorAll('.coupon-row').forEach(row => {
-            row.style.display = filter === 'showAll' || (filter === 'showActive' && row.classList.contains('active-coupon')) || (filter === 'showExpired' && !row.classList.contains('active-coupon')) ? '' : 'none';
+            row.style.display = filter === 'showAll' || 
+              (filter === 'showActive' && row.classList.contains('active-coupon')) || 
+              (filter === 'showExpired' && !row.classList.contains('active-coupon')) ? '' : 'none';
           });
           btn.classList.add(`btn-${filter === 'showAll' ? 'secondary' : filter === 'showActive' ? 'success' : 'danger'}`);
           btn.classList.remove('btn-outline-secondary', 'btn-outline-success', 'btn-outline-danger');
@@ -204,6 +324,7 @@
         });
       });
 
+      // Edit modal
       window.openEditModal = (couponId, name, offerPrice, discountPercentage, minimumPrice, expireOn, maxUses, isActive) => {
         document.getElementById('editCouponId').value = couponId;
         document.getElementById('editCouponName').value = name;
@@ -216,22 +337,34 @@
         new bootstrap.Modal(document.getElementById('editCouponModal')).show();
       };
 
+      // Update coupon
       window.updateCoupon = async () => {
-        const formData = new FormData(document.getElementById('editCouponForm'));
-        const data = Object.fromEntries(formData);
-        const response = await fetch(`/admin/coupon/${data.couponId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
-        });
-        const result = await response.json();
-        Swal.fire({
-          title: result.status ? 'Success!' : 'Error!',
-          text: result.message,
-          icon: result.status ? 'success' : 'error',
-        }).then(() => window.location.reload());
+        if (!validateForm(editCouponForm, true)) {
+          return;
+        }
+
+        try {
+          const formData = new FormData(editCouponForm);
+          const data = Object.fromEntries(formData);
+          const response = await fetch(`/admin/coupon/${data.couponId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+          });
+          const result = await response.json();
+          Swal.fire({
+            title: result.status ? 'Success!' : 'Error!',
+            text: result.message,
+            icon: result.status ? 'success' : 'error',
+          }).then(() => {
+            if (result.status) window.location.reload();
+          });
+        } catch (error) {
+          Swal.fire('Error!', 'Something went wrong', 'error');
+        }
       };
 
+      // Delete coupon
       window.deleteCoupon = async (couponId) => {
         Swal.fire({
           title: 'Are you sure?',
@@ -243,13 +376,19 @@
           confirmButtonText: 'Yes, delete it!',
         }).then(async (result) => {
           if (result.isConfirmed) {
-            const response = await fetch(`/admin/coupon/${couponId}`, { method: 'DELETE' });
-            const result = await response.json();
-            Swal.fire({
-              title: result.status ? 'Deleted!' : 'Error!',
-              text: result.message,
-              icon: result.status ? 'success' : 'error',
-            }).then(() => window.location.reload());
+            try {
+              const response = await fetch(`/admin/coupon/${couponId}`, { method: 'DELETE' });
+              const result = await response.json();
+              Swal.fire({
+                title: result.status ? 'Deleted!' : 'Error!',
+                text: result.message,
+                icon: result.status ? 'success' : 'error',
+              }).then(() => {
+                if (result.status) window.location.reload();
+              });
+            } catch (error) {
+              Swal.fire('Error!', 'Something went wrong', 'error');
+            }
           }
         });
       };

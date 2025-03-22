@@ -1,0 +1,161 @@
+<%- include("../../views/partials/user/header") %>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Failed - Shoeflix</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <style>
+        .failure-container {
+            text-align: center;
+            padding: 50px 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, white, 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .failure-illustration img {
+            max-width: 300px;
+            margin-bottom: 20px;
+        }
+        .failure-message {
+            font-size: 1.5rem;
+            color: #e74c3c;
+            margin-bottom: 20px;
+        }
+        .btn-retry, .btn-order-details {
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        .btn-retry {
+            background-color: #2481e4;
+            border-color: #2481e4;
+            color: white;
+        }
+        .btn-retry:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+        .btn-order-details {
+            background-color: #7f8c8d;
+            border-color: #7f8c8d;
+            color: white;
+        }
+        .btn-order-details:hover {
+            background-color: #95a5a6;
+            border-color: #95a5a6;
+        }
+    </style>
+</head>
+<body>
+    <div class="failure-container">
+        <div class="failure-illustration">
+            <img src="/images/payment-failure.png" alt="Payment Failure Illustration">
+        </div>
+        <div class="failure-message">
+            Oops! Your payment could not be processed. Please try again.
+        </div>
+        <button class="btn btn-retry" id="retryPaymentBtn">Retry Payment</button>
+        <a href="/userProfile#orders" class="btn btn-order-details">View Order Details</a>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script>
+        const orderId = "<%= orderId %>";
+        const amount = <%= amount %>;
+        const addressId = "<%= addressId %>";
+        const couponCode = "<%= couponCode || '' %>";
+
+        document.getElementById('retryPaymentBtn').addEventListener('click', async () => {
+  try {
+    const response = await fetch('/retry-razorpay-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId: "<%= orderId %>" })
+    });
+    const orderData = await response.json();
+    if (!orderData.success) {
+      Toastify({
+        text: orderData.message,
+        duration: 5000,
+        gravity: 'top',
+        position: 'right',
+        backgroundColor: '#ff4444'
+      }).showToast();
+      return;
+    }
+
+    const options = {
+      key: orderData.razorpayKeyId,
+      amount: orderData.amount,
+      currency: 'INR',
+      name: 'Shoeflix',
+      description: 'Order Payment Retry',
+      order_id: orderData.razorpayOrderId,
+      handler: async (response) => {
+        const verifyResponse = await fetch('/verify-razorpay-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderId: orderData.orderId,
+            razorpayOrderId: response.razorpay_order_id,
+            razorpayPaymentId: response.razorpay_payment_id,
+            razorpaySignature: response.razorpay_signature
+          })
+        });
+        const verifyData = await verifyResponse.json();
+        if (verifyData.success) {
+          window.location.href = `/thank-you?orderId=${verifyData.orderId}`;
+        } else {
+          Toastify({
+            text: verifyData.message,
+            duration: 5000,
+            gravity: 'top',
+            position: 'right',
+            backgroundColor: '#ff4444'
+          }).showToast();
+        }
+      },
+      prefill: {
+        name: "<%= user.name %>",
+        email: "<%= user.email || '' %>",
+        contact: "<%= user.phone || '' %>"
+      },
+      theme: { color: '#2481e4' }
+    };
+    const rzp = new Razorpay(options);
+    rzp.open();
+    rzp.on('payment.failed', async (response) => {
+      await fetch('/handle-payment-dismissal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: orderData.orderId, addressId: "<%= addressId %>", reason: response.error.description })
+      });
+      window.location.href = `/order-failure?orderId=${orderData.orderId}&amount=${orderData.amount / 100}&addressId=<%= addressId %>&couponCode=<%= couponCode %>`;
+    });
+  } catch (error) {
+    Toastify({
+      text: 'Error initiating retry payment',
+      duration: 5000,
+      gravity: 'top',
+      position: 'right',
+      backgroundColor: '#ff4444'
+    }).showToast();
+  }
+});
+    </script>
+</body>
+</html>
+
+<%- include("../../views/partials/user/footer") %>

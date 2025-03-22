@@ -17,7 +17,7 @@ const getBestSellingProducts = async (dateFilter) => {
   try {
       const bestProducts = await Order.aggregate([
           { $match: { ...dateFilter, status: 'Delivered' } },
-          { $unwind: '$orderItems' }, // Changed to orderItems
+          { $unwind: '$orderItems' }, 
           {
               $group: {
                   _id: '$orderItems.product',
@@ -52,51 +52,51 @@ const getBestSellingProducts = async (dateFilter) => {
 };
 
 const getBestCategories = async (dateFilter) => {
-  try {
-      const bestCategories = await Order.aggregate([
-          { $match: { ...dateFilter, status: 'Delivered' } },
-          { $unwind: '$orderItems' }, // Changed to orderItems
-          {
-              $lookup: {
-                  from: 'products',
-                  localField: 'orderItems.product',
-                  foreignField: '_id',
-                  as: 'productInfo'
-              }
-          },
-          { $unwind: '$productInfo' },
-          {
-              $group: {
-                  _id: '$productInfo.category',
-                  totalSold: { $sum: '$orderItems.variants.quantity' }, // Updated path
-                  totalRevenue: { $sum: '$orderItems.price' }
-              }
-          },
-          {
-              $lookup: {
-                  from: 'categories',
-                  localField: '_id',
-                  foreignField: '_id',
-                  as: 'categoryInfo'
-              }
-          },
-          { $unwind: '$categoryInfo' },
-          {
-              $project: {
-                  categoryName: '$categoryInfo.name',
-                  totalSold: 1,
-                  totalRevenue: 1
-              }
-          },
-          { $sort: { totalSold: -1 } },
-          { $limit: 5 }
-      ]);
-      return bestCategories;
-  } catch (error) {
-      console.error('Error in getBestCategories:', error);
-      return [];
-  }
-};
+    try {
+        const bestCategories = await Order.aggregate([
+            { $match: { ...dateFilter, status: 'Delivered' } },
+            { $unwind: '$orderItems' },
+            {
+                $lookup: {
+                    from: 'products',
+                    localField: 'orderItems.product',
+                    foreignField: '_id',
+                    as: 'productInfo'
+                }
+            },
+            { $unwind: '$productInfo' },
+            {
+                $group: {
+                    _id: '$productInfo.category',
+                    totalSold: { $sum: '$orderItems.variants.quantity' },
+                    totalRevenue: { $sum: '$orderItems.price' }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'categories',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'categoryInfo'
+                }
+            },
+            { $unwind: '$categoryInfo' },
+            {
+                $project: {
+                    categoryName: '$categoryInfo.name',
+                    totalSold: 1,
+                    totalRevenue: 1
+                }
+            },
+            { $sort: { totalSold: -1 } },
+            { $limit: 10 } // Changed from 5 to 10
+        ]);
+        return bestCategories;
+    } catch (error) {
+        console.error('Error in getBestCategories:', error);
+        return [];
+    }
+  };
 
 const getSalesData = async (dateFilter) => {
   try {
@@ -253,12 +253,12 @@ const createDateFilter = (filter, startDate, endDate) => {
                         _id: null,
                         totalSales: { $sum: '$finalAmount' },
                         totalDiscount: { $sum: '$discount' },
-                        totalCouponDiscount: { $sum: 0 } // Your schema doesn't have couponDiscount
+                        totalCouponDiscount: { $sum: 0 }
                     }
                 }
             ]),
             Order.find({ ...dateFilter, status: 'Delivered' })
-                .populate('orderItems.product', 'productName') // Changed to orderItems
+                .populate('orderItems.product', 'productName')
                 .sort({ createdOn: -1 })
                 .skip((page - 1) * limit)
                 .limit(limit),
@@ -337,7 +337,7 @@ const generateSalesReport = async (req, res) => {
 
       const orders = await Order.aggregate([
           { $match: { ...dateFilter, status: 'Delivered' } },
-          { $unwind: '$orderItems' }, // Changed to orderItems
+          { $unwind: '$orderItems' }, 
           {
               $lookup: {
                   from: 'products',
@@ -375,7 +375,7 @@ const generateSalesReport = async (req, res) => {
                   totalOrders: { $sum: 1 },
                   totalAmount: { $sum: '$totalPrice' },
                   totalDiscount: { $sum: '$discount' },
-                  totalCouponDiscount: { $sum: 0 }, // No couponDiscount in schema
+                  totalCouponDiscount: { $sum: 0 }, 
                   finalAmount: { $sum: '$finalAmount' }
               }
           }
@@ -405,7 +405,7 @@ const downloadExcelReport = async (req, res) => {
       const dateFilter = createDateFilter(filter, startDate, endDate);
 
       const queryFilter = { ...dateFilter, status: 'Delivered' };
-      const orders = await Order.find(queryFilter).populate('orderItems.product'); // Changed to orderItems
+      const orders = await Order.find(queryFilter).populate('orderItems.product'); 
       const summary = await Order.aggregate([
           { $match: queryFilter },
           {
@@ -414,7 +414,7 @@ const downloadExcelReport = async (req, res) => {
                   totalOrders: { $sum: 1 },
                   totalAmount: { $sum: '$totalPrice' },
                   totalDiscount: { $sum: '$discount' },
-                  totalCouponDiscount: { $sum: 0 }, // No couponDiscount in schema
+                  totalCouponDiscount: { $sum: 0 }, 
                   finalAmount: { $sum: '$finalAmount' }
               }
           }
@@ -447,16 +447,16 @@ const downloadExcelReport = async (req, res) => {
 
       // Add order data
       orders.forEach(order => {
-          order.orderItems.forEach(item => { // Changed to orderItems
+          order.orderItems.forEach(item => { 
               worksheet.addRow({
                   orderId: order.orderId,
                   date: format(order.createdOn, 'yyyy-MM-dd'),
                   product: item.product?.productName || 'N/A',
-                  quantity: item.variants?.quantity || 0, // Updated to use variants.quantity
+                  quantity: item.variants?.quantity || 0,   
                   price: item.price || 0,
                   discount: order.discount || 0,
                   couponCode: order.couponCode || 'N/A',
-                  couponDiscount: 0, // No couponDiscount in schema, set to 0
+                  couponDiscount: 0, 
                   finalAmount: order.finalAmount || 0
               });
           });
@@ -493,7 +493,7 @@ const downloadPDFReport = async (req, res) => {
       const dateFilter = createDateFilter(filter, startDate, endDate);
 
       const queryFilter = { ...dateFilter, status: 'Delivered' };
-      const orders = await Order.find(queryFilter).populate('orderItems.product'); // Changed to orderItems
+      const orders = await Order.find(queryFilter).populate('orderItems.product');  
       const summary = await Order.aggregate([
           { $match: queryFilter },
           {
@@ -502,7 +502,7 @@ const downloadPDFReport = async (req, res) => {
                   totalOrders: { $sum: 1 },
                   totalAmount: { $sum: '$totalPrice' },
                   totalDiscount: { $sum: '$discount' },
-                  totalCouponDiscount: { $sum: 0 }, // No couponDiscount in schema
+                  totalCouponDiscount: { $sum: 0 }, 
                   finalAmount: { $sum: '$finalAmount' }
               }
           }
@@ -522,15 +522,15 @@ const downloadPDFReport = async (req, res) => {
 
       // Prepare table data
       const tableData = orders.flatMap(order =>
-          order.orderItems.map(item => ({ // Changed to orderItems
+          order.orderItems.map(item => ({ 
               orderId: order.orderId.slice(0, 12),
               date: format(order.createdOn, 'yyyy-MM-dd'),
               product: item.product?.productName || 'N/A',
-              qty: item.variants?.quantity || 0, // Updated to use variants.quantity
+              qty: item.variants?.quantity || 0, 
               price: `₹${(item.price || 0).toFixed(2)}`,
               discount: `₹${(order.discount || 0).toFixed(2)}`,
               couponCode: order.couponCode || 'N/A',
-              couponDiscount: `₹${0}`, // No couponDiscount in schema, set to 0
+              couponDiscount: `₹${0}`, 
               final: `₹${(order.finalAmount || 0).toFixed(2)}`
           }))
       );

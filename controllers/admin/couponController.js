@@ -30,51 +30,94 @@ const createCoupon = async (req, res) => {
   try {
     const { name, offerPrice, discountPercentage, minimumPrice, expireOn, maxUses } = req.body;
 
-    if (!name || !minimumPrice || !expireOn || (!offerPrice && !discountPercentage)) {
-      return res.status(400).json({ status: false, message: 'All required fields must be provided' });
+    const errors = [];
+
+    if (!name || !name.trim()) {
+      errors.push('Coupon code is required');
+    } else if (name.length < 4 || name.length > 20) {
+      errors.push('Coupon code must be between 4 and 20 characters');
+    } else if (!/^[A-Z0-9-]+$/.test(name)) {
+      errors.push('Coupon code can only contain uppercase letters, numbers, and hyphens');
     }
 
-    const couponExist = await Coupon.findOne({ name });
+    // Check if the coupon exist aanao============
+    const couponExist = await Coupon.findOne({ name: name.toUpperCase() });
     if (couponExist) {
-      return res.status(400).json({ status: false, message: 'Coupon already exists' });
+      errors.push('Coupon code already exists');
     }
 
-    const expirationDate = new Date(expireOn);
-    if (isNaN(expirationDate) || expirationDate <= new Date()) {
-      return res.status(400).json({ status: false, message: 'Expiration date must be in the future' });
-    }
-
+    // Discount validation==========
     const parsedOfferPrice = parseFloat(offerPrice) || 0;
     const parsedDiscountPercentage = parseFloat(discountPercentage) || 0;
-    if (parsedOfferPrice <= 0 && parsedDiscountPercentage <= 0) {
-      return res.status(400).json({ status: false, message: 'Offer price or discount percentage must be positive' });
+    
+    if (!parsedOfferPrice && !parsedDiscountPercentage) {
+      errors.push('Either offer price or discount percentage must be provided');
     }
-    if (parsedOfferPrice > 10000 || parsedDiscountPercentage > 100) {
-      return res.status(400).json({ status: false, message: 'Invalid discount value' });
+    if (parsedOfferPrice < 0 || parsedOfferPrice > 10000) {
+      errors.push('Offer price must be between 0 and 10,000');
+    }
+    if (parsedDiscountPercentage < 0 || parsedDiscountPercentage > 100) {
+      errors.push('Discount percentage must be between 0 and 100');
     }
 
+    // Minimum Price validation======
     const parsedMinimumPrice = parseFloat(minimumPrice);
-    if (isNaN(parsedMinimumPrice) || parsedMinimumPrice <= 0 || parsedMinimumPrice > 100000) {
-      return res.status(400).json({ status: false, message: 'Invalid minimum amount' });
+    if (!minimumPrice || isNaN(parsedMinimumPrice) || parsedMinimumPrice <= 0) {
+      errors.push('Minimum purchase amount must be a positive number');
+    } else if (parsedMinimumPrice > 100000) {
+      errors.push('Minimum purchase amount cannot exceed 100,000');
+    } else if (parsedOfferPrice >= parsedMinimumPrice && parsedOfferPrice > 0) {
+      errors.push('Offer price must be less than minimum purchase amount');
     }
 
-    if (parsedOfferPrice >= parsedMinimumPrice && parsedOfferPrice > 0) {
-      return res.status(400).json({ status: false, message: 'Offer price must be less than minimum price' });
+    // Expiry Date validation============
+    if (!expireOn) {
+      errors.push('Expiration date is required');
+    } else {
+      const expirationDate = new Date(expireOn);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (isNaN(expirationDate) || expirationDate < today) {
+        errors.push('Expiration date must be today or in the future');
+      }
     }
 
+    // Max Uses validation===========
+    const parsedMaxUses = maxUses ? parseInt(maxUses) : null;
+    if (parsedMaxUses !== null && (isNaN(parsedMaxUses) || parsedMaxUses < 1)) {
+      errors.push('Max uses must be a positive number');
+    }
+
+    // If there are validation errors, return them
+    if (errors.length > 0) {
+      return res.status(400).json({ status: false, message: errors.join('. '), errors });
+    }
+
+   
     const newCoupon = new Coupon({
       name: name.toUpperCase(),
-      expireOn: expirationDate,
+      expireOn: new Date(expireOn),
       offerPrice: parsedOfferPrice,
       discountPercentage: parsedDiscountPercentage,
       minimumPrice: parsedMinimumPrice,
-      maxUses: parseInt(maxUses) || null,
+      maxUses: parsedMaxUses,
+      isActive: true, 
+      createdOn: new Date()
     });
 
     await newCoupon.save();
-    res.status(200).json({ status: true, message: 'Coupon created successfully', coupon: newCoupon });
+    res.status(200).json({ 
+      status: true, 
+      message: 'Coupon created successfully', 
+      coupon: newCoupon 
+    });
   } catch (error) {
-    res.status(500).json({ status: false, message: 'Error in creating the coupon', error: error.message });
+    console.error('Error in createCoupon:', error);
+    res.status(500).json({ 
+      status: false, 
+      message: 'Error creating coupon', 
+      error: error.message 
+    });
   }
 };
 
@@ -83,39 +126,64 @@ const editCoupon = async (req, res) => {
     const { couponId } = req.params;
     const { offerPrice, discountPercentage, minimumPrice, expireOn, maxUses, isActive } = req.body;
 
-    if (!offerPrice && !discountPercentage) {
-      return res.status(400).json({ status: false, message: 'Offer price or discount percentage is required' });
-    }
+    const errors = [];
 
+    // Discount validation
     const parsedOfferPrice = parseFloat(offerPrice) || 0;
     const parsedDiscountPercentage = parseFloat(discountPercentage) || 0;
-    if (parsedOfferPrice > 10000 || parsedDiscountPercentage > 100) {
-      return res.status(400).json({ status: false, message: 'Invalid discount value' });
+    
+    if (!parsedOfferPrice && !parsedDiscountPercentage) {
+      errors.push('Either offer price or discount percentage must be provided');
+    }
+    if (parsedOfferPrice < 0 || parsedOfferPrice > 10000) {
+      errors.push('Offer price must be between 0 and 10,000');
+    }
+    if (parsedDiscountPercentage < 0 || parsedDiscountPercentage > 100) {
+      errors.push('Discount percentage must be between 0 and 100');
     }
 
+    // Minimum Price validation
     const parsedMinimumPrice = parseFloat(minimumPrice);
-    if (isNaN(parsedMinimumPrice) || parsedMinimumPrice <= 0 || parsedMinimumPrice > 100000) {
-      return res.status(400).json({ status: false, message: 'Invalid minimum amount' });
+    if (!minimumPrice || isNaN(parsedMinimumPrice) || parsedMinimumPrice <= 0) {
+      errors.push('Minimum purchase amount must be a positive number');
+    } else if (parsedMinimumPrice > 100000) {
+      errors.push('Minimum purchase amount cannot exceed 100,000');
+    } else if (parsedOfferPrice >= parsedMinimumPrice && parsedOfferPrice > 0) {
+      errors.push('Offer price must be less than minimum purchase amount');
     }
 
-    if (parsedOfferPrice >= parsedMinimumPrice && parsedOfferPrice > 0) {
-      return res.status(400).json({ status: false, message: 'Offer price must be less than minimum price' });
+    // Expiry Date validation
+    if (!expireOn) {
+      errors.push('Expiration date is required');
+    } else {
+      const expirationDate = new Date(expireOn);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (isNaN(expirationDate) || expirationDate < today) {
+        errors.push('Expiration date must be today or in the future');
+      }
     }
 
-    const expirationDate = new Date(expireOn);
-    if (isNaN(expirationDate) || expirationDate <= new Date()) {
-      return res.status(400).json({ status: false, message: 'Expiration date must be in the future' });
+    // Max Uses validation
+    const parsedMaxUses = maxUses ? parseInt(maxUses) : null;
+    if (parsedMaxUses !== null && (isNaN(parsedMaxUses) || parsedMaxUses < 1)) {
+      errors.push('Max uses must be a positive number');
     }
-    console.log('Received isActive:', req.body.isActive);
+
+    if (errors.length > 0) {
+      return res.status(400).json({ status: false, message: errors.join('. '), errors });
+    }
+
     const couponUpdate = await Coupon.findByIdAndUpdate(
       couponId,
       {
         offerPrice: parsedOfferPrice,
         discountPercentage: parsedDiscountPercentage,
         minimumPrice: parsedMinimumPrice,
-        expireOn: expirationDate,
-        maxUses: parseInt(maxUses) || null,
-        isActive: isActive === 'true',
+        expireOn: new Date(expireOn),
+        maxUses: parsedMaxUses,
+        isActive: isActive === 'true' || isActive === true,
+        updatedOn: new Date()
       },
       { new: true }
     );
@@ -124,10 +192,18 @@ const editCoupon = async (req, res) => {
       return res.status(404).json({ status: false, message: 'Coupon not found' });
     }
 
-    res.status(200).json({ status: true, message: 'Coupon updated successfully', coupon: couponUpdate });
+    res.status(200).json({ 
+      status: true, 
+      message: 'Coupon updated successfully', 
+      coupon: couponUpdate 
+    });
   } catch (error) {
     console.error('Error in editCoupon:', error);
-    res.status(500).json({ status: false, message: 'Error updating coupon', error: error.message });
+    res.status(500).json({ 
+      status: false, 
+      message: 'Error updating coupon', 
+      error: error.message 
+    });
   }
 };
 
@@ -141,7 +217,11 @@ const deleteCoupon = async (req, res) => {
     res.status(200).json({ status: true, message: 'Coupon deleted successfully' });
   } catch (error) {
     console.error('Error in deleteCoupon:', error);
-    res.status(500).json({ status: false, message: 'Error deleting coupon', error: error.message });
+    res.status(500).json({ 
+      status: false, 
+      message: 'Error deleting coupon', 
+      error: error.message 
+    });
   }
 };
 

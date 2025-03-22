@@ -141,31 +141,58 @@ const addOffer = async (req, res) => {
 
 const updateOffer = async (req, res) => {
     try {
-        console.log("reached edit offer");
-        
         const { offerId } = req.params;
         const { name, discountType, discountValue, startDate, endDate, status } = req.body;
+
+        // Validation
+        if (!name || !discountType || !discountValue || !startDate || !endDate) {
+            return res.status(400).json({ success: false, message: "All fields are required." });
+        }
+
+        const parsedDiscountValue = parseFloat(discountValue);
+        if (isNaN(parsedDiscountValue) || parsedDiscountValue <= 0) {
+            return res.status(400).json({ success: false, message: "Discount Value must be a positive number." });
+        }
+
+        if (discountType === "percentage" && parsedDiscountValue > 100) {
+            return res.status(400).json({ success: false, message: "Percentage discount cannot exceed 100%." });
+        }
+
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const today = new Date().setHours(0, 0, 0, 0);
+
+        if (start < today) {
+            return res.status(400).json({ success: false, message: "Start Date cannot be in the past." });
+        }
+
+        if (end <= start) {
+            return res.status(400).json({ success: false, message: "End Date must be after Start Date." });
+        }
 
         const offer = await Offer.findById(offerId);
         if (!offer) {
             return res.status(404).json({ success: false, message: "Offer not found" });
         }
 
+        // Reset existing offer effects
         if (offer.type === "product") {
             await resetProductOffer(offer);
         } else if (offer.type === "category") {
             await resetCategoryOffer(offer);
         }
 
+        // Update offer details
         offer.name = name;
         offer.discountType = discountType;
-        offer.discountValue = parseFloat(discountValue);
-        offer.startDate = new Date(startDate);
-        offer.endDate = new Date(endDate);
+        offer.discountValue = parsedDiscountValue;
+        offer.startDate = start;
+        offer.endDate = end;
         offer.status = status === "true";
 
         await offer.save();
 
+        // Apply updated offer if active
         if (offer.status) {
             if (offer.type === "product") {
                 await applyProductOffer(offer);

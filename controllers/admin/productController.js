@@ -194,16 +194,16 @@ const editProduct = async(req, res) => {
             });
         }
          
-        // Process new images
+        // Process new images=============
         const newImages = req.files
             ? req.files.map(file => file.filename)
             : [];
         
-        // Parse variants from form
+        // Parse variants from form========
         const sizes = Array.isArray(productData.size) ? productData.size : [productData.size]
         const quantities = Array.isArray(productData.quantity) ? productData.quantity : [productData.quantity]
         
-        // Create variants array
+        // Create variants array=========
         const variants = []
         let totalStock = 0
         

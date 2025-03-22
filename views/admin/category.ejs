@@ -138,8 +138,6 @@
                     <th class="text-center"></th>
                     <th>Name</th>
                     <th>Description</th>
-                    <th>Offer Price</th>
-                    <th>Offer</th>
                     <th>Status</th>
                     <th>List/Unlist</th>
                     <th class="text-start">Actions</th>
@@ -151,18 +149,6 @@
                     <td><%= index + 1 %></td>
                     <td class="text-start"><%= category.name %></td>
                     <td class="text-start"><%= category.description %></td>
-                    <td class="text-start"><%= category.categoryOffer %>%</td>
-                    <td class="text-start">
-                      <% if (category.categoryOffer > 0) { %>
-                        <button class="btn btn-danger" style="width: 100px">
-                          <a href="#" onclick="openRemoveOfferModal('<%= category._id %>')" class="text-white">Remove</a>
-                        </button>
-                      <% } else { %>
-                        <button class="btn btn-info" style="width: 100px">
-                          <a href="#" onclick="openAddOfferModal('<%= category._id %>')" class="text-white">Add Offer</a>
-                        </button>
-                      <% } %>
-                    </td>
                     <td class="text-start">
                       <% if(category.isListed) { %>
                         <span class="badge rounded-pill alert-success" style="width: 60px">Listed</span>
@@ -183,7 +169,6 @@
                         </button>
                       <% } %>
                     </td>
-                    
                     <td class="text-start">
                       <a href="/admin/editCategory/<%= category._id %>" class="btn btn-info text-white">Edit</a>
                     </td>
@@ -199,7 +184,7 @@
 
     <div class="pagination-container">
       <% if (currentPage > 1) { %>
-      <a href="?page=<%= currentPage - 1 %><%= req.query.search ? '&search=' + req.query.search : '' %>">&laquo; Previous</a>
+      <a href="?page=<%= currentPage - 1 %><%= req.query.search ? '&search=' + req.query.search : '' %>">« Previous</a>
       <% } %> 
       <% for (let i = 1; i <= totalPages; i++) { %> 
         <% if (i === currentPage) { %>
@@ -209,38 +194,8 @@
         <% } %> 
       <% } %> 
       <% if (currentPage < totalPages) { %>
-        <a href="?page=<%= currentPage + 1 %><%= req.query.search ? '&search=' + req.query.search : '' %>">Next &raquo;</a>
+        <a href="?page=<%= currentPage + 1 %><%= req.query.search ? '&search=' + req.query.search : '' %>">Next »</a>
       <% } %>
-    </div>
-
-    <!-- Add Offer Modal -->
-    <div id="addOfferModal" class="modal">
-      <div class="modal-content">
-        <span class="close" onclick="closeAddOfferModal()">&times;</span>
-        <h3>Add Category Offer</h3>
-        <form id="addOfferForm">
-          <input type="hidden" id="offerCategoryId">
-          <div class="mb-3">
-            <label for="offerPercentage" class="form-label">Offer Percentage (%)</label>
-            <input type="number" class="form-control" id="offerPercentage" min="1" max="100" required>
-          </div>
-          <button type="submit" class="btn btn-primary">Add Offer</button>
-        </form>
-      </div>
-    </div>
-
-    <!-- Remove Offer Confirmation Modal -->
-    <div id="removeOfferModal" class="modal">
-      <div class="modal-content">
-        <span class="close" onclick="closeRemoveOfferModal()">&times;</span>
-        <h3>Remove Category Offer</h3>
-        <p>Are you sure you want to remove the offer from this category?</p>
-        <input type="hidden" id="removeOfferCategoryId">
-        <div style="display: flex; justify-content: space-between;">
-          <button class="btn btn-secondary" onclick="closeRemoveOfferModal()">Cancel</button>
-          <button class="btn btn-danger" onclick="removeCategoryOffer()">Remove</button>
-        </div>
-      </div>
     </div>
 
   </section>
@@ -333,154 +288,51 @@
             element.style.display = "none";
         });
     }
+
     function confirmUnListing(event, categoryId, isListing) {
-    event.preventDefault();
+        event.preventDefault();
 
-    let action = isListing ? "list" : "unlist";
-    let actionText = isListing ? "List" : "Unlist";
-    let apiURL = isListing 
-        ? `/admin/category/${categoryId}/list` 
-        : `/admin/category/${categoryId}/unlist`;
+        let action = isListing ? "list" : "unlist";
+        let actionText = isListing ? "List" : "Unlist";
+        let apiURL = isListing 
+            ? `/admin/category/${categoryId}/list` 
+            : `/admin/category/${categoryId}/unlist`;
 
-    Swal.fire({
-        title: `Are you sure?`,
-        text: `Do you really want to ${action} this category?`,
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: isListing ? "#28a745" : "#d33",
-        cancelButtonColor: "#6c757d",
-        confirmButtonText: `Yes, ${actionText} it!`
-    }).then((result) => {
-        console.log("result", result)
-        if (result.isConfirmed) {
-            fetch(apiURL, { method: 'PATCH' })
-                .then(response => {
-                    console.log("response", response)
-                    if (!response.ok) {
-                        throw new Error("Something went wrong!");
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    Swal.fire(
-                        `${actionText}ed!`,
-                        `The category has been ${actionText.toLowerCase()}ed successfully.`,
-                        "success"
-                    ).then(() => {
-                        location.reload();
+        Swal.fire({
+            title: `Are you sure?`,
+            text: `Do you really want to ${action} this category?`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: isListing ? "#28a745" : "#d33",
+            cancelButtonColor: "#6c757d",
+            confirmButtonText: `Yes, ${actionText} it!`
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(apiURL, { method: 'PATCH' })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error("Something went wrong!");
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        Swal.fire(
+                            `${actionText}ed!`,
+                            `The category has been ${actionText.toLowerCase()}ed successfully.`,
+                            "success"
+                        ).then(() => {
+                            location.reload();
+                        });
+                    })
+                    .catch(error => {
+                        Swal.fire(
+                            "Error!",
+                            "An error occurred while processing your request.",
+                            "error"
+                        );
                     });
-                })
-                .catch(error => {
-                    Swal.fire(
-                        "Error!",
-                        "An error occurred while processing your request.",
-                        "error"
-                    );
-                });
-        }
-    });
-}
-
-
-    
-  
-    
-    // // Add Offer Modal Functions
-    // function openAddOfferModal(categoryId) {
-    //     document.getElementById('offerCategoryId').value = categoryId;
-    //     document.getElementById('addOfferModal').style.display = 'block';
-    // }
-    
-    // function closeAddOfferModal() {
-    //     document.getElementById('addOfferModal').style.display = 'none';
-    // }
-    
-    // // Remove Offer Modal Functions
-    // function openRemoveOfferModal(categoryId) {
-    //     document.getElementById('removeOfferCategoryId').value = categoryId;
-    //     document.getElementById('removeOfferModal').style.display = 'block';
-    // }
-    
-    // function closeRemoveOfferModal() {
-    //     document.getElementById('removeOfferModal').style.display = 'none';
-    // }
-    
-    // // Add Offer Form Submission
-    // document.getElementById('addOfferForm').addEventListener('submit', function(e) {
-    //     e.preventDefault();
-        
-    //     const categoryId = document.getElementById('offerCategoryId').value;
-    //     const offerPercentage = document.getElementById('offerPercentage').value;
-        
-    //     fetch(`/admin/addCategoryOffer/${categoryId}`, {
-    //         method: 'POST',
-    //         headers: {
-    //             'Content-Type': 'application/json'
-    //         },
-    //         body: JSON.stringify({ offerPercentage })
-    //     })
-    //     .then(response => {
-    //         if (!response.ok) {
-    //             return response.json().then(err => {
-    //                 throw new Error(err.error);
-    //             });
-    //         }
-    //         return response.json();
-    //     })
-    //     .then(data => {
-    //         closeAddOfferModal();
-    //         Swal.fire({
-    //             icon: 'success',
-    //             title: 'Success',
-    //             text: 'Offer added successfully'
-    //         }).then(() => {
-    //             location.reload();
-    //         });
-    //     })
-    //     .catch(error => {
-    //         Swal.fire({
-    //             icon: 'error',
-    //             title: 'Error',
-    //             text: error.message || 'An error occurred while adding the offer'
-    //         });
-    //     });
-    // });
-    
-    // // Remove Category Offer
-    // function removeCategoryOffer() {
-    //     const categoryId = document.getElementById('removeOfferCategoryId').value;
-        
-    //     fetch(`/admin/removeCategoryOffer/${categoryId}`, {
-    //         method: 'POST',
-    //         headers: {
-    //             'Content-Type': 'application/json'
-    //         }
-    //     })
-    //     .then(response => {
-    //         if (!response.ok) {
-    //             return response.json().then(err => {
-    //                 throw new Error(err.error);
-    //             });
-    //         }
-    //         return response.json();
-    //     })
-    //     .then(data => {
-    //         closeRemoveOfferModal();
-    //         Swal.fire({
-    //             icon: 'success',
-    //             title: 'Success',
-    //             text: 'Offer removed successfully'
-    //         }).then(() => {
-    //             location.reload();
-    //         });
-    //     })
-    //     .catch(error => {
-    //         Swal.fire({
-    //             icon: 'error',
-    //             title: 'Error',
-    //             text: 'An error occurred while removing the offer'
-    //         });
-    //     });
-    // }
+            }
+        });
+    }
   </script>
 <%- include("../../views/partials/admin/footer") %>

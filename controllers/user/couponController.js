@@ -82,7 +82,7 @@ const applyCoupon = async (req, res) => {
       discountAmount = Math.min(discountAmount, orderTotal);
     }
 
-    // Store coupon in session (don’t update userIds/usedCount until order is placed)
+    // Store coupon in session =========
     req.session.appliedCoupon = couponCode;
 
     const newTotal = orderTotal - discountAmount;
@@ -110,7 +110,7 @@ const removeCoupon = async (req, res) => {
       return res.status(400).json({ success: false, message: 'No coupon applied' });
     }
 
-    delete req.session.appliedCoupon; // Simply remove from session
+    delete req.session.appliedCoupon; 
 
     res.json({ success: true, message: 'Coupon removed successfully' });
   } catch (error) {

@@ -133,7 +133,6 @@ const loadCheckoutPage = async (req, res) => {
     }
   };
   
-  // Process Checkout (COD or other non-Razorpay methods)
   const processCheckout = async (req, res) => {
     try {
       const { addressId, paymentMethod, couponCode } = req.body;
@@ -155,7 +154,7 @@ const loadCheckoutPage = async (req, res) => {
             error: `Product ${product.productName} is currently unavailable`,
           });
         }
-        const variant = product.variants.find(v => v.size === item.size);
+        const variant = product.variants.find((v) => v.size === item.size);
         if (!variant || variant.quantity < item.quantity) {
           return res.status(400).json({
             error: `Insufficient stock for ${product.productName} (Size: ${item.size})`,
@@ -173,7 +172,7 @@ const loadCheckoutPage = async (req, res) => {
       let offerDiscount = 0;
       let couponDiscount = 0;
       const currentDate = new Date();
-
+  
       for (const item of cart.items) {
         const product = item.productId;
         const category = await Category.findById(product.category);
@@ -182,27 +181,29 @@ const loadCheckoutPage = async (req, res) => {
           productId: product._id,
           startDate: { $lte: currentDate },
           endDate: { $gte: currentDate },
-          status: true
+          status: true,
         });
         const categoryOffers = await Offer.find({
           type: "category",
           categoryId: category._id,
           startDate: { $lte: currentDate },
           endDate: { $gte: currentDate },
-          status: true
+          status: true,
         });
   
         let bestDiscount = 0;
         for (const offer of productOffers) {
-          let discount = offer.discountType === "percentage"
-            ? (item.price * offer.discountValue) / 100
-            : offer.discountValue;
+          let discount =
+            offer.discountType === "percentage"
+              ? (item.price * offer.discountValue) / 100
+              : offer.discountValue;
           if (discount > bestDiscount) bestDiscount = discount;
         }
         for (const offer of categoryOffers) {
-          let discount = offer.discountType === "percentage"
-            ? (item.price * offer.discountValue) / 100
-            : offer.discountValue;
+          let discount =
+            offer.discountType === "percentage"
+              ? (item.price * offer.discountValue) / 100
+              : offer.discountValue;
           if (discount > bestDiscount) bestDiscount = discount;
         }
         offerDiscount += bestDiscount * item.quantity;
@@ -216,16 +217,29 @@ const loadCheckoutPage = async (req, res) => {
       }
   
       if (couponCode) {
-        const coupon = await Coupon.findOne({ name: couponCode, isActive: true, expireOn: { $gt: new Date() } });
-        if (coupon && !coupon.userIds.includes(userId) && (coupon.maxUses > coupon.usedCount)) {
+        const coupon = await Coupon.findOne({
+          name: couponCode,
+          isActive: true,
+          expireOn: { $gt: new Date() },
+        });
+        if (
+          coupon &&
+          !coupon.userIds.includes(userId) &&
+          coupon.maxUses > coupon.usedCount
+        ) {
           if (coupon.offerPrice > 0) {
             couponDiscount = Math.min(coupon.offerPrice, totalPrice + totalGST);
           } else if (coupon.discountPercentage > 0) {
-            couponDiscount = ((totalPrice + totalGST) * coupon.discountPercentage) / 100;
+            couponDiscount =
+              ((totalPrice + totalGST) * coupon.discountPercentage) / 100;
             couponDiscount = Math.min(couponDiscount, totalPrice + totalGST);
           }
           if (totalPrice + totalGST < coupon.minimumPrice) {
-            return res.status(400).json({ error: `Minimum order amount of ₹${coupon.minimumPrice} required` });
+            return res
+              .status(400)
+              .json({
+                error: `Minimum order amount of ₹${coupon.minimumPrice} required`,
+              });
           }
           coupon.userIds.push(userId);
           coupon.usedCount += 1;
@@ -235,49 +249,58 @@ const loadCheckoutPage = async (req, res) => {
       }
   
       const finalAmount = totalPrice + totalGST - offerDiscount - couponDiscount;
-    const totalDiscount = offerDiscount + couponDiscount;
-
-    const order = new Order({
-      userId,
-      orderItems: cart.items.map(item => ({
-        product: item.productId,
-        variants: { size: item.size, quantity: item.quantity },
-        price: item.totalPriceWithGST / item.quantity,
-        name: item.productId.productName,
-        productImage: item.productId.productImage,
-      })),
-      totalPrice: totalPrice + totalGST,
-      offerDiscount,
-      couponDiscount,
-      discount: totalDiscount,
-      finalAmount,
-      address: [address],
-      paymentMethod,
-      status: 'Pending',
-      couponApplied: !!couponCode,
-      couponCode: couponCode || null,
-    });
-
-    await order.save();
-    await Cart.findOneAndDelete({ userId });
-    for (const item of cart.items) {
-      await Product.updateOne(
-        { _id: item.productId, 'variants.size': item.size },
-        { $inc: { 'variants.$.quantity': -item.quantity, totalStock: -item.quantity } }
-      );
+  
+      // Add COD restriction for orders above ₹5000
+      if (paymentMethod === "COD" && finalAmount > 5000) {
+        return res.status(400).json({
+          success: false,
+          error: "Cash on Delivery is not available for orders above ₹5000. Please choose another payment method.",
+        });
+      }
+  
+      const totalDiscount = offerDiscount + couponDiscount;
+  
+      const order = new Order({
+        userId,
+        orderItems: cart.items.map((item) => ({
+          product: item.productId,
+          variants: { size: item.size, quantity: item.quantity },
+          price: item.totalPriceWithGST / item.quantity,
+          name: item.productId.productName,
+          productImage: item.productId.productImage,
+        })),
+        totalPrice: totalPrice + totalGST,
+        offerDiscount,
+        couponDiscount,
+        discount: totalDiscount,
+        finalAmount,
+        address: [address],
+        paymentMethod,
+        status: "Pending",
+        couponApplied: !!couponCode,
+        couponCode: couponCode || null,
+      });
+  
+      await order.save();
+      await Cart.findOneAndDelete({ userId });
+      for (const item of cart.items) {
+        await Product.updateOne(
+          { _id: item.productId, "variants.size": item.size },
+          { $inc: { "variants.$.quantity": -item.quantity, totalStock: -item.quantity } }
+        );
+      }
+  
+      return res.status(200).json({
+        success: true,
+        orderId: order.orderId,
+        message: "Order placed successfully",
+      });
+    } catch (error) {
+      console.error("Error in processCheckout:", error);
+      res.status(500).json({ error: "Internal server error", details: error.message });
     }
-
-    return res.status(200).json({
-      success: true,
-      orderId: order.orderId,
-      message: 'Order placed successfully',
-    });
-  } catch (error) {
-    console.error("Error in processCheckout:", error);
-    res.status(500).json({ error: 'Internal server error', details: error.message });
-  }
-};
-// Update createRazorpayOrder to include offer discounts
+  };
+  // Update createRazorpayOrder to include offer discounts
 const createRazorpayOrder = async (req, res) => {
   try {
     const { addressId, couponCode } = req.body;
@@ -521,24 +544,91 @@ const verifyRazorpayPayment = async (req, res) => {
 
 // Rest of your existing functions remain unchanged
 const handlePaymentDismissal = async (req, res) => {
-    try {
-        const { orderId, addressId, reason } = req.body;
-        console.log(`Payment dismissed for order ${orderId}. Reason: ${reason}`);
-        res.status(200).json({ success: true, message: 'Payment dismissal handled' });
-    } catch (error) {
-        console.error("Error handling payment dismissal:", error);
-        res.status(500).json({ success: false, message: "Failed to handle payment dismissal" });
+  try {
+      const { orderId, addressId, reason } = req.body;
+      await Order.findOneAndUpdate(
+          { orderId },
+          { 'paymentDetails.status': 'Failed' }
+      );
+      console.log(`Payment dismissed for order ${orderId}. Reason: ${reason}`);
+      res.status(200).json({ success: true, message: 'Payment dismissal handled' });
+  } catch (error) {
+      console.error("Error handling payment dismissal:", error);
+      res.status(500).json({ success: false, message: "Failed to handle payment dismissal" });
+  }
+};
+
+//razorpay failure-------------------------------
+const loadOrderFailurePage = async (req, res) => {
+  try {
+      const { orderId, amount, addressId, couponCode } = req.query;
+      const userId = req.session.user;
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).render('error', { message: 'User not found' });
+      }
+
+      res.render('order-failure', {
+          orderId,
+          amount: parseFloat(amount),
+          addressId,
+          couponCode,
+          user
+      });
+  } catch (error) {
+      console.error('Error in loadOrderFailurePage:', error);
+      res.status(500).json({ error: error.message });
+  }
+};
+const createRazorpayOrderForRetry = async (req, res) => {
+  try {
+    const { orderId } = req.body;
+    const userId = req.session.user;
+
+    if (!userId) {
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
+
+    const order = await Order.findOne({ orderId });
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    // Use existing order details
+    const finalAmount = order.finalAmount;
+
+    const receiptId = Math.random().toString(36).substring(2, 10);
+    const razorpayOrder = await razorpay.orders.create({
+      amount: Math.round(finalAmount * 100),
+      currency: "INR",
+      receipt: receiptId,
+      payment_capture: 1,
+    });
+
+    // Update the existing order with new Razorpay order ID
+    order.paymentDetails.razorpayOrderId = razorpayOrder.id;
+    await order.save();
+
+    res.status(200).json({
+      success: true,
+      razorpayKeyId: process.env.RAZORPAY_KEY_ID,
+      razorpayOrderId: razorpayOrder.id,
+      amount: razorpayOrder.amount,
+      orderId: order.orderId,
+    });
+  } catch (error) {
+    console.error("Error creating Razorpay order for retry:", error);
+    res.status(500).json({ success: false, message: "Failed to create order", details: error.message });
+  }
 };
 
 const loadCheckoutAddress = (req, res) => {
     res.render('checkout-address');
 };
-
 const addressPost = async (req, res) => {
-    try {
-        const userId = req.session.user;
-        const addressData = { ...req.body, isDefault: false };
+  try {
+    const userId = req.session.user;
+    const addressData = { ...req.body, isDefault: false };
         let addressDoc = await Address.findOne({ userId });
         if (!addressDoc) {
             addressDoc = new Address({ userId, address: [{ ...addressData, isDefault: true }] });
@@ -624,6 +714,7 @@ const cancelOrder = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Cannot cancel this order' });
         }
 
+
         const refundAmount = order.finalAmount;
 
         order.status = 'Cancelled';
@@ -653,13 +744,13 @@ const cancelOrder = async (req, res) => {
         }
 
         await order.save();
+        
         res.json({ success: true, message: 'Order cancelled successfully' });
     } catch (error) {
         console.error('Error cancelling order:', error);
         res.status(500).json({ success: false, message: 'An error occurred while cancelling the order.' });
     }
 };
-
 const cancelProduct = async (req, res) => {
     try {
         const orderId = req.params.orderId;
@@ -769,7 +860,32 @@ const returnProduct = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+const requestCancelOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { reason } = req.body;
+    const userId = req.session.user;
 
+    const order = await Order.findOne({ _id: orderId, userId });
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    if (order.status !== 'Pending' && order.status !== 'Processing') {
+      return res.status(400).json({ success: false, message: 'Cancellation can only be requested for Pending or Processing orders' });
+    }
+
+    order.status = 'Cancellation Requested';
+    order.cancellationReason = reason;
+    order.cancellationRequestedAt = new Date();
+    await order.save();
+
+    res.json({ success: true, message: 'Cancellation request sent successfully' });
+  } catch (error) {
+    console.error('Error requesting order cancellation:', error);
+    res.status(500).json({ success: false, message: 'Failed to request cancellation' });
+  }
+};
 const downloadInvoice = async (req, res) => {
     try {
         const orderId = req.params.orderId;
@@ -927,5 +1043,9 @@ module.exports = {
     cancelOrder,
     cancelProduct,
     returnProduct,
-    downloadInvoice
+    downloadInvoice,
+    requestCancelOrder,
+    loadOrderFailurePage,
+    createRazorpayOrderForRetry
+    
 };
