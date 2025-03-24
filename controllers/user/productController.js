@@ -3,6 +3,8 @@ const User = require("../../models/userSchema");
 const Category = require("../../models/categorySchema");
 const Offer = require("../../models/offerSchema");
 const Review = require("../../models/reviewSchema");
+const Order = require("../../models/orderSchema");
+
 const productDetails = async (req, res) => {
     try {
         const userId = req.session.user;
@@ -22,6 +24,17 @@ const productDetails = async (req, res) => {
 
         // Fetch reviews for the product
         const reviews = await Review.find({ productId }).populate("userId", "name");
+
+        // Check if the user has purchased and received this product
+        let hasPurchased = false;
+        if (userId) {
+            const orders = await Order.find({
+                userId,
+                status: "Delivered", // Only consider delivered orders
+                "orderItems.product": productId // Check if the product is in the orderItems array
+            });
+            hasPurchased = orders.length > 0;
+        }
 
         // Fetch active offers for the product and its category
         const currentDate = new Date();
@@ -74,7 +87,7 @@ const productDetails = async (req, res) => {
             }
         }
 
-        // Fetch related products with ratings (if available in schema)
+        // Fetch related products
         const relatedProduct = await Product.find({
             category: findCategory,
             _id: { $ne: productId }
@@ -83,14 +96,13 @@ const productDetails = async (req, res) => {
             .limit(4)
             .select("productName productImage salePrice regularPrice averageRating ratingCount");
 
-        console.log("related products========", relatedProduct);
-
         return res.render("product-details", {
             user: userData,
             product: product,
             category: findCategory,
             relatedProduct,
-            reviews, // Pass reviews to the view
+            reviews,
+            hasPurchased, // Pass the purchase status to the view
             bestOffer: bestOffer ? { name: bestOfferName, discount: bestDiscount } : null
         });
     } catch (error) {
@@ -109,10 +121,26 @@ const submitReview = async (req, res) => {
             return res.status(401).json({ success: false, message: "Please log in to submit a review." });
         }
 
+        // Check if user has purchased and received the product
+        const orders = await Order.find({
+            userId,
+            status: "Delivered",
+            "orderItems.product": productId
+        });
+        if (orders.length === 0) {
+            return res.status(403).json({
+                success: false,
+                message: "You can only review products you have purchased and received."
+            });
+        }
+
         // Check if user has already reviewed this product
         const existingReview = await Review.findOne({ productId, userId });
         if (existingReview) {
-            return res.status(400).json({ success: false, message: "You have already reviewed this product." });
+            return res.status(400).json({
+                success: false,
+                message: "You have already reviewed this product."
+            });
         }
 
         // Create new review

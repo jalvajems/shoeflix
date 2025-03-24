@@ -120,7 +120,6 @@ const createCoupon = async (req, res) => {
     });
   }
 };
-
 const editCoupon = async (req, res) => {
   try {
     const { couponId } = req.params;
@@ -182,7 +181,7 @@ const editCoupon = async (req, res) => {
         minimumPrice: parsedMinimumPrice,
         expireOn: new Date(expireOn),
         maxUses: parsedMaxUses,
-        isActive: isActive === 'true' || isActive === true,
+        isActive: isActive === true || isActive === 'true', // Explicitly handle boolean
         updatedOn: new Date()
       },
       { new: true }

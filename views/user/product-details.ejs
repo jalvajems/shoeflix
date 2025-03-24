@@ -243,16 +243,16 @@
                 <% } %>
             </div>
         </section>
-        <!-- Reviews and Ratings Section -->
+      <!-- Reviews and Ratings Section -->
 <section class="reviews-section py-5">
     <div class="container">
-        <h3 class="text-center mb-4">Customer Reviews</h3>
+        <h3 class="text-center mb-5">Customer Reviews</h3>
 
         <!-- Display Average Rating -->
-        <div class="text-center mb-4">
+        <div class="text-center mb-5">
             <% if (product.averageRating > 0) { %>
                 <div class="average-rating">
-                    <h5>Average Rating: <%= product.averageRating.toFixed(1) %> / 5</h5>
+                    <h5 class="fw-bold">Average Rating: <%= product.averageRating.toFixed(1) %> / 5</h5>
                     <div class="stars mb-2">
                         <% for (let i = 1; i <= 5; i++) { %>
                             <i class="fas fa-star <%= i <= Math.round(product.averageRating) ? 'text-warning' : 'text-muted' %>"></i>
@@ -267,48 +267,56 @@
 
         <!-- Review Submission Form -->
         <% if (user) { %>
-            <div class="review-form mb-5">
-                <h5 class="mb-3">Write a Review</h5>
-                <form id="reviewForm">
-                    <input type="hidden" name="productId" value="<%= product._id %>">
-                    <div class="mb-3">
-                        <label for="rating" class="form-label">Rating</label>
-                        <div class="star-rating">
-                            <input type="radio" name="rating" value="5" id="star5" required><label for="star5"><i class="fas fa-star"></i></label>
-                            <input type="radio" name="rating" value="4" id="star4"><label for="star4"><i class="fas fa-star"></i></label>
-                            <input type="radio" name="rating" value="3" id="star3"><label for="star3"><i class="fas fa-star"></i></label>
-                            <input type="radio" name="rating" value="2" id="star2"><label for="star2"><i class="fas fa-star"></i></label>
-                            <input type="radio" name="rating" value="1" id="star1"><label for="star1"><i class="fas fa-star"></i></label>
+            <% if (hasPurchased) { %>
+                <div class="review-form mb-5 p-4 bg-light rounded shadow-sm">
+                    <h5 class="mb-4 fw-bold">Write a Review</h5>
+                    <form id="reviewForm">
+                        <input type="hidden" name="productId" value="<%= product._id %>">
+                        <div class="mb-4">
+                            <label for="rating" class="form-label fw-semibold">Rating</label>
+                            <div class="star-rating d-flex align-items-center">
+                                <% for (let i = 5; i >= 1; i--) { %>
+                                    <input type="radio" name="rating" value="<%= i %>" id="star<%= i %>" required>
+                                    <label for="star<%= i %>"><i class="fas fa-star text-muted"></i></label>
+                                <% } %>
+                            </div>
                         </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="comment" class="form-label">Your Review</label>
-                        <textarea class="form-control" name="comment" id="comment" rows="3" required placeholder="Share your thoughts about the product..."></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Submit Review</button>
-                </form>
-            </div>
+                        <div class="mb-4">
+                            <label for="comment" class="form-label fw-semibold">Your Review</label>
+                            <textarea class="form-control" name="comment" id="comment" rows="4" required placeholder="Share your thoughts about the product..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary px-4">Submit Review</button>
+                    </form>
+                </div>
+            <% } else { %>
+                <p class="text-center text-muted mb-5">You can only review this product after purchasing and receiving it.</p>
+            <% } %>
         <% } else { %>
-            <p class="text-center mb-5"><a href="/login">Log in</a> to write a review.</p>
+            <p class="text-center mb-5"><a href="/login" class="text-primary">Log in</a> to write a review.</p>
         <% } %>
 
         <!-- Display Reviews -->
         <div class="reviews-list">
             <% if (reviews && reviews.length > 0) { %>
                 <% reviews.forEach(review => { %>
-                    <div class="review mb-4 p-3 border rounded bg-light">
-                        <div class="d-flex justify-content-between mb-2">
-                            <div>
-                                <strong><%= review.userId.name %></strong>
-                                <div class="stars">
-                                    <% for (let i = 1; i <= 5; i++) { %>
-                                        <i class="fas fa-star <%= i <= review.rating ? 'text-warning' : 'text-muted' %>"></i>
-                                    <% } %>
+                    <div class="review mb-4 p-4 border rounded bg-white shadow-sm">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="reviewer-avatar me-3">
+                                    <i class="fas fa-user-circle fa-2x text-muted"></i>
+                                </div>
+                                <div>
+                                    <strong><%= review.userId.name %></strong>
+                                    <div class="stars">
+                                        <% for (let i = 1; i <= 5; i++) { %>
+                                            <i class="fas fa-star <%= i <= review.rating ? 'text-warning' : 'text-muted' %>"></i>
+                                        <% } %>
+                                    </div>
                                 </div>
                             </div>
                             <small class="text-muted"><%= new Date(review.createdAt).toLocaleDateString() %></small>
                         </div>
-                        <p class="mb-0"><%= review.comment %></p>
+                        <p class="mb-0 text-dark"><%= review.comment %></p>
                     </div>
                 <% }); %>
             <% } else { %>
@@ -317,7 +325,6 @@
         </div>
     </div>
 </section>
-
         <!-- Footer Partial -->
         <%- include("../../views/partials/user/footer") %>
     </div>
@@ -637,9 +644,222 @@
                 nav: false
             });
         });
+       // Review Form Submission
+document.getElementById('reviewForm')?.addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const form = e.target;
+    const productId = form.querySelector('[name="productId"]').value;
+    const rating = form.querySelector('input[name="rating"]:checked')?.value;
+    const comment = form.querySelector('#comment').value.trim();
+
+    if (!rating) {
+        Swal.fire('Warning', 'Please select a rating', 'warning');
+        return;
+    }
+
+    if (!comment) {
+        Swal.fire('Warning', 'Please write a review', 'warning');
+        return;
+    }
+
+    try {
+        const response = await fetch('/submit-review', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productId, rating, comment })
+        });
+        const result = await response.json();
+
+        if (result.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: result.message,
+                confirmButtonColor: '#46698f'
+            }).then(() => {
+                window.location.reload(); // Reload to show the new review
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Failed',
+                text: result.message,
+                confirmButtonColor: '#46698f'
+            });
+        }
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to submit review. Please try again.',
+            confirmButtonColor: '#46698f'
+        });
+    }
+});
+
+// Star Rating Interaction
+const starInputs = document.querySelectorAll('.star-rating input');
+const starLabels = document.querySelectorAll('.star-rating label i');
+
+starInputs.forEach((input, index) => {
+    input.addEventListener('change', () => {
+        starLabels.forEach((label, i) => {
+            if (i >= starInputs.length - index - 1) {
+                label.classList.remove('text-muted');
+                label.classList.add('text-warning');
+            } else {
+                label.classList.remove('text-warning');
+                label.classList.add('text-muted');
+            }
+        });
+    });
+});
     </script>
 
     <style>
+     .reviews-section {
+    background-color: #f8f9fa;
+    padding: 60px 0;
+}
+
+.reviews-section h3 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 40px;
+}
+
+.average-rating h5 {
+    font-size: 1.5rem;
+    color: #333;
+}
+
+.average-rating .stars i {
+    font-size: 1.2rem;
+}
+
+.review-form {
+    max-width: 700px;
+    margin: 0 auto;
+    border-radius: 10px;
+    background-color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.review-form h5 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    color: #333;
+}
+
+.review-form .form-label {
+    font-size: 1rem;
+    color: #555;
+}
+
+.star-rating {
+    direction: rtl; /* Right to left for star rating */
+    font-size: 0;
+}
+
+.star-rating input {
+    display: none;
+}
+
+.star-rating label {
+    cursor: pointer;
+    font-size: 2rem;
+    margin: 0 5px;
+}
+
+.star-rating label i {
+    transition: color 0.3s ease;
+}
+
+.review-form textarea {
+    resize: none;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    padding: 10px;
+    font-size: 1rem;
+    color: #333;
+}
+
+.review-form textarea:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+    outline: none;
+}
+
+.review-form .btn-primary {
+    background-color: #007bff;
+    border: none;
+    padding: 10px 30px;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+
+.review-form .btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.reviews-list {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.review {
+    border-radius: 10px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.review:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.reviewer-avatar i {
+    font-size: 2rem;
+}
+
+.review strong {
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.review .stars i {
+    font-size: 1rem;
+}
+
+.review p {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #555;
+}
+
+@media (max-width: 768px) {
+    .reviews-section {
+        padding: 40px 0;
+    }
+
+    .reviews-section h3 {
+        font-size: 1.8rem;
+    }
+
+    .average-rating h5 {
+        font-size: 1.2rem;
+    }
+
+    .star-rating label {
+        font-size: 1.5rem;
+    }
+
+    .review-form {
+        padding: 20px;
+    }
+}
 .quantity-control {
     display: flex;
     align-items: center;

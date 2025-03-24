@@ -1,0 +1,71 @@
+<%- include("../../views/partials/admin/header") %>
+
+<main class="main">
+  <div class="page-header breadcrumb-wrap mb-4">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="/admin/dashboard" rel="nofollow">Home</a>
+        <span></span> /Wallet Management
+      </div>
+    </div>
+  </div>
+
+  <section class="pt-20 pb-20">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0">Wallet Transactions</h5>
+            </div>
+            <div class="card-body">
+              <% if (transactions && transactions.length > 0) { %>
+                <div class="table-responsive">
+                  <table class="table table-bordered">
+                    <thead>
+                      <tr>
+                        <th>Transaction ID</th>
+                        <th>Date</th>
+                        <th>User</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% transactions.forEach(transaction => { %>
+                        <tr>
+                          <td><%= transaction.transactionId %></td>
+                          <td><%= new Date(transaction.date).toLocaleString() %></td>
+                          <td><%= transaction.user.name %> (<%= transaction.user.email %>)</td>
+                          <td><%= transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1) %></td>
+                          <td>₹<%= transaction.amount.toFixed(2) %></td>
+                          <td>
+                            <a href="/admin/transaction-details/<%= transaction.transactionId %>" class="btn btn-sm btn-primary">View Details</a>
+                          </td>
+                        </tr>
+                      <% }) %>
+                    </tbody>
+                  </table>
+                </div>
+                <nav aria-label="Wallet Transactions Pagination">
+                  <ul class="pagination justify-content-center">
+                    <% for(let i = 1; i <= totalPages; i++) { %>
+                      <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                        <a class="page-link" href="/admin/wallet-management?page=<%= i %>"><%= i %></a>
+                      </li>
+                    <% } %>
+                  </ul>
+                </nav>
+              <% } else { %>
+                <p>No wallet transactions found.</p>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<%- include("../../views/partials/admin/footer") %>

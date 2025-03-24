@@ -41,8 +41,8 @@ router.get('/logout', userController.logout);
 
 // Profile Management
 router.get('/productDetails/:id', userAuth, productController.productDetails);
-router.post("/submit-review", productController.submitReview);
-
+router.get('/productDetails/:Wid', userAuth,productController.productDetails);
+router.post('/submit-review',userAuth, productController.submitReview);
 router.get("/forgot-password", profileController.getForgotPassPage);
 router.post("/forgot-email-valid", profileController.forgotEmailValid);
 router.post("/verify-passForgot-otp", profileController.verifyForgotPassOtp);

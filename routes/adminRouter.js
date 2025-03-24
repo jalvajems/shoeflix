@@ -8,6 +8,7 @@ const productController = require("../controllers/admin/productController");
 const orderController = require("../controllers/admin/orderController");
 const couponController = require("../controllers/admin/couponController");
 const offerController = require("../controllers/admin/offerController");
+const walletController = require("../controllers/admin/adminWalletController"); 
 const multer = require("multer");
 const storage = require("../helpers/multer");
 const uploads = multer({ storage: storage });
@@ -77,5 +78,9 @@ router.post('/offer', adminAuth, offerController.addOffer);
 router.get('/offer/:offerId', adminAuth, offerController.getOffer);
 router.put('/offer-update/:offerId', adminAuth, offerController.updateOffer);
 router.get('/offer-remove/:offerId', adminAuth, offerController.removeOffer);
+
+// Wallet Management 
+router.get("/wallet-management", adminAuth, walletController.loadWalletManagement);
+router.get("/transaction-details/:transactionId", adminAuth, walletController.loadTransactionDetails);
 
 module.exports = router;

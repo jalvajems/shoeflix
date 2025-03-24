@@ -1,0 +1,74 @@
+<%- include("../../views/partials/admin/header") %>
+
+<main class="main">
+  <div class="page-header breadcrumb-wrap mb-4">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="/admin/dashboard" rel="nofollow">Home</a>
+        <span></span> <a href="/admin/wallet-management"> /Wallet Management</a>
+        <span></span>   /Transaction Details
+      </div>
+    </div>
+  </div>
+
+  <section class="pt-20 pb-20">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-10 m-auto">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0">Transaction Details</h5>
+            </div>
+            <div class="card-body">
+              <h6>User Details</h6>
+              <p><strong>Name:</strong> <%= user.name %></p>
+              <p><strong>Email:</strong> <%= user.email %></p>
+              <p><strong>Phone:</strong> <%= user.phone %></p>
+              <hr>
+              <h6>Transaction Details</h6>
+              <p><strong>Transaction ID:</strong> <%= transaction.transactionId %></p>
+              <p><strong>Date:</strong> <%= new Date(transaction.date).toLocaleString() %></p>
+              <p><strong>Type:</strong> <%= transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1) %></p>
+              <p><strong>Amount:</strong> ₹<%= transaction.amount.toFixed(2) %></p>
+              <p><strong>Status:</strong> 
+                <span class="badge <%= transaction.status === 'Completed' ? 'bg-success' : 'bg-warning' %>">
+                  <%= transaction.status %>
+                </span>
+              </p>
+              <p><strong>Source:</strong> 
+                <% if (transaction.orderId) { %>
+                  <% if (transaction.orderId.status === 'Cancelled' || transaction.orderId.status === 'Cancellation Requested') { %>
+                    Refund due to Order Cancellation 
+                    <a href="/admin/orders/<%= transaction.orderId._id %>" class="btn btn-sm btn-info">
+                      View Order #<%= transaction.orderId.orderId %>
+                    </a>
+                    <% if (transaction.orderId.cancellationReason) { %>
+                      <br><small><strong>Reason:</strong> <%= transaction.orderId.cancellationReason %></small>
+                    <% } %>
+                  <% } else if (transaction.orderId.returnStatus === 'Approved') { %>
+                    Refund due to Order Return 
+                    <a href="/admin/orders/<%= transaction.orderId._id %>" class="btn btn-sm btn-info">
+                      View Order #<%= transaction.orderId.orderId %>
+                    </a>
+                    <% if (transaction.orderId.orderItems.some(item => item.returnReason)) { %>
+                      <br><small><strong>Reason:</strong> <%= transaction.orderId.orderItems.find(item => item.returnReason)?.returnReason || 'Not specified' %></small>
+                    <% } %>
+                  <% } else { %>
+                    Linked to Order 
+                    <a href="/admin/orders/<%= transaction.orderId._id %>" class="btn btn-sm btn-info">
+                      View Order #<%= transaction.orderId.orderId %>
+                    </a>
+                  <% } %>
+                <% } else { %>
+                  Manual Adjustment or Other
+                <% } %>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<%- include("../../views/partials/admin/footer") %>

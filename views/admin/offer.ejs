@@ -10,15 +10,17 @@
                 <form id="offerForm" action="/admin/offer" method="POST">
                     <div class="form-group">
                         <label for="name">Offer Name:</label>
-                        <input type="text" class="form-control" id="name" name="name" >
+                        <input type="text" class="form-control" id="name" name="name">
+                        <span class="error-message" id="nameError"></span>
                     </div>
                     <div class="form-group">
                         <label for="type">Offer Type:</label>
-                        <select class="form-control" id="type" name="type" >
+                        <select class="form-control" id="type" name="type">
                             <option value="">Select Type</option>
                             <option value="product">Product Offer</option>
                             <option value="category">Category Offer</option>
                         </select>
+                        <span class="error-message" id="typeError"></span>
                     </div>
                     <div class="form-group" id="productField">
                         <label for="productId">Select Product:</label>
@@ -28,6 +30,7 @@
                                 <option value="<%= product._id %>"><%= product.productName %></option>
                             <% }); %>
                         </select>
+                        <span class="error-message" id="productIdError"></span>
                     </div>
                     <div class="form-group hidden" id="categoryField">
                         <label for="categoryId">Select Category:</label>
@@ -37,25 +40,30 @@
                                 <option value="<%= category._id %>"><%= category.name %></option>
                             <% }); %>
                         </select>
+                        <span class="error-message" id="categoryIdError"></span>
                     </div>
                     <div class="form-group">
                         <label for="discountType">Discount Type:</label>
-                        <select class="form-control" id="discountType" name="discountType" >
+                        <select class="form-control" id="discountType" name="discountType">
                             <option value="percentage">Percentage</option>
                             <option value="amount">Fixed Amount</option>
                         </select>
+                        <span class="error-message" id="discountTypeError"></span>
                     </div>
                     <div class="form-group">
                         <label for="discountValue">Discount Value:</label>
-                        <input type="number" class="form-control" id="discountValue" name="discountValue" min="0" >
+                        <input type="number" class="form-control" id="discountValue" name="discountValue" min="0">
+                        <span class="error-message" id="discountValueError"></span>
                     </div>
                     <div class="form-group">
                         <label for="startDate">Start Date:</label>
-                        <input type="date" class="form-control" id="startDate" name="startDate" >
+                        <input type="date" class="form-control" id="startDate" name="startDate">
+                        <span class="error-message" id="startDateError"></span>
                     </div>
                     <div class="form-group">
                         <label for="endDate">End Date:</label>
-                        <input type="date" class="form-control" id="endDate" name="endDate" >
+                        <input type="date" class="form-control" id="endDate" name="endDate">
+                        <span class="error-message" id="endDateError"></span>
                     </div>
                     <button type="submit" class="btn btn-primary">Add Offer</button>
                 </form>
@@ -63,6 +71,18 @@
         </div>
     </section>
 </main>
+
+<style>
+    .error-message {
+        color: red;
+        font-size: 0.9em;
+        margin-top: 5px;
+        display: block;
+    }
+    .hidden {
+        display: none;
+    }
+</style>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
@@ -95,6 +115,9 @@
     document.getElementById("offerForm").addEventListener("submit", function (e) {
         e.preventDefault();
 
+        // Clear previous error messages
+        document.querySelectorAll(".error-message").forEach(el => el.textContent = "");
+
         // Get form values
         const name = document.getElementById("name").value.trim();
         const type = document.getElementById("type").value;
@@ -106,105 +129,88 @@
         const endDate = document.getElementById("endDate").value;
 
         // Validation checks
-        let errors = [];
+        let isValid = true;
 
         if (!name) {
-            errors.push("Offer Name is required.");
+            document.getElementById("nameError").textContent = "Offer Name is required.";
+            isValid = false;
         }
 
         if (!type) {
-            errors.push("Offer Type is required.");
+            document.getElementById("typeError").textContent = "Offer Type is required.";
+            isValid = false;
         } else if (type === "product" && !productId) {
-            errors.push("Please select a Product for Product Offer.");
+            document.getElementById("productIdError").textContent = "Please select a Product for Product Offer.";
+            isValid = false;
         } else if (type === "category" && !categoryId) {
-            errors.push("Please select a Category for Category Offer.");
+            document.getElementById("categoryIdError").textContent = "Please select a Category for Category Offer.";
+            isValid = false;
         }
 
         if (isNaN(discountValue) || discountValue <= 0) {
-            errors.push("Discount Value must be a positive number.");
+            document.getElementById("discountValueError").textContent = "Discount Value must be a positive number.";
+            isValid = false;
         } else if (discountType === "percentage" && discountValue > 100) {
-            errors.push("Percentage discount cannot exceed 100%.");
+            document.getElementById("discountValueError").textContent = "Percentage discount cannot exceed 100%.";
+            isValid = false;
         }
 
         if (!startDate) {
-            errors.push("Start Date is required.");
+            document.getElementById("startDateError").textContent = "Start Date is required.";
+            isValid = false;
         }
 
         if (!endDate) {
-            errors.push("End Date is required.");
+            document.getElementById("endDateError").textContent = "End Date is required.";
+            isValid = false;
         } else if (startDate && endDate && new Date(endDate) <= new Date(startDate)) {
-            errors.push("End Date must be after Start Date.");
+            document.getElementById("endDateError").textContent = "End Date must be after Start Date.";
+            isValid = false;
         }
 
         if (new Date(startDate) < new Date().setHours(0, 0, 0, 0)) {
-            errors.push("Start Date cannot be in the past.");
+            document.getElementById("startDateError").textContent = "Start Date cannot be in the past.";
+            isValid = false;
         }
 
-        // If there are errors, show them and stop submission
-        if (errors.length > 0) {
-            Swal.fire({
-                title: 'Validation Error',
-                html: errors.join("<br>"),
-                icon: 'error'
-            });
-            return;
-        }
+        // If validation fails, stop submission
+        if (!isValid) return;
 
         // If validation passes, proceed with confirmation
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "Do you want to add this offer?",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, add it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                const formData = {
-                    name,
-                    type,
-                    discountType,
-                    discountValue,
-                    productId: type === "product" ? productId : null,
-                    categoryId: type === "category" ? categoryId : null,
-                    startDate,
-                    endDate
-                };
+        const formData = {
+            name,
+            type,
+            discountType,
+            discountValue,
+            productId: type === "product" ? productId : null,
+            categoryId: type === "category" ? categoryId : null,
+            startDate,
+            endDate
+        };
 
-                fetch('/admin/offer', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(formData)
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        Swal.fire(
-                            'Success!',
-                            'Offer added successfully.',
-                            'success'
-                        ).then(() => {
-                            window.location.href = '/admin/offer-list';
-                        });
-                    } else {
-                        Swal.fire(
-                            'Error!',
-                            data.message || 'Failed to add offer.',
-                            'error'
-                        );
-                    }
-                })
-                .catch(error => {
-                    Swal.fire(
-                        'Error!',
-                        'An error occurred while adding the offer.',
-                        'error'
-                    );
+        fetch('/admin/offer', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire(
+                    'Success!',
+                    'Offer added successfully.',
+                    'success'
+                ).then(() => {
+                    window.location.href = '/admin/offer-list';
                 });
+            } else {
+                document.getElementById("nameError").textContent = data.message || 'Failed to add offer.';
             }
+        })
+        .catch(error => {
+            document.getElementById("nameError").textContent = 'An error occurred while adding the offer.';
         });
     });
 </script>

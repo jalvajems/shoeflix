@@ -56,31 +56,36 @@
                 <h5 class="modal-title">Edit Offer</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form id="editOfferForm"  method="POST">
+            <form id="editOfferForm" method="POST">
                 <div class="modal-body">
                     <input type="hidden" name="offerId" id="editOfferId">
                     <div class="form-group">
                         <label for="editName">Offer Name:</label>
-                        <input type="text" class="form-control" id="editName" name="name" >
+                        <input type="text" class="form-control" id="editName" name="name">
+                        <span class="error-message" id="editNameError"></span>
                     </div>
                     <div class="form-group">
                         <label for="editDiscountType">Discount Type:</label>
-                        <select class="form-control" id="editDiscountType" name="discountType" >
+                        <select class="form-control" id="editDiscountType" name="discountType">
                             <option value="percentage">Percentage</option>
                             <option value="amount">Fixed Amount</option>
                         </select>
+                        <span class="error-message" id="editDiscountTypeError"></span>
                     </div>
                     <div class="form-group">
                         <label for="editDiscountValue">Discount Value:</label>
-                        <input type="number" class="form-control" id="editDiscountValue" name="discountValue" min="0" >
+                        <input type="number" class="form-control" id="editDiscountValue" name="discountValue" min="0">
+                        <span class="error-message" id="editDiscountValueError"></span>
                     </div>
                     <div class="form-group">
                         <label for="editStartDate">Start Date:</label>
-                        <input type="date" class="form-control" id="editStartDate" name="startDate" >
+                        <input type="date" class="form-control" id="editStartDate" name="startDate">
+                        <span class="error-message" id="editStartDateError"></span>
                     </div>
                     <div class="form-group">
                         <label for="editEndDate">End Date:</label>
-                        <input type="date" class="form-control" id="editEndDate" name="endDate" >
+                        <input type="date" class="form-control" id="editEndDate" name="endDate">
+                        <span class="error-message" id="editEndDateError"></span>
                     </div>
                     <div class="form-group">
                         <label for="editStatus">Status:</label>
@@ -88,6 +93,7 @@
                             <option value="true">Active</option>
                             <option value="false">Inactive</option>
                         </select>
+                        <span class="error-message" id="editStatusError"></span>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -98,6 +104,15 @@
         </div>
     </div>
 </div>
+
+<style>
+    .error-message {
+        color: red;
+        font-size: 0.9em;
+        margin-top: 5px;
+        display: block;
+    }
+</style>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -120,16 +135,19 @@
                     $("#editStatus").val(offer.status.toString());
                     $("#editOfferModal").modal("show");
                 } else {
-                    Swal.fire('Error!', data.message || 'Offer not found.', 'error');
+                    $("#editNameError").text(data.message || 'Offer not found.');
                 }
             }).fail(function (jqXHR, textStatus, errorThrown) {
-                Swal.fire('Error!', 'Failed to fetch offer: ' + errorThrown, 'error');
+                $("#editNameError").text('Failed to fetch offer: ' + errorThrown);
             });
         });
 
         // Form Validation and Submission
         $("#editOfferForm").submit(function (e) {
             e.preventDefault();
+
+            // Clear previous error messages
+            $(".error-message").text("");
 
             // Get form values
             const name = $("#editName").val().trim();
@@ -140,77 +158,61 @@
             const status = $("#editStatus").val();
 
             // Validation checks
-            let errors = [];
+            let isValid = true;
 
             if (!name) {
-                errors.push("Offer Name is required.");
+                $("#editNameError").text("Offer Name is required.");
+                isValid = false;
             }
 
             if (isNaN(discountValue) || discountValue <= 0) {
-                errors.push("Discount Value must be a positive number.");
+                $("#editDiscountValueError").text("Discount Value must be a positive number.");
+                isValid = false;
             } else if (discountType === "percentage" && discountValue > 100) {
-                errors.push("Percentage discount cannot exceed 100%.");
+                $("#editDiscountValueError").text("Percentage discount cannot exceed 100%.");
+                isValid = false;
             }
 
             if (!startDate) {
-                errors.push("Start Date is required.");
+                $("#editStartDateError").text("Start Date is required.");
+                isValid = false;
             }
 
             if (!endDate) {
-                errors.push("End Date is required.");
+                $("#editEndDateError").text("End Date is required.");
+                isValid = false;
             } else if (startDate && endDate && new Date(endDate) <= new Date(startDate)) {
-                errors.push("End Date must be after Start Date.");
+                $("#editEndDateError").text("End Date must be after Start Date.");
+                isValid = false;
             }
 
             if (new Date(startDate) < new Date().setHours(0, 0, 0, 0)) {
-                errors.push("Start Date cannot be in the past.");
+                $("#editStartDateError").text("Start Date cannot be in the past.");
+                isValid = false;
             }
 
-            // If there are errors, show them and stop submission
-            if (errors.length > 0) {
-                Swal.fire({
-                    title: 'Validation Error',
-                    html: errors.join("<br>"),
-                    icon: 'error'
-                });
-                return;
-            }
+            // If validation fails, stop submission
+            if (!isValid) return;
 
             // If validation passes, proceed with confirmation
             const formData = $(this).serialize();
             const offerId = $("#editOfferId").val();
 
-            Swal.fire({
-                title: 'Are you sure?',
-                text: "Do you want to update this offer?",
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, update it!'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: `/admin/offer-update/${offerId}`,
-                        method: "PUT",
-                        data: formData,
-                        success: function (response) {
-                            Swal.fire(
-                                'Success!',
-                                'Offer updated successfully.',
-                                'success'
-                            ).then(() => {
-                                window.location.reload();
-                            });
-                        },
-                        error: function (jqXHR, textStatus, errorThrown) {
-                            Swal.fire(
-                                'Error!',
-                                'Failed to update offer: ' + errorThrown,
-                                'error'
-                            );
-                        }
+            $.ajax({
+                url: `/admin/offer-update/${offerId}`,
+                method: "PUT",
+                data: formData,
+                success: function (response) {
+                    Swal.fire(
+                        'Success!',
+                        'Offer updated successfully.',
+                        'success'
+                    ).then(() => {
+                        window.location.reload();
                     });
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    $("#editNameError").text('Failed to update offer: ' + errorThrown);
                 }
             });
         });
