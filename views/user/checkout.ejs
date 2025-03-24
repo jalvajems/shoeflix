@@ -282,6 +282,10 @@
             <input type="radio" class="form-check-input" name="paymentMethod" value="Razorpay" id="payment_razorpay">
             <label class="form-check-label" for="payment_razorpay">Pay with Razorpay</label>
           </div>
+          <div class="form-check">
+            <input type="radio" class="form-check-input" name="paymentMethod" value="wallet" id="payment_wallet">
+            <label class="form-check-label" for="payment_wallet">Pay with Wallet (Balance: ₹<%= user.wallet %>)</label>
+          </div>
         </div>
 
         <form id="checkoutForm">
@@ -297,41 +301,61 @@
   <script src="/js/bootstrap.min.js"></script>
 
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const addressCards = document.querySelectorAll(".address-card");
-      const checkoutForm = document.getElementById("checkoutForm");
-      const couponInput = document.querySelector(".coupon-input");
-      const applyCouponBtn = document.querySelector(".apply-coupon-btn");
-      const removeCouponBtn = document.querySelector(".remove-coupon-btn");
-      const couponMessage = document.querySelector(".coupon-message");
-      const couponList = document.getElementById("couponList");
-      const finalAmountSpan = document.getElementById("final-amount");
-      const paymentCOD = document.getElementById("payment_cod");
-      const paymentRazorpay = document.getElementById("payment_razorpay");
-      let appliedCoupon = "<%= appliedCoupon || '' %>";
-  
-      // Function to check and restrict COD based on final amount
-      function restrictCOD() {
-        const finalAmount = parseFloat(finalAmountSpan.textContent.replace("₹", ""));
-        if (finalAmount > 5000) {
-          paymentCOD.disabled = true;
-          paymentCOD.checked = false; // Uncheck COD if it was selected
-          paymentRazorpay.checked = true; // Default to Razorpay
-          Toastify({
-            text: "Cash on Delivery is not available for orders above ₹5000. Please use Razorpay.",
-            duration: 5000,
-            gravity: "top",
-            position: "right",
-            backgroundColor: "#ff4444",
-          }).showToast();
-        } else {
-          paymentCOD.disabled = false; // Enable COD for orders ≤ ₹5000
-        }
+  document.addEventListener("DOMContentLoaded", () => {
+    const addressCards = document.querySelectorAll(".address-card");
+    const checkoutForm = document.getElementById("checkoutForm");
+    const couponInput = document.querySelector(".coupon-input");
+    const applyCouponBtn = document.querySelector(".apply-coupon-btn");
+    const removeCouponBtn = document.querySelector(".remove-coupon-btn");
+    const couponMessage = document.querySelector(".coupon-message");
+    const couponList = document.getElementById("couponList");
+    const finalAmountSpan = document.getElementById("final-amount");
+    const paymentCOD = document.getElementById("payment_cod");
+    const paymentRazorpay = document.getElementById("payment_razorpay");
+    const paymentWallet = document.getElementById("payment_wallet");
+    let appliedCoupon = "<%= appliedCoupon || '' %>";
+    const walletBalance = parseFloat("<%= user.wallet %>");
+
+   // Function to check and restrict COD and Wallet based on final amount
+   function restrictPaymentMethods() {
+      const finalAmount = parseFloat(finalAmountSpan.textContent.replace("₹", ""));
+      
+      // Restrict COD
+      if (finalAmount > 5000) {
+        paymentCOD.disabled = true;
+        paymentCOD.checked = false;
+        if (!paymentRazorpay.checked && !paymentWallet.checked) paymentRazorpay.checked = true;
+        Toastify({
+          text: "Cash on Delivery is not available for orders above ₹5000.",
+          duration: 5000,
+          gravity: "top",
+          position: "right",
+          backgroundColor: "#ff4444",
+        }).showToast();
+      } else {
+        paymentCOD.disabled = false;
       }
-  
-      // Initial check when page loads
-      restrictCOD();
-  
+
+      // Restrict Wallet
+      if (walletBalance < finalAmount) {
+        paymentWallet.disabled = true;
+        paymentWallet.checked = false;
+        if (!paymentCOD.checked && !paymentRazorpay.checked) paymentRazorpay.checked = true;
+        Toastify({
+          text: "Insufficient wallet balance. Please add funds or choose another payment method.",
+          duration: 5000,
+          gravity: "top",
+          position: "right",
+          backgroundColor: "#ff4444",
+        }).showToast();
+      } else {
+        paymentWallet.disabled = false;
+      }
+    }
+
+    // Initial check
+    restrictPaymentMethods();
+
       // Load active coupons
       async function loadActiveCoupons() {
         try {
@@ -474,95 +498,104 @@
         couponMessage.textContent = message;
         couponMessage.className = `coupon-message ${type}`;
       }
-  
-      checkoutForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const addressId = document.querySelector(
-          'input[name="deliveryAddressId"]:checked'
-        )?.value;
-        if (!addressId) {
-          Toastify({
-            text: "Please select a delivery address",
-            duration: 3000,
-            gravity: "top",
-            position: "right",
-            backgroundColor: "#ff4444",
-          }).showToast();
-          return;
-        }
-  
-        const paymentMethod = document.querySelector(
-          'input[name="paymentMethod"]:checked'
-        )?.value;
-        if (!paymentMethod) {
-          Toastify({
-            text: "Please select a payment method",
-            duration: 3000,
-            gravity: "top",
-            position: "right",
-            backgroundColor: "#ff4444",
-          }).showToast();
-          return;
-        }
-  
-        const finalAmount = parseFloat(finalAmountSpan.textContent.replace("₹", ""));
-        if (paymentMethod === "COD" && finalAmount > 5000) {
-          Toastify({
-            text: "Cash on Delivery is not available for orders above ₹5000. Please use Razorpay.",
-            duration: 5000,
-            gravity: "top",
-            position: "right",
-            backgroundColor: "#ff4444",
-          }).showToast();
-          return;
-        }
-  
-        const submitButton = checkoutForm.querySelector('button[type="submit"]');
-        submitButton.disabled = true;
-        submitButton.textContent = "Processing...";
-  
-        let processingDialog;
-        try {
-          processingDialog = Swal.fire({
-            title: "Processing Order",
-            text: "Please wait while we process your order...",
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            didOpen: () => Swal.showLoading(),
+  // Checkout form submission
+  checkoutForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const addressId = document.querySelector('input[name="deliveryAddressId"]:checked')?.value;
+      if (!addressId) {
+        Toastify({
+          text: "Please select a delivery address",
+          duration: 3000,
+          gravity: "top",
+          position: "right",
+          backgroundColor: "#ff4444",
+        }).showToast();
+        return;
+      }
+
+      const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value;
+      if (!paymentMethod) {
+        Toastify({
+          text: "Please select a payment method",
+          duration: 3000,
+          gravity: "top",
+          position: "right",
+          backgroundColor: "#ff4444",
+        }).showToast();
+        return;
+      }
+
+      const finalAmount = parseFloat(finalAmountSpan.textContent.replace("₹", ""));
+      
+      // Check COD restriction
+      if (paymentMethod === "COD" && finalAmount > 5000) {
+        Toastify({
+          text: "Cash on Delivery is not available for orders above ₹5000.",
+          duration: 5000,
+          gravity: "top",
+          position: "right",
+          backgroundColor: "#ff4444",
+        }).showToast();
+        return;
+      }
+
+      // Check Wallet restriction
+      if (paymentMethod === "wallet" && walletBalance < finalAmount) {
+        Toastify({
+          text: "Insufficient wallet balance. Please add funds or choose another payment method.",
+          duration: 5000,
+          gravity: "top",
+          position: "right",
+          backgroundColor: "#ff4444",
+        }).showToast();
+        return;
+      }
+
+      const submitButton = checkoutForm.querySelector('button[type="submit"]');
+      submitButton.disabled = true;
+      submitButton.textContent = "Processing...";
+
+      let processingDialog;
+      try {
+        processingDialog = Swal.fire({
+          title: "Processing Order",
+          text: "Please wait while we process your order...",
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          didOpen: () => Swal.showLoading(),
+        });
+
+        const orderData = { addressId, paymentMethod, couponCode: appliedCoupon || null };
+        if (paymentMethod === "Razorpay") {
+          await handleRazorpayPayment(addressId, finalAmount, appliedCoupon);
+        } else {
+          const response = await fetch("/checkout", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(orderData),
           });
-  
-          const orderData = { addressId, paymentMethod, couponCode: appliedCoupon || null };
-          if (paymentMethod === "Razorpay") {
-            await handleRazorpayPayment(addressId, finalAmount, appliedCoupon);
+          const data = await response.json();
+          if (data.success) {
+            await handlePaymentSuccess(data.orderId);
           } else {
-            const response = await fetch("/checkout", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(orderData),
-            });
-            const data = await response.json();
-            if (data.success) {
-              await handlePaymentSuccess(data.orderId);
-            } else {
-              throw new Error(data.error || "Failed to place order");
-            }
+            throw new Error(data.error || "Failed to place order");
           }
-        } catch (error) {
-          console.error("Error processing order:", error);
-          Toastify({
-            text: error.message || "There was an error processing your order.",
-            duration: 5000,
-            gravity: "top",
-            position: "right",
-            backgroundColor: "#ff4444",
-          }).showToast();
-        } finally {
-          if (processingDialog) Swal.close();
-          submitButton.disabled = false;
-          submitButton.textContent = "Place Order";
         }
-      });
-  
+      } catch (error) {
+        console.error("Error processing order:", error);
+        Toastify({
+          text: error.message || "There was an error processing your order.",
+          duration: 5000,
+          gravity: "top",
+          position: "right",
+          backgroundColor: "#ff4444",
+        }).showToast();
+      } finally {
+        if (processingDialog) Swal.close();
+        submitButton.disabled = false;
+        submitButton.textContent = "Place Order";
+      }
+    });
       // Rest of your existing Razorpay-related functions remain unchanged
       async function handleRazorpayPayment(addressId, amount, couponCode) {
         const response = await fetch("/create-razorpay-order", {

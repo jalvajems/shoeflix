@@ -25,6 +25,7 @@ const loadOrderList = async (req, res) => {
 
     const totalOrders = await Order.countDocuments(query);
     const totalPages = Math.ceil(totalOrders / ITEMS_PER_PAGE);
+console.log("what's inside the order in orderController========",orders);
 
     res.render('orders', {
       orders,

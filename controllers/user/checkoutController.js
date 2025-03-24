@@ -132,7 +132,6 @@ const loadCheckoutPage = async (req, res) => {
       res.status(500).json({ error: error.message });
     }
   };
-  
   const processCheckout = async (req, res) => {
     try {
       const { addressId, paymentMethod, couponCode } = req.body;
@@ -249,6 +248,34 @@ const loadCheckoutPage = async (req, res) => {
       }
   
       const finalAmount = totalPrice + totalGST - offerDiscount - couponDiscount;
+      const totalDiscount = offerDiscount + couponDiscount;
+  
+      // Wallet Payment Logic
+      if (paymentMethod === "wallet") {
+        const user = await User.findById(userId);
+        if (!user) {
+          return res.status(400).json({ error: "User not found" });
+        }
+        const walletBalance = user.wallet || 0;
+        if (walletBalance < finalAmount) {
+          return res.status(400).json({
+            success: false,
+            error: "Insufficient wallet balance. Please add funds or choose another payment method.",
+          });
+        }
+  
+        // Deduct from wallet and update wallet history
+        user.wallet -= finalAmount;
+        user.walletHistory.push({
+          transactionId: `TXN-${Date.now()}`,
+          type: "debit",
+          amount: finalAmount,
+          status: "Completed",
+          orderId: null, // Will be updated after order is saved
+          description: `Payment for order`,
+        });
+        await user.save();
+      }
   
       // Add COD restriction for orders above ₹5000
       if (paymentMethod === "COD" && finalAmount > 5000) {
@@ -257,8 +284,6 @@ const loadCheckoutPage = async (req, res) => {
           error: "Cash on Delivery is not available for orders above ₹5000. Please choose another payment method.",
         });
       }
-  
-      const totalDiscount = offerDiscount + couponDiscount;
   
       const order = new Order({
         userId,
@@ -282,6 +307,15 @@ const loadCheckoutPage = async (req, res) => {
       });
   
       await order.save();
+  
+      // Update wallet history with order ID
+      if (paymentMethod === "wallet") {
+        await User.updateOne(
+          { _id: userId, "walletHistory.description": "Payment for order" },
+          { $set: { "walletHistory.$.orderId": order._id } }
+        );
+      }
+  
       await Cart.findOneAndDelete({ userId });
       for (const item of cart.items) {
         await Product.updateOne(
@@ -300,6 +334,7 @@ const loadCheckoutPage = async (req, res) => {
       res.status(500).json({ error: "Internal server error", details: error.message });
     }
   };
+  
   // Update createRazorpayOrder to include offer discounts
 const createRazorpayOrder = async (req, res) => {
   try {
@@ -742,7 +777,7 @@ const cancelOrder = async (req, res) => {
                 await user.save();
             }
         }
-
+        
         await order.save();
         
         res.json({ success: true, message: 'Order cancelled successfully' });
