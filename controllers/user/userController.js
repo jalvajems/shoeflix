@@ -70,39 +70,37 @@ const loadShopping = async (req, res) => {
         }
         
         const categories = await Category.find({ isListed: true });
-        
         const categoryIds = categories.map(category => category._id);
-        console.log("-------------------------->");
-
-        console.log(categoryIds);
-        console.log("-------------------------->");
-        
-        
+        console.log("Category IDs:", categoryIds);
         
         const page = parseInt(req.query.page) || 1;
         const limit = 9;
         const skip = (page - 1) * limit;
         
-        // Get products with pagination=============================
         const products = await Product.find({
             isBlocked: false,
             category: { $in: categoryIds },
-            quantity: { $gt: 0 }
+            totalStock: { $gt: 0 } 
         })
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit);
         
-        // Count total products for pagination====================
+       
         const totalProducts = await Product.countDocuments({
             isBlocked: false,
             category: { $in: categoryIds },
-            quantity: { $gt: 0 }
+            totalStock: { $gt: 0 } 
         });
         
         const totalPages = Math.ceil(totalProducts / limit);
         
-        // Render shop page with all necessary data===================
+        console.log("Products found:", products.length);
+        if (products.length > 0) {
+            console.log("Sample product:", products[0]);
+        }
+
+      
         return res.render("shop", {
             user: userData,
             products: products,
@@ -116,8 +114,6 @@ const loadShopping = async (req, res) => {
         res.status(500).send('Server error');
     }
 };
-
-
 
 const loadSignup = async (req, res) => {
     console.log('loaded signup');
@@ -401,28 +397,24 @@ const getFilteredProducts = async (req) => {
         };
     }
 
-    // Apply price filter - with explicit type conversion
-    if (req.session.priceFilter && 
-        req.session.priceFilter.gt !== undefined && 
-        req.session.priceFilter.lt !== undefined) {
-        
-        // Convert to numbers and ensure they're valid
-        const minPrice = Number(req.session.priceFilter.gt);
-        const maxPrice = Number(req.session.priceFilter.lt);
-        
-        // Only apply if we have valid numbers
-        if (!isNaN(minPrice) && !isNaN(maxPrice)) {
-            query.salePrice = {
-                $gte: minPrice,
-                $lte: maxPrice
-            };
-            
-            // Debug log for price filter
-            console.log(`Applying price filter: ${minPrice} to ${maxPrice}`);
-        } else {
-            console.log("Invalid price range values:", req.session.priceFilter);
-        }
+// Inside getFilteredProducts function
+if (req.session.priceFilter && 
+    req.session.priceFilter.gt !== undefined && 
+    req.session.priceFilter.lt !== undefined) {
+    
+    const minPrice = Number(req.session.priceFilter.gt);
+    const maxPrice = Number(req.session.priceFilter.lt);
+    
+    if (!isNaN(minPrice) && !isNaN(maxPrice) && minPrice <= maxPrice) {
+        query.salePrice = {
+            $gte: minPrice,
+            $lte: maxPrice
+        };
+        console.log(`Applying price filter: ${minPrice} to ${maxPrice}`);
+    } else {
+        console.log("Invalid price range values:", req.session.priceFilter);
     }
+}
 
     // Apply sorting
     let sortOption = {};
@@ -491,15 +483,22 @@ const getFilteredProducts = async (req) => {
         sort,
     };
 };
-
 const filterProduct = async (req, res) => {
     try {
         const user = req.session.user;
         const category = req.query.category;
-       
+        const searchQuery = req.body.query || req.query.query; // Handle both POST and GET
+
         // Clear price filter if new category or search is applied
-        if (req.query.category || req.body.query) {
+        if (req.query.category || searchQuery) {
             req.session.priceFilter = null;
+        }
+
+        // Set search query in session
+        if (searchQuery) {
+            req.session.searchQuery = searchQuery;
+        } else {
+            req.session.searchQuery = null; // Clear search if no query
         }
 
         const { 
@@ -513,9 +512,10 @@ const filterProduct = async (req, res) => {
         let userData = null;
         if (user) {
             userData = await User.findOne({ _id: user });
-            if (userData && category) {
+            if (userData && (category || searchQuery)) {
                 userData.searchHistory.push({
-                    category: category,
+                    category: category || null,
+                    searchQuery: searchQuery || null,
                     searchedOn: new Date()
                 });
                 await userData.save();
@@ -537,14 +537,17 @@ const filterProduct = async (req, res) => {
         console.error(error);
         return res.redirect("/pageNotFound");
     }
-}
-
+};
 const filterByPrice = async (req, res) => {
     try {
-        req.session.priceFilter = {
-            gt: parseInt(req.query.gt),
-            lt: parseInt(req.query.lt)
-        };
+        // Parse query parameters and ensure they're numbers
+        const gt = parseInt(req.query.gt) || 0;
+        const lt = parseInt(req.query.lt) || Number.MAX_SAFE_INTEGER;
+
+        // Store price filter in session
+        req.session.priceFilter = { gt, lt };
+
+        console.log(`Price filter applied: ${gt} to ${lt}`);
 
         const { 
             products, 
@@ -555,7 +558,15 @@ const filterByPrice = async (req, res) => {
         } = await getFilteredProducts(req);
 
         const user = req.session.user;
-        const userData = await User.findOne({ _id: user });
+        const userData = user ? await User.findOne({ _id: user }) : null;
+
+        // Log some sample products for debugging
+        if (products.length === 0) {
+            const sampleProducts = await Product.find({
+                isBlocked: false
+            }).limit(5).select('productName salePrice').lean();
+            console.log("No products found. Sample products:", sampleProducts);
+        }
 
         return res.render("shop", {
             user: userData,
@@ -565,18 +576,14 @@ const filterByPrice = async (req, res) => {
             currentPage,
             selectedSort: sort,
             selectedCategory: req.session.selectedCategory || null,
-            searchQuery: null,
-            priceRange: { 
-                gt: req.query.gt, 
-                lt: req.query.lt 
-            }
+            searchQuery: req.session.searchQuery || null,
+            priceRange: { gt, lt }
         });
     } catch (error) {
-        console.error(error);
+        console.error("Error in filterByPrice:", error);
         return res.redirect("/pageNotFound");
     }
-}
-
+};
 
 module.exports = {
     loadHomepage,

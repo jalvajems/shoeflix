@@ -18,9 +18,11 @@ const loadWishlist = async (req, res) => {
                 match: { isBlocked: false } 
             });
 
-        // Filter out products with  (blocked products)
+        // Filter out blocked products and sort by addedOn date (latest first)
         if (wishlist) {
-            wishlist.products = wishlist.products.filter(item => item.productId !== null);
+            wishlist.products = wishlist.products
+                .filter(item => item.productId !== null) // Remove blocked/null products
+                .sort((a, b) => b.addedOn - a.addedOn); // Sort by addedOn in descending order
         }
 
         res.render('wishlist', {

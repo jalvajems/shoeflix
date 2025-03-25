@@ -82,13 +82,11 @@ const createCoupon = async (req, res) => {
       }
     }
 
-    // Max Uses validation===========
     const parsedMaxUses = maxUses ? parseInt(maxUses) : null;
     if (parsedMaxUses !== null && (isNaN(parsedMaxUses) || parsedMaxUses < 1)) {
       errors.push('Max uses must be a positive number');
     }
 
-    // If there are validation errors, return them
     if (errors.length > 0) {
       return res.status(400).json({ status: false, message: errors.join('. '), errors });
     }

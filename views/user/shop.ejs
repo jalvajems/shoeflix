@@ -187,10 +187,10 @@
  <section class="shop-page container">
    <div class="shop-topbar">
      <div class="search-bar">
-       <form action="" method="POST" class="search-form">
-         <input type="text" name="query" placeholder="Search items..." class="search-input" />
-         <button type="submit" class="search-button">Search</button>
-       </form>
+      <form action="/filter" method="POST" class="search-form">
+        <input type="text" name="query" placeholder="Search items..." class="search-input" />
+        <button type="submit" class="search-button">Search</button>
+      </form>
      </div>
    </div>
   
@@ -211,12 +211,12 @@
        <div class="price-filter">
         <div class="filter-title">Filter by Price</div>
         <form id="price-filter-form">
-            <div class="price-options">
-                <a href="/filterPrice?gt=0<=5000"><button type="button" class="price-button">Under ₹5000</button></a>
-                <a href="/filterPrice?gt=5000<=6000"><button type="button" class="price-button">₹5000 - ₹6000</button></a>
-                <a href="/filterPrice?gt=6000<=7500"><button type="button" class="price-button">₹6000- ₹7500</button></a>
-                <a href="/filterPrice?gt=7500<=1000000"><button type="button" class="price-button">Above ₹7500</button></a>
-            </div>
+          <div class="price-options">
+            <a href="/filterPrice?gt=0&lt=5000"><button type="button" class="price-button">Under ₹5000</button></a>
+            <a href="/filterPrice?gt=5000&lt=6000"><button type="button" class="price-button">₹5000 - ₹6000</button></a>
+            <a href="/filterPrice?gt=6000&lt=7500"><button type="button" class="price-button">₹6000 - ₹7500</button></a>
+            <a href="/filterPrice?gt=7500&lt=1000000"><button type="button" class="price-button">Above ₹7500</button></a>
+        </div>
         </form>
        </div>
      </aside>

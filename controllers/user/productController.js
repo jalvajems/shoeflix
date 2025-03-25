@@ -22,21 +22,18 @@ const productDetails = async (req, res) => {
 
         const findCategory = product.category;
 
-        // Fetch reviews for the product
         const reviews = await Review.find({ productId }).populate("userId", "name");
 
-        // Check if the user has purchased and received this product
         let hasPurchased = false;
         if (userId) {
             const orders = await Order.find({
                 userId,
-                status: "Delivered", // Only consider delivered orders
-                "orderItems.product": productId // Check if the product is in the orderItems array
+                status: "Delivered", 
+                "orderItems.product": productId 
             });
             hasPurchased = orders.length > 0;
         }
 
-        // Fetch active offers for the product and its category
         const currentDate = new Date();
         const productOffers = await Offer.find({
             type: "product",
@@ -54,7 +51,6 @@ const productDetails = async (req, res) => {
             status: true
         });
 
-        // Calculate the best offer
         let bestOffer = null;
         let bestDiscount = 0;
         let bestOfferName = "";
@@ -87,7 +83,6 @@ const productDetails = async (req, res) => {
             }
         }
 
-        // Fetch related products
         const relatedProduct = await Product.find({
             category: findCategory,
             _id: { $ne: productId }
@@ -102,7 +97,7 @@ const productDetails = async (req, res) => {
             category: findCategory,
             relatedProduct,
             reviews,
-            hasPurchased, // Pass the purchase status to the view
+            hasPurchased, 
             bestOffer: bestOffer ? { name: bestOfferName, discount: bestDiscount } : null
         });
     } catch (error) {
@@ -111,7 +106,6 @@ const productDetails = async (req, res) => {
     }
 };
 
-// Handle review submission
 const submitReview = async (req, res) => {
     try {
         const { productId, rating, comment } = req.body;
@@ -121,7 +115,6 @@ const submitReview = async (req, res) => {
             return res.status(401).json({ success: false, message: "Please log in to submit a review." });
         }
 
-        // Check if user has purchased and received the product
         const orders = await Order.find({
             userId,
             status: "Delivered",
@@ -134,8 +127,7 @@ const submitReview = async (req, res) => {
             });
         }
 
-        // Check if user has already reviewed this product
-        const existingReview = await Review.findOne({ productId, userId });
+  const existingReview = await Review.findOne({ productId, userId });
         if (existingReview) {
             return res.status(400).json({
                 success: false,
@@ -143,7 +135,6 @@ const submitReview = async (req, res) => {
             });
         }
 
-        // Create new review
         const review = new Review({
             productId,
             userId,

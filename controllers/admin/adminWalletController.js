@@ -58,12 +58,10 @@ const loadWalletManagement = async (req, res) => {
   }
 };
 
-// Load Transaction Details
 const loadTransactionDetails = async (req, res) => {
   try {
     const { transactionId } = req.params;
 
-    // Find the user with the specific transaction
     const user = await User.findOne({ "walletHistory.transactionId": transactionId })
       .populate({
         path: "walletHistory.orderId",

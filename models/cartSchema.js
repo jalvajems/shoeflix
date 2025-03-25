@@ -36,6 +36,9 @@ const cartSchema=new Schema({
         cancellationReason:{
             type:String,
             default:'none'
+        },addedOn: { 
+            type: Date,
+            default: Date.now
         }
     }]
 })

@@ -159,15 +159,6 @@ const login=async(req,res)=>{
 }
 }
 
-// const loadDashboard=async(req,res)=>{
-//     if(req.session.admin){
-//         try {
-//             res.render("dashboard")
-//         } catch (error) {
-//             res.redirect("/pageerror")
-//         }
-//     }
-// }
 const createDateFilter = (filter, startDate, endDate) => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());

@@ -30,127 +30,122 @@ const checkCartQuantity = async (req, res) => {
 };
 
 
-
 const loadCart = async (req, res) => {
-    try {
-        const userId = req.session.user;
+  try {
+      const userId = req.session.user;
 
-        const cart = await Cart.findOne({ userId: userId })
-            .populate("items.productId", "productName salePrice productImage isBlocked status");
+      const cart = await Cart.findOne({ userId: userId })
+          .populate("items.productId", "productName salePrice productImage isBlocked status");
 
-        if (!cart) {
-            return res.render("cart", {
-                user: await User.findById(userId),
-                cart: [],
-                totalPrice: 0
-            });
-        }
+      if (!cart) {
+          return res.render("cart", {
+              user: await User.findById(userId),
+              cart: [],
+              totalPrice: 0
+          });
+      }
 
-        const filteredItems = cart.items.filter(item =>
-            item.productId && !item.productId.isBlocked && item.productId.status === "Available"
-        );
-        console.log("Filtered Items:", filteredItems);
-        const totalPrice = filteredItems.reduce((acc, item) => acc + item.totalPrice, 0);
+      const filteredItems = cart.items.filter(item =>
+          item.productId && !item.productId.isBlocked && item.productId.status === "Available"
+      );
 
-        return res.render("cart", {
-            user: await User.findById(userId),
-            cart: filteredItems,
-            totalPrice: totalPrice
-        });
-    } catch (error) {
-        console.log("Error loading cart:", error);
-        return res.redirect("/pageNotFound");
-    }
+      const sortedItems = filteredItems.sort((a, b) => b.addedOn - a.addedOn);
+
+      const totalPrice = sortedItems.reduce((acc, item) => acc + item.totalPrice, 0);
+
+      return res.render("cart", {
+          user: await User.findById(userId),
+          cart: sortedItems,
+          totalPrice: totalPrice
+      });
+  } catch (error) {
+      console.log("Error loading cart:", error);
+      return res.redirect("/pageNotFound");
+  }
 };
 
 const addToCart = async (req, res) => {
   try {
-    const { productId, size, quantity } = req.body;
-    const userId = req.session.user;
+      const { productId, size, quantity } = req.body;
+      const userId = req.session.user;
 
-    if (!userId) {
-      return res.json({ status: false, message: "User not authenticated" });
-    }
-
-    // Check if product exists and is available
-    const product = await Product.findById(productId);
-    if (!product || product.isBlocked || product.status !== "Available") {
-      return res.json({ status: false, message: "Product not available" });
-    }
-
-    // Validate size
-    const validSizes = ["IND-5", "IND-6", "IND-7", "IND-8"];
-    if (!validSizes.includes(size)) {
-      return res.json({ status: false, message: "Invalid size selected" });
-    }
-
-    // Check stock for the selected size
-    const variant = product.variants.find((v) => v.size === size);
-    if (!variant || variant.quantity < quantity) {
-      return res.json({ status: false, message: "Insufficient stock" });
-    }
-
-    let cart = await Cart.findOne({ userId });
-
-    if (!cart) {
-      // Create new cart if it doesn't exist
-      cart = new Cart({
-        userId,
-        items: [
-          {
-            productId,
-            quantity,
-            size,
-            price: product.salePrice,
-            totalPrice: product.salePrice * quantity,
-          },
-        ],
-      });
-    } else {
-      // Check existing quantity for this product and size
-      const existingItemIndex = cart.items.findIndex(
-        (item) => item.productId.toString() === productId && item.size === size
-      );
-
-      if (existingItemIndex > -1) {
-        const currentQuantity = cart.items[existingItemIndex].quantity;
-        const newTotalQuantity = currentQuantity + quantity;
-
-        if (newTotalQuantity > 5) {
-          return res.json({
-            status: false,
-            message: "Maximum quantity limit of 5 reached for this product in your cart.",
-          });
-        }
-
-        cart.items[existingItemIndex].quantity = newTotalQuantity;
-        cart.items[existingItemIndex].totalPrice =
-          cart.items[existingItemIndex].price * newTotalQuantity;
-      } else {
-        if (quantity > 5) {
-          return res.json({
-            status: false,
-            message: "Cannot add more than 5 units of this product at once.",
-          });
-        }
-        cart.items.push({
-          productId,
-          quantity,
-          size,
-          price: product.salePrice,
-          totalPrice: product.salePrice * quantity,
-        });
+      if (!userId) {
+          return res.json({ status: false, message: "User not authenticated" });
       }
-    }
 
-    await cart.save();
-    return res.json({ status: true, message: "Product added to cart successfully" });
+      const product = await Product.findById(productId);
+      if (!product || product.isBlocked || product.status !== "Available") {
+          return res.json({ status: false, message: "Product not available" });
+      }
+
+      const validSizes = ["IND-5", "IND-6", "IND-7", "IND-8"];
+      if (!validSizes.includes(size)) {
+          return res.json({ status: false, message: "Invalid size selected" });
+      }
+
+      const variant = product.variants.find((v) => v.size === size);
+      if (!variant || variant.quantity < quantity) {
+          return res.json({ status: false, message: "Insufficient stock" });
+      }
+
+      let cart = await Cart.findOne({ userId });
+
+      if (!cart) {
+          cart = new Cart({
+              userId,
+              items: [{
+                  productId,
+                  quantity,
+                  size,
+                  price: product.salePrice,
+                  totalPrice: product.salePrice * quantity,
+                  addedOn: new Date()
+              }],
+          });
+      } else {
+          const existingItemIndex = cart.items.findIndex(
+              (item) => item.productId.toString() === productId && item.size === size
+          );
+
+          if (existingItemIndex > -1) {
+              const currentQuantity = cart.items[existingItemIndex].quantity;
+              const newTotalQuantity = currentQuantity + quantity;
+
+              if (newTotalQuantity > 5) {
+                  return res.json({
+                      status: false,
+                      message: "Maximum quantity limit of 5 reached for this product in your cart.",
+                  });
+              }
+
+              cart.items[existingItemIndex].quantity = newTotalQuantity;
+              cart.items[existingItemIndex].totalPrice =
+                  cart.items[existingItemIndex].price * newTotalQuantity;
+          } else {
+              if (quantity > 5) {
+                  return res.json({
+                      status: false,
+                      message: "Cannot add more than 5 units of this product at once.",
+                  });
+              }
+              cart.items.push({
+                  productId,
+                  quantity,
+                  size,
+                  price: product.salePrice,
+                  totalPrice: product.salePrice * quantity,
+                  addedOn: new Date() 
+              });
+          }
+      }
+
+      await cart.save();
+      return res.json({ status: true, message: "Product added to cart successfully" });
   } catch (error) {
-    console.warn("Error adding to cart:", error);
-    return res.status(500).json({ status: false, message: "Failed to add to cart" });
+      console.warn("Error adding to cart:", error);
+      return res.status(500).json({ status: false, message: "Failed to add to cart" });
   }
 };
-// In your cartController.js file, modify the updateCartQuantity function:
 
 const updateCartQuantity = async (req, res) => {
   try {

@@ -144,7 +144,6 @@ const updateOffer = async (req, res) => {
         const { offerId } = req.params;
         const { name, discountType, discountValue, startDate, endDate, status } = req.body;
 
-        // Validation
         if (!name || !discountType || !discountValue || !startDate || !endDate) {
             return res.status(400).json({ success: false, message: "All fields are required." });
         }
@@ -175,14 +174,12 @@ const updateOffer = async (req, res) => {
             return res.status(404).json({ success: false, message: "Offer not found" });
         }
 
-        // Reset existing offer effects
         if (offer.type === "product") {
             await resetProductOffer(offer);
         } else if (offer.type === "category") {
             await resetCategoryOffer(offer);
         }
 
-        // Update offer details
         offer.name = name;
         offer.discountType = discountType;
         offer.discountValue = parsedDiscountValue;
@@ -192,7 +189,6 @@ const updateOffer = async (req, res) => {
 
         await offer.save();
 
-        // Apply updated offer if active
         if (offer.status) {
             if (offer.type === "product") {
                 await applyProductOffer(offer);

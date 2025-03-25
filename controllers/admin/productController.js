@@ -49,11 +49,9 @@ const addProducts = async (req, res) => {
                 return res.status(400).json("Invalid category name")
             }
 
-            // Parse variants from form
             const sizes = Array.isArray(products.size) ? products.size : [products.size]
             const quantities = Array.isArray(products.quantity) ? products.quantity : [products.quantity]
             
-            // Create variants array
             const variants = []
             let totalStock = 0
             
@@ -92,49 +90,53 @@ const addProducts = async (req, res) => {
         return res.redirect("/admin/pageerror")
     }
 }
-
 const getAllProducts = async (req, res) => {
-    console.log('getallproduct listing')
+    console.log('getallproduct listing');
     try {
         console.log('show products');
         
-        const search = req.query.search || ""
-        const page = req.query.page || 1
-        const limit = 4
+        const search = req.query.search || "";
+        const page = req.query.page || 1;
+        const limit = 4;
 
-        
+        // Fetch products sorted by createdAt in descending order (newest first)
         const productData = await Product.find({
             $or: [
-                {productName: {$regex: new RegExp(".*"+search+".*", "i")}}
+                { productName: { $regex: new RegExp(".*" + search + ".*", "i") } }
             ]
-        }).limit(limit*1).skip((page-1)*limit).populate('category').exec()
-        
-        console.log("product in getallproduct", productData)
-        
+        })
+        .sort({ createdAt: -1 })
+        .limit(limit * 1)
+        .skip((page - 1) * limit)
+        .populate('category')
+        .exec();
+
+        console.log("product in getallproduct", productData);
+
         const count = await Product.find({
             $or: [
-                {productName: {$regex: new RegExp(".*"+search+".*", "i")}}
+                { productName: { $regex: new RegExp(".*" + search + ".*", "i") } }
             ],
-        }).countDocuments()
+        }).countDocuments();
 
-        const category = await Category.find({isListed: true})
-        console.log("category from getallproduct", category)
+        const category = await Category.find({ isListed: true });
+        console.log("category from getallproduct", category);
 
-        if(category){
+        if (category) {
             res.render("products", {
                 data: productData,
                 currentPage: page,
-                totalPages: Math.ceil(count/limit),
+                totalPages: Math.ceil(count / limit),
                 cat: category
-            })
+            });
         } else {
-            res.redirect("/admin/pageerror")
+            res.redirect("/admin/pageerror");
         }
     } catch (error) {
-        res.redirect("/admin/pageerror")
+        console.error("Error in getAllProducts:", error);
+        res.redirect("/admin/pageerror");
     }
-}
-
+};
 const blockProduct = async(req, res) => {
     try {
         const productId = req.params.id;

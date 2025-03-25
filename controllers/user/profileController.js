@@ -157,14 +157,12 @@ const postNewPassword = async (req, res) => {
   }
 };
 
-// Load User Profile with Pagination and Sorting for Wallet History
 const loadUserProfile = async (req, res) => {
   try {
     const userId = req.session.user;
     const userData = await User.findById(userId);
     const addressData = await Address.findOne({ userId: userId });
 
-    // Fetch orders (unchanged)
     const orderPage = parseInt(req.query.page) || 1;
     const orderLimit = 5;
     const orderSkip = (orderPage - 1) * orderLimit;
@@ -173,7 +171,7 @@ const loadUserProfile = async (req, res) => {
         path: 'orderItems.product',
         select: 'productName productImage'
       })
-      .sort({ createdOn: -1 }) // Latest orders first
+      .sort({ createdOn: -1 })
       .skip(orderSkip)
       .limit(orderLimit)
       .lean();
@@ -189,15 +187,13 @@ const loadUserProfile = async (req, res) => {
     const totalOrders = await Order.countDocuments({ userId });
     const totalPages = Math.ceil(totalOrders / orderLimit);
 
-    // Fetch wallet history with pagination and sorting
-    const walletPage = parseInt(req.query.page) || 1;
-    const walletLimit = 5; // Number of transactions per page
+     const walletPage = parseInt(req.query.page) || 1;
+    const walletLimit = 5;  
     const walletSkip = (walletPage - 1) * walletLimit;
     const walletHistory = userData.walletHistory
       ? userData.walletHistory
-          .slice() // Create a copy to avoid modifying original
-          .sort((a, b) => new Date(b.date) - new Date(a.date)) // Sort by date descending (latest first)
-          .slice(walletSkip, walletSkip + walletLimit) // Apply pagination
+           .sort((a, b) => new Date(b.date) - new Date(a.date))
+          .slice(walletSkip, walletSkip + walletLimit)
       : [];
 
     const totalWalletTransactions = userData.walletHistory ? userData.walletHistory.length : 0;

@@ -15,7 +15,9 @@ router.get('/pageNotFound', userController.pageNotFound);
 
 router.get('/', userAuth, userController.loadHomepage);
 router.get('/shop', userAuth, userController.loadShopping);
-router.get("/filter", userAuth, userController.filterProduct);
+router.route("/filter")
+    .get(userAuth, userController.filterProduct)
+    .post(userAuth, userController.filterProduct);
 router.get("/filterPrice", userAuth, userController.filterByPrice);
 
 router
@@ -64,6 +66,7 @@ router.route("/change-password")
   .get(userAuth, profileController.changePassword)
   .post(userAuth, profileController.changePasswordValid);
 router.post("/verify-password-otp", userAuth, profileController.verifyChangePassOtp);
+
 
 // Address
 router.route("/addAddress")
