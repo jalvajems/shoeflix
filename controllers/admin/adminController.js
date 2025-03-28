@@ -304,22 +304,16 @@ const createDateFilter = (filter, startDate, endDate) => {
         });
     }
 };
-const logout=(req,res)=>{
+const logout = (req, res) => {
     try {
-        req.session.destroy((err)=>{
-            if(err){
-                console.log(err)
-                return res.status(500).send("Logout Failed")
-            }
-            return res.redirect("/admin/login")
-            
-        })
+        delete req.session.admin;
+        delete req.session.adminData;
+        res.redirect("/admin/login");
     } catch (error) {
-        console.log('logout error',error);
-        res.redirect("/pageerror")
-        
+        console.log('logout error', error);
+        res.redirect("/pageerror");
     }
-}
+};
 
 const generateSalesReport = async (req, res) => {
   try {

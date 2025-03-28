@@ -334,20 +334,14 @@ const login = async (req, res) => {
     }
 };
 const logout = (req, res) => {
-  try{  req.session.destroy((err) => {
-        if (err) {
-            console.log(err);
-            return res.status(500).send("Logout failed");
-        }
-        return res.redirect("/login");
-    });
-}catch(error){
-    console.log('logout error',error);
-    res.redirect("/pageNotFound")
-    
+    try {
+        delete req.session.user;
+        res.redirect("/login");
+    } catch (error) {
+        console.log('logout error', error);
+        res.redirect("/pageNotFound");
     }
 };
-
 const loadProfile = async (req, res) => {
     try {
         if (!req.session.user_id) {
