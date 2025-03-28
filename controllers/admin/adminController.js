@@ -244,7 +244,7 @@ const createDateFilter = (filter, startDate, endDate) => {
                         _id: null,
                         totalSales: { $sum: '$finalAmount' },
                         totalDiscount: { $sum: '$discount' },
-                        totalCouponDiscount: { $sum: 0 }
+                        totalCouponDiscount: { $sum: '$couponDiscount' }
                     }
                 }
             ]),
