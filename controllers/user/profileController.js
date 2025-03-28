@@ -64,11 +64,18 @@ const getForgotPassPage = async (req, res) => {
     res.redirect("/pageNotFound");
   }
 };
-
 const forgotEmailValid = async (req, res) => {
   try {
     console.log('reached at forgot email valid');
     const { email } = req.body;
+
+    // Check if the email matches the one from the login attempt
+    if (!req.session.loginEmail || email !== req.session.loginEmail) {
+      return res.render("forgot-password", {
+        message: "Please enter your email used to login"
+      });
+    }
+
     const findUser = await User.findOne({ email: email });
     if (findUser) {
       console.log('otp creating');
@@ -93,7 +100,6 @@ const forgotEmailValid = async (req, res) => {
     res.redirect("/pageNotFound");
   }
 };
-
 const verifyForgotPassOtp = async (req, res) => {
   console.log('verifying forgot password...');
   try {
@@ -135,7 +141,6 @@ const resendOtp = async (req, res) => {
     return res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
-
 const postNewPassword = async (req, res) => {
   console.log('postnewpassword...');
   try {
@@ -147,6 +152,10 @@ const postNewPassword = async (req, res) => {
         { email: email },
         { $set: { password: passwordHash } }
       );
+      // Clear session data after successful reset
+      req.session.loginEmail = null;
+      req.session.userOtp = null;
+      req.session.email = null;
       return res.redirect("/login");
     } else {
       return res.render("reset-password", { message: 'Passwords do not match' });
@@ -156,7 +165,6 @@ const postNewPassword = async (req, res) => {
     return res.redirect("/PageNotFound");
   }
 };
-
 const loadUserProfile = async (req, res) => {
   try {
     const userId = req.session.user;

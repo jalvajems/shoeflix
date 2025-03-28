@@ -295,10 +295,12 @@ const loadLogin=async(req,res)=>{
         res.redirect("/pageNotFound")
     }
 }
-
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
+        // Store the email in session for later validation
+        req.session.loginEmail = email;
+
         const user = await User.findOne({ email });
 
         if (!user) {

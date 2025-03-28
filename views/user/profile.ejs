@@ -414,7 +414,7 @@
                         <li class="mb-2 item-row" data-item-id="<%= item._id %>">
                           <img src="/uploads/product-images/<%= item.productImage %>" alt="<%= item.name %>">
                           <%= item.name %> (Size: <%= item.variants.size %>, Qty: <%= item.variants.quantity %>) - ₹<%= (item.price * item.variants.quantity).toFixed(2) %>
-                          <% if (order.status === 'Pending' || order.status === 'Processing') { %>
+                          <% if ((order.status === 'Pending' && order.paymentDetails?.status !== 'Failed') || order.status === 'Processing') { %>
                             <button class="btn btn-cancel btn-sm cancel-product" data-order-id="<%= order._id %>" data-item-id="<%= item._id %>">Cancel Product</button>
                           <% } %>
                           <% if (order.status === 'Delivered' && new Date(order.createdOn).getTime() + 30*24*60*60*1000 > Date.now() && item.cancelStatus !== 'Cancelled') { %>
@@ -428,7 +428,7 @@
                     </ul>
                     <p><strong>Final Amount: ₹<%= order.finalAmount.toFixed(2) %></strong></p>
                     <a href="/download-invoice/<%= order.orderId %>" class="btn btn-success btn-sm">Download Invoice</a>
-                    <% if (order.status === 'Pending' || order.status === 'Processing') { %>
+                    <% if ((order.status === 'Pending' && order.paymentDetails?.status !== 'Failed') || order.status === 'Processing') { %>
                       <button class="btn btn-danger btn-sm request-cancel-order" data-order-id="<%= order._id %>" data-bs-toggle="modal" data-bs-target="#cancelRequestModal">Request Cancellation</button>
                     <% } %>
                     <% if (order.status === 'Pending' && order.paymentDetails?.status === 'Failed') { %>

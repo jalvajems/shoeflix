@@ -442,8 +442,7 @@
             updateCouponUI(data.discountAmount, data.newTotal, couponCode);
             showCouponMessage(data.message, "success");
             removeCouponBtn.style.display = "inline-block";
-            restrictCOD(); // Check COD restriction after applying coupon
-          } else {
+77          } else {
             showCouponMessage(data.message, "error");
           }
         } catch (error) {
