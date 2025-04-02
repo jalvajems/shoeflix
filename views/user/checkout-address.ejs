@@ -63,8 +63,8 @@
         <div class="error-message" id="phoneError">Phone must be 10 digits</div>
       </div>
       <div class="form-group">
-        <label>Alternate Phone <span class="text-danger">*</span></label>
-        <input type="text" name="altPhone" class="form-control" pattern="[0-9]{10}" required>
+        <label>Alternate Phone</label> <!-- Removed required asterisk -->
+        <input type="text" name="altPhone" class="form-control" pattern="[0-9]{10}">
         <div class="error-message" id="altPhoneError">Alternate phone must be 10 digits</div>
       </div>
       <div class="form-check">
@@ -157,9 +157,9 @@
         this.phone.classList.remove('is-invalid');
       }
 
-      // Alternate Phone validation
+      // Alternate Phone validation (optional)
       const altPhone = this.altPhone.value;
-      if (!altPhone || !/^\d{10}$/.test(altPhone)) {
+      if (altPhone && !/^\d{10}$/.test(altPhone)) { // Only validate if provided
         document.getElementById('altPhoneError').style.display = 'block';
         this.altPhone.classList.add('is-invalid');
         isValid = false;

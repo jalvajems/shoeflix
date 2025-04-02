@@ -949,150 +949,168 @@ const requestCancelOrder = async (req, res) => {
   }
 };
 const downloadInvoice = async (req, res) => {
-  console.log("doownlooaad invoice");
-  
-    try {
-        const orderId = req.params.orderId;
+  console.log("Downloading invoice");
 
-        const order = await Order.findOne({ orderId })
-            .populate({
-                path: 'orderItems.product',
-                select: 'productName variants',
-            })
-            .populate({
-                path: 'userId',
-                select: 'name',
-            })
-            .lean();
+  try {
+      const orderId = req.params.orderId;
 
-            console.log("inside invoice",order);
-        if (!order) return res.status(404).send('Order not found');
+      // Fetch the order with populated fields
+      const order = await Order.findOne({ orderId })
+          .populate({
+              path: 'orderItems.product',
+              select: 'productName variants',
+          })
+          .populate({
+              path: 'userId',
+              select: 'name',
+          })
+          .lean();
 
-        const selectedAddress = order.address;
-        if (!selectedAddress) return res.status(404).send('Address not found');
+      console.log("Inside invoice", order);
+      if (!order) return res.status(404).send('Order not found');
 
-        const doc = new PDFDocument({
-            margin: 50,
-            size: 'A4',
-            bufferPages: true,
-        });
-        
+      // Access the first address in the array (or the specific address you want to display)
+      const selectedAddress = order.address && order.address.length > 0 ? order.address[0] : null;
+      if (!selectedAddress) return res.status(404).send('Address not found');
 
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename=invoice-${orderId}.pdf`);
-        doc.pipe(res);
+      // Initialize PDF document
+      const doc = new PDFDocument({
+          margin: 50,
+          size: 'A4',
+          bufferPages: true,
+      });
 
-        doc.fontSize(24)
-            .text('SHOEFLIX', 50, 50, { align: 'left' })
-            .fontSize(10)
-            .text('www.shoeflix.com', 50, 80, { align: 'left' })
-            .text('support@shoeflix.com', 50, 95, { align: 'left' })
-            .text('+91 98765 43210', 50, 110, { align: 'left' });
+      // Set response headers for PDF download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename=invoice-${orderId}.pdf`);
+      doc.pipe(res);
 
-        doc.fontSize(20)
-            .text('INVOICE', 300, 50, { align: 'right', width: 250 })
-            .fontSize(10)
-            .text(`Invoice No: ${orderId}`, 300, 80, { align: 'right', width: 250 })
-            .text(`Date: ${new Date().toLocaleDateString()}`, 300, 95, { align: 'right', width: 250 })
-            .text(`Order Date: ${new Date(order.createdOn).toLocaleDateString()}`, 300, 110, { align: 'right', width: 250 });
+      // Header section
+      doc.fontSize(24)
+          .text('SHOEFLIX', 50, 50, { align: 'left' })
+          .fontSize(10)
+          .text('www.shoeflix.com', 50, 80, { align: 'left' })
+          .text('support@shoeflix.com', 50, 95, { align: 'left' })
+          .text('+91 98765 43210', 50, 110, { align: 'left' });
 
-        doc.moveTo(50, 140).lineTo(550, 140).stroke();
+      doc.fontSize(20)
+          .text('INVOICE', 300, 50, { align: 'right', width: 250 })
+          .fontSize(10)
+          .text(`Invoice No: ${orderId}`, 300, 80, { align: 'right', width: 250 })
+          .text(`Date: ${new Date().toLocaleDateString()}`, 300, 95, { align: 'right', width: 250 })
+          .text(`Order Date: ${new Date(order.createdOn).toLocaleDateString()}`, 300, 110, { align: 'right', width: 250 });
 
-        doc.fontSize(14)
-            .text('Bill To:', 50, 170)
-            .fontSize(10)
-            .text(selectedAddress.name || order.userId.name || 'Customer', 50, 190)
-            .text(selectedAddress.landMark || '', 50, 205)
-            .text(`${selectedAddress.city}, ${selectedAddress.state} - ${selectedAddress.pincode}`, 50, 220)
-            .text(`Phone: ${selectedAddress.phone || 'N/A'}`, 50, 235)
-            .text(`Alt Phone: ${selectedAddress.altPhone || 'N/A'}`, 50, 250);
+      // Separator line
+      doc.moveTo(50, 140).lineTo(550, 140).stroke();
 
-        const tableTop = 300;
-        const tableHeaders = {
-            item: { x: 50, width: 200 },
-            size: { x: 250, width: 50 },
-            qty: { x: 300, width: 70 },
-            price: { x: 370, width: 90 },
-            amount: { x: 460, width: 90 },
-        };
+      // Bill To section
+      doc.fontSize(14)
+          .text('Bill To:', 50, 170)
+          .fontSize(10)
+          .text(selectedAddress.name || order.userId.name || 'Customer', 50, 190)
+          .text(selectedAddress.landMark || '', 50, 205)
+          .text(
+              `${selectedAddress.city || 'N/A'}, ${selectedAddress.state || 'N/A'} - ${selectedAddress.pincode || 'N/A'}`,
+              50,
+              220
+          )
+          .text(`Phone: ${selectedAddress.phone || 'N/A'}`, 50, 235)
+          .text(`Alt Phone: ${selectedAddress.altPhone || 'N/A'}`, 50, 250);
 
-        doc.rect(50, tableTop - 10, 500, 25).fill('#f6f6f6');
-        doc.fillColor('black')
-            .fontSize(10)
-            .text('Item Description', tableHeaders.item.x, tableTop)
-            .text('Size', tableHeaders.size.x, tableTop, { width: tableHeaders.size.width, align: 'center' })
-            .text('Qty', tableHeaders.qty.x, tableTop, { width: tableHeaders.qty.width, align: 'center' })
-            .text('Unit Price', tableHeaders.price.x, tableTop, { width: tableHeaders.price.width, align: 'right' })
-            .text('Amount', tableHeaders.amount.x, tableTop, { width: tableHeaders.amount.width, align: 'right' });
+      // Table for order items
+      const tableTop = 300;
+      const tableHeaders = {
+          item: { x: 50, width: 200 },
+          size: { x: 250, width: 50 },
+          qty: { x: 300, width: 70 },
+          price: { x: 370, width: 90 },
+          amount: { x: 460, width: 90 },
+      };
 
-        let yPosition = tableTop + 30;
-        let subtotal = 0;
+      // Table header background
+      doc.rect(50, tableTop - 10, 500, 25).fill('#f6f6f6');
+      doc.fillColor('black')
+          .fontSize(10)
+          .text('Item Description', tableHeaders.item.x, tableTop)
+          .text('Size', tableHeaders.size.x, tableTop, { width: tableHeaders.size.width, align: 'center' })
+          .text('Qty', tableHeaders.qty.x, tableTop, { width: tableHeaders.qty.width, align: 'center' })
+          .text('Unit Price', tableHeaders.price.x, tableTop, { width: tableHeaders.price.width, align: 'right' })
+          .text('Amount', tableHeaders.amount.x, tableTop, { width: tableHeaders.amount.width, align: 'right' });
 
-        order.orderItems.forEach((item) => {
-            const price = item.price || 0;
-            const amount = item.variants.quantity * price;
-            subtotal += amount;
+      // Table rows for order items
+      let yPosition = tableTop + 30;
+      let subtotal = 0;
 
-            doc.text(item.product.productName, tableHeaders.item.x, yPosition, { width: tableHeaders.item.width })
-                .text(item.variants.size, tableHeaders.size.x, yPosition, { width: tableHeaders.size.width, align: 'center' })
-                .text(item.variants.quantity.toString(), tableHeaders.qty.x, yPosition, { width: tableHeaders.qty.width, align: 'center' })
-                .text(`₹${price.toFixed(2)}`, tableHeaders.price.x, yPosition, { width: tableHeaders.price.width, align: 'right' })
-                .text(`₹${amount.toFixed(2)}`, tableHeaders.amount.x, yPosition, { width: tableHeaders.amount.width, align: 'right' });
+      order.orderItems.forEach((item) => {
+          const price = item.price || 0;
+          const amount = item.variants.quantity * price;
+          subtotal += amount;
 
-            yPosition += 25;
-        });
+          doc.text(item.product.productName, tableHeaders.item.x, yPosition, { width: tableHeaders.item.width })
+              .text(item.variants.size, tableHeaders.size.x, yPosition, { width: tableHeaders.size.width, align: 'center' })
+              .text(item.variants.quantity.toString(), tableHeaders.qty.x, yPosition, { width: tableHeaders.qty.width, align: 'center' })
+              .text(`₹${price.toFixed(2)}`, tableHeaders.price.x, yPosition, { width: tableHeaders.price.width, align: 'right' })
+              .text(`₹${amount.toFixed(2)}`, tableHeaders.amount.x, yPosition, { width: tableHeaders.amount.width, align: 'right' });
 
-        doc.moveTo(50, yPosition).lineTo(550, yPosition).stroke();
-        yPosition += 20;
+          yPosition += 25;
+      });
 
-        const summaryX = 370;
-        const summaryWidth = 180;
+      // Separator line after table
+      doc.moveTo(50, yPosition).lineTo(550, yPosition).stroke();
+      yPosition += 20;
 
-        doc.text('Subtotal:', summaryX, yPosition, { width: 90, align: 'right' })
-            .text(`₹${subtotal.toFixed(2)}`, summaryX + 90, yPosition, { width: 90, align: 'right' });
+      // Price summary section
+      const summaryX = 370;
+      const summaryWidth = 180;
 
-        if (order.offerDiscount > 0) {
-            yPosition += 20;
-            doc.text('Offer Discount:', summaryX, yPosition, { width: 90, align: 'right' })
-                .text(`-₹${order.offerDiscount.toFixed(2)}`, summaryX + 90, yPosition, { width: 90, align: 'right' });
-        }
+      doc.text('Subtotal:', summaryX, yPosition, { width: 90, align: 'right' })
+          .text(`₹${subtotal.toFixed(2)}`, summaryX + 90, yPosition, { width: 90, align: 'right' });
 
-        if (order.couponDiscount > 0) {
-            yPosition += 20;
-            doc.text('Coupon Discount:', summaryX, yPosition, { width: 90, align: 'right' })
-                .text(`-₹${order.couponDiscount.toFixed(2)}`, summaryX + 90, yPosition, { width: 90, align: 'right' });
-        }
+      if (order.offerDiscount > 0) {
+          yPosition += 20;
+          doc.text('Offer Discount:', summaryX, yPosition, { width: 90, align: 'right' })
+              .text(`-₹${order.offerDiscount.toFixed(2)}`, summaryX + 90, yPosition, { width: 90, align: 'right' });
+      }
 
-        if (order.couponApplied && order.couponCode) {
-            yPosition += 20;
-            doc.text(`Coupon (${order.couponCode}):`, summaryX, yPosition, { width: 90, align: 'right' });
-        }
+      if (order.couponDiscount > 0) {
+          yPosition += 20;
+          doc.text('Coupon Discount:', summaryX, yPosition, { width: 90, align: 'right' })
+              .text(`-₹${order.couponDiscount.toFixed(2)}`, summaryX + 90, yPosition, { width: 90, align: 'right' });
+      }
 
-        yPosition += 25;
-        doc.rect(summaryX - 10, yPosition - 5, summaryWidth, 25).fill('#f6f6f6');
-        doc.fillColor('black')
-            .fontSize(12)
-            .text('Total:', summaryX, yPosition, { width: 90, align: 'right' })
-            .text(`₹${order.finalAmount.toFixed(2)}`, summaryX + 90, yPosition, { width: 90, align: 'right' });
+      if (order.couponApplied && order.couponCode) {
+          yPosition += 20;
+          doc.text(`Coupon (${order.couponCode}):`, summaryX, yPosition, { width: 90, align: 'right' });
+      }
 
-        yPosition += 50;
-        doc.fontSize(10)
-            .text('Payment Information', 50, yPosition)
-            .text(`Method: ${order.paymentMethod}`, 50, yPosition + 15)
-            .text(`Status: ${order.status === 'Delivered' ? 'Paid' : order.paymentDetails?.status || order.status}`, 50, yPosition + 30);
+      yPosition += 25;
+      doc.rect(summaryX - 10, yPosition - 5, summaryWidth, 25).fill('#f6f6f6');
+      doc.fillColor('black')
+          .fontSize(12)
+          .text('Total:', summaryX, yPosition, { width: 90, align: 'right' })
+          .text(`₹${order.finalAmount.toFixed(2)}`, summaryX + 90, yPosition, { width: 90, align: 'right' });
 
-        doc.fontSize(10)
-            .text('Thank you for shopping with SHOEFLIX!', 50, doc.page.height - 100, { align: 'center' })
-            .fontSize(8)
-            .text('Terms & Conditions:', 50, doc.page.height - 80)
-            .text('1. All prices are in INR and include GST where applicable.', 50, doc.page.height - 70)
-            .text('2. This is a computer-generated invoice and requires no signature.', 50, doc.page.height - 60);
+      // Payment information section
+      yPosition += 50;
+      doc.fontSize(10)
+          .text('Payment Information', 50, yPosition)
+          .text(`Method: ${order.paymentMethod}`, 50, yPosition + 15)
+          .text(`Status: ${order.status === 'Delivered' ? 'Paid' : order.paymentDetails?.status || order.status}`, 50, yPosition + 30);
 
-        doc.end();
-    } catch (error) {
-        console.error('Error generating invoice:', error);
-        res.status(500).send('Error generating invoice');
-    }
+      // Footer section
+      doc.fontSize(10)
+          .text('Thank you for shopping with SHOEFLIX!', 50, doc.page.height - 100, { align: 'center' })
+          .fontSize(8)
+          .text('Terms & Conditions:', 50, doc.page.height - 80)
+          .text('1. All prices are in INR and include GST where applicable.', 50, doc.page.height - 70)
+          .text('2. This is a computer-generated invoice and requires no signature.', 50, doc.page.height - 60);
+
+      // Finalize the PDF
+      doc.end();
+  } catch (error) {
+      console.error('Error generating invoice:', error);
+      res.status(500).send('Error generating invoice');
+  }
 };
 
 module.exports = {
