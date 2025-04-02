@@ -150,6 +150,7 @@ router.get('/download-invoice/:orderId', userAuth, checkoutController.downloadIn
 router.post('/request-cancel-order/:orderId', userAuth, checkoutController.requestCancelOrder); // New route
 router.get('/order-failure', userAuth, checkoutController.loadOrderFailurePage);
 router.post('/retry-razorpay-order', userAuth, checkoutController.createRazorpayOrderForRetry);
+router.get('/check-stock/:productId/:size', cartController.checkStock);
 // Coupon
 router.get('/get-active-coupons', userAuth, couponController.getActiveCoupons);
 router.post('/apply-coupon', userAuth, couponController.applyCoupon);

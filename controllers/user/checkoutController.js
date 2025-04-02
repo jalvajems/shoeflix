@@ -949,6 +949,8 @@ const requestCancelOrder = async (req, res) => {
   }
 };
 const downloadInvoice = async (req, res) => {
+  console.log("doownlooaad invoice");
+  
     try {
         const orderId = req.params.orderId;
 
@@ -963,6 +965,7 @@ const downloadInvoice = async (req, res) => {
             })
             .lean();
 
+            console.log("inside invoice",order);
         if (!order) return res.status(404).send('Order not found');
 
         const selectedAddress = order.address;
@@ -973,6 +976,7 @@ const downloadInvoice = async (req, res) => {
             size: 'A4',
             bufferPages: true,
         });
+        
 
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename=invoice-${orderId}.pdf`);
