@@ -310,58 +310,56 @@
                 </div>
 
                 <!-- Wallet History Tab with Pagination -->
-                <div class="tab-pane fade" id="wallet-history" role="tabpanel" aria-labelledby="wallet-history-tab">
-                  <div class="card">
-                    <div class="card-header">
-                      <h5 class="mb-0">Wallet History</h5>
-                    </div>
-                    <div class="card-body">
-                      <% if (walletHistory && walletHistory.length > 0) { %>
-                        <div class="table-responsive">
-                          <table class="table table-bordered">
-                            <thead>
-                              <tr>
-                                <th>Transaction ID</th>
-                                <th>Date</th>
-                                <th>Type</th>
-                                <th>Amount</th>
-                                <th>Status</th>
-                                <th>Description</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <% walletHistory.forEach(transaction => { %>
-                                <tr>
-                                  <td><%= transaction.transactionId %></td>
-                                  <td><%= new Date(transaction.date).toLocaleString() %></td>
-                                  <td><%= transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1) %></td>
-                                  <td>₹<%= transaction.amount.toFixed(2) %></td>
-                                  <td>
-                                    <span class="badge <%= transaction.status === 'Completed' ? 'bg-success' : 'bg-warning' %>">
-                                      <%= transaction.status %>
-                                    </span>
-                                  </td>
-                                  <td><%= transaction.description || 'N/A' %></td>
-                                </tr>
-                              <% }) %>
-                            </tbody>
-                          </table>
-                        </div>
-                        <nav aria-label="Wallet History Pagination">
-                          <ul class="pagination justify-content-center">
-                            <% for(let i = 1; i <= walletTotalPages; i++) { %>
-                              <li class="page-item <%= walletCurrentPage === i ? 'active' : '' %>">
-                                <a class="page-link" href="?tab=wallet-history&page=<%= i %>"><%= i %></a>
-                              </li>
-                            <% } %>
-                          </ul>
-                        </nav>
-                      <% } else { %>
-                        <p>No wallet transactions found.</p>
-                      <% } %>
-                    </div>
-                  </div>
-                </div>
+<div class="tab-pane fade" id="wallet-history" role="tabpanel" aria-labelledby="wallet-history-tab">
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0">Wallet History</h5>
+    </div>
+    <div class="card-body">
+      <% if (walletHistory && walletHistory.length > 0) { %>
+        <div class="table-responsive">
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>Transaction ID</th>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% walletHistory.forEach(transaction => { %>
+                <tr>
+                  <td><%= transaction.transactionId %></td>
+                  <td><%= new Date(transaction.date).toLocaleString() %></td>
+                  <td><%= transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1) %></td>
+                  <td>₹<%= transaction.amount.toFixed(2) %></td>
+                  <td>
+                    <span class="badge <%= transaction.status === 'Completed' ? 'bg-success' : 'bg-warning' %>">
+                      <%= transaction.status %>
+                    </span>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+        <nav aria-label="Wallet History Pagination">
+          <ul class="pagination justify-content-center">
+            <% for(let i = 1; i <= walletTotalPages; i++) { %>
+              <li class="page-item <%= walletCurrentPage === i ? 'active' : '' %>">
+                <a class="page-link" href="?tab=wallet-history&page=<%= i %>"><%= i %></a>
+              </li>
+            <% } %>
+          </ul>
+        </nav>
+      <% } else { %>
+        <p>No wallet transactions found.</p>
+      <% } %>
+    </div>
+  </div>
+</div>
               </div>
             </div>
           </div>

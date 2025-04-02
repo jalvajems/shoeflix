@@ -13,7 +13,7 @@ const { route } = require("../app");
 
 router.get('/pageNotFound', userController.pageNotFound);
 
-router.get('/', userAuth, userController.loadHomepage);
+router.get('/', userController.loadHomepage);
 router.get('/shop', userAuth, userController.loadShopping);
 router.route("/filter")
     .get(userAuth, userController.filterProduct)
@@ -29,10 +29,55 @@ router.post('/verify-otp', userController.verifyOtp);
 router.post('/resend-otp', userController.resendOtp);
 
 router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-router.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/signup' }), (req, res) => {
-  res.redirect('/');
-});
+// router.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/signup' }), (req, res) => {
 
+//   return res.redirect('/');
+// });
+router.get('/auth/google/callback',passport.authenticate('google',{failureRedirect:'/signup'}),
+async (req,res)=>{
+    try {
+
+        if(req.user){
+            if(req.user.isBlocked){
+                return res.redirect('/login?error=Your account has been blocked by the admin')
+            }
+            req.session.user={
+            _id:req.user._id,
+            name:req.user.name
+            }
+        }
+        res.redirect('/')
+        
+    } catch (error) {
+
+        console.error('Google auth callback error:',error);
+         return res.redirect('/login')
+            
+    }
+})
+
+// router.get('/auth/google/callback', passport.authenticate('google', {failureRedirect: '/signup'}),
+// async (req, res) => {
+//     try {
+//         if(req.user) {
+//             if(req.user.isBlocked) {
+//                 return res.redirect('/login?error=Your account has been blocked by the admin')
+//             }
+//             // Set user ID in session (for middleware)
+//             req.session.user = req.user._id;
+            
+//             // Set user info in locals (for current request)
+//             res.locals.user = {
+//                 _id: req.user._id,
+//                 name: req.user.name
+//             };
+//         }
+//         res.redirect('/')
+//     } catch (error) {
+//         console.error('Google auth callback error:', error);
+//         return res.redirect('/login')
+//     }
+// })
 // Login
 router
   .route("/login")
