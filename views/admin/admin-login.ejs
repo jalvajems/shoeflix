@@ -22,7 +22,7 @@
       background-size: cover;
       background-position: center;
       font-family: 'Nunito Sans', sans-serif;
-       color: white;
+      color: white;
     }
     .login-container {
       width: 100%;
@@ -39,35 +39,48 @@
     .text-center{
       color: white;
     }
-    </style>
+    .password-container {
+      position: relative;
+    }
+    .toggle-password {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
   <div class="login-container">
     <h2 class="text-center">Admin Login</h2>
     <% if (message) { %>
       <div class="alert alert-danger text-center"><%= message %></div>
-      <% } %>
-      <form id="adminLoginForm" method="post" action="/admin/login">
-        <div class="form-group">
-          <label for="adminEmail">Email address</label>
-          <input
+    <% } %>
+    <form id="adminLoginForm" method="post" action="/admin/login">
+      <div class="form-group">
+        <label for="adminEmail">Email address</label>
+        <input
           type="email"
           class="form-control"
           id="adminEmail"
           name="email"
           required
-          />
+        />
         <div id="emailError" class="error-message"></div>
       </div>
       <div class="form-group">
         <label for="adminPassword">Password</label>
-        <input
-          type="password"
-          class="form-control"
-          id="adminPassword"
-          name="password"
-          required
-        />
+        <div class="password-container">
+          <input
+            type="password"
+            class="form-control"
+            id="adminPassword"
+            name="password"
+            required
+          />
+          <span class="toggle-password" onclick="togglePassword()">👁️</span>
+        </div>
         <div id="passwordError" class="error-message"></div>
       </div>
 
@@ -87,15 +100,18 @@
       adminLoginForm.addEventListener("submit", function (event) {
         let isValid = true;
         const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+        
+        // Email validation
         if (!emailPattern.test(emailField.value)) {
           emailError.textContent = "Invalid email format";
           isValid = false;
         } else {
           emailError.textContent = "";
         }
+
+        // Simplified password validation (only length check)
         if (passwordField.value.length < 8) {
-          passwordError.textContent =
-            "Password should contain at least 8 characters";
+          passwordError.textContent = "Password must be at least 8 characters";
           isValid = false;
         } else {
           passwordError.textContent = "";
@@ -106,7 +122,20 @@
         }
       });
     });
+
+    // Password visibility toggle function
+    function togglePassword() {
+      const passwordField = document.getElementById("adminPassword");
+      const toggleIcon = document.querySelector(".toggle-password");
+      
+      if (passwordField.type === "password") {
+        passwordField.type = "text";
+        toggleIcon.textContent = "👁️‍🗨️";
+      } else {
+        passwordField.type = "password";
+        toggleIcon.textContent = "👁️";
+      }
+    }
   </script>
 </body>
 </html>
-
