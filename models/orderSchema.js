@@ -89,7 +89,7 @@ const orderSchema = new Schema({
         state: { type: String, required: true },
         pincode: { type: Number, required: true },
         phone: { type: String, required: true },
-        altPhone: { type: String, required: true }
+        altPhone: { type: String, required: false }
     }],
     paymentMethod: {
         type: String,
