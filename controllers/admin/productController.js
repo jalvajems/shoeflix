@@ -99,7 +99,6 @@ const getAllProducts = async (req, res) => {
         const page = req.query.page || 1;
         const limit = 4;
 
-        // Fetch products sorted by createdAt in descending order (newest first)
         const productData = await Product.find({
             $or: [
                 { productName: { $regex: new RegExp(".*" + search + ".*", "i") } }
