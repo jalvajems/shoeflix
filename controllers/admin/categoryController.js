@@ -1,3 +1,5 @@
+const MESSAGES = require('../../constants/messages');
+const STATUS_CODES = require('../../constants/statusCodes');
 const Category = require('../../models/categorySchema');
 
 const categoryInfo = async(req, res) => {
@@ -43,7 +45,7 @@ const addCategory = async(req, res) => {
 
         const existingCategory = await Category.findOne({ name: { $regex: new RegExp("^" + name + "$", "i") }  });
         if (existingCategory) {
-            return res.status(400).json({error: "Category already exists"});
+            return res.status(STATUS_CODES.BAD_REQUEST).json({error: "Category already exists"});
         }
         
         const newCategory = new Category({
@@ -52,10 +54,10 @@ const addCategory = async(req, res) => {
         });
         
         await newCategory.save();
-        return res.status(200).json({message: "Category added successfully"});
+        return res.status(STATUS_CODES.OK).json({message: "Category added successfully"});
     } catch (error) {
         console.error("Error adding category:", error);
-        return res.status(500).json({error: "Internal Server error"});
+        return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({error:MESSAGES.INTERNAL_SERVER_ERROR});
     }
 };
 
@@ -65,10 +67,10 @@ const listCategory = async(req, res) => {
         let categoryId = req.params.id;
         console.log("categoryIdList", categoryId)
         await Category.updateOne({ _id: categoryId }, { $set: { isListed: true } });
-        res.status(200).json({message:"Category listed successfully"})
+        res.status(STATUS_CODES.OK).json({message:"Category listed successfully"})
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: "An error occurred", error });
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message:MESSAGES.INTERNAL_SERVER_ERROR, error });
     }
 };
 
@@ -78,10 +80,10 @@ const unlistCategory = async(req, res) => {
         const categoryId = req.params.id;
         console.log("categoryIdUnlist", categoryId)
         await Category.updateOne({ _id: categoryId }, { $set: { isListed: false } });
-        res.status(200).json({message:"Category unlisted successfully"})
+        res.status(STATUS_CODES.OK).json({message:"Category unlisted successfully"})
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: "An error occurred", error });
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message:MESSAGES.INTERNAL_SERVER_ERROR, error });
     }
 };
 
@@ -112,7 +114,7 @@ const updateCategory = async(req, res) => {
 
         
         if (existingCategory) {
-            return res.status(400).json({ error: "Category name already exists" });
+            return res.status(STATUS_CODES.BAD_REQUEST).json({ error: "Category name already exists" });
         }
         
         await Category.findByIdAndUpdate(categoryId, {
@@ -120,10 +122,10 @@ const updateCategory = async(req, res) => {
             description
         });
         
-        return res.status(200).json({ message: "Category updated successfully" });
+        return res.status(STATUS_CODES.OK).json({ message: "Category updated successfully" });
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ error: "Internal server error" });
+        return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ error: MESSAGES.INTERNAL_SERVER_ERROR });
     }
 };
 

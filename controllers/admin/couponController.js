@@ -1,3 +1,4 @@
+const STATUS_CODES = require('../../constants/statusCodes');
 const Coupon = require('../../models/couponSchema');
 
 const loadCoupon = async (req, res) => {
@@ -22,7 +23,7 @@ const loadCoupon = async (req, res) => {
     res.render('coupon', { coupons, totalPages, currentPage: page });
   } catch (error) {
     console.error('Error in loadCoupon:', error);
-    res.status(500).json({ success: false, message: 'Can’t access coupon page', error: error.message });
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Can’t access coupon page', error: error.message });
   }
 };
 
@@ -88,7 +89,7 @@ const createCoupon = async (req, res) => {
     }
 
     if (errors.length > 0) {
-      return res.status(400).json({ status: false, message: errors.join('. '), errors });
+      return res.status(STATUS_CODES.BAD_REQUEST).json({ status: false, message: errors.join('. '), errors });
     }
 
    
@@ -104,14 +105,14 @@ const createCoupon = async (req, res) => {
     });
 
     await newCoupon.save();
-    res.status(200).json({ 
+    res.status(STATUS_CODES.OK).json({ 
       status: true, 
       message: 'Coupon created successfully', 
       coupon: newCoupon 
     });
   } catch (error) {
     console.error('Error in createCoupon:', error);
-    res.status(500).json({ 
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ 
       status: false, 
       message: 'Error creating coupon', 
       error: error.message 

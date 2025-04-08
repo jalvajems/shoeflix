@@ -15,7 +15,7 @@ const productDetails = async (req, res) => {
             return res.redirect("/pageNotFound");
         }
 
-        const product = await Product.findById(productId).populate("category");
+        let product = await Product.findById(productId).populate("category");
         if (!product) {
             return res.redirect("/pageNotFound");
         }
@@ -82,7 +82,10 @@ const productDetails = async (req, res) => {
                 bestOfferName = offer.name;
             }
         }
-        
+         let applied =product.regularPrice-bestDiscount
+        console.log("offer d details",bestOffer,bestDiscount);
+        product=await Product.findByIdAndUpdate({_id:productId},{$set:{salePrice:applied}})
+        console.log("product details===================",product);
         const relatedProduct = await Product.find({
             category: findCategory,
             _id: { $ne: productId }

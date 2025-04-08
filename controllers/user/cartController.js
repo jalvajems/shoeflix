@@ -73,6 +73,7 @@ const loadCart = async (req, res) => {
         const sortedItems = filteredItems.sort((a, b) => b.addedOn - a.addedOn);
 
         const totalPrice = sortedItems.reduce((acc, item) => acc + item.totalPrice, 0);
+console.log("sorted items",sortedItems);
 
         return res.render("cart", {
             user: await User.findById(userId),
