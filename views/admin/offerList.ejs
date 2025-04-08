@@ -22,33 +22,72 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <% offers.forEach(offer => { %>
+                        <% if (offers.length > 0) { %>
+                            <% offers.forEach(offer => { %>
+                                <tr>
+                                    <td><%= offer.name %></td>
+                                    <td><%= offer.type %></td>
+                                    <td>
+                                        <%= offer.discountType === "percentage" ? offer.discountValue + "%" : "₹" + offer.discountValue %>
+                                    </td>
+                                    <td>
+                                        <%= offer.type === "product" ? offer.productId?.productName : offer.categoryId?.name %>
+                                    </td>
+                                    <td><%= offer.startDate.toISOString().split("T")[0] %></td>
+                                    <td><%= offer.endDate.toISOString().split("T")[0] %></td>
+                                    <td><%= offer.status ? "Active" : "Inactive" %></td>
+                                    <td>
+                                        <a href="#" class="btn btn-sm btn-warning edit-offer" data-id="<%= offer._id %>">Edit</a>
+                                        <a href="/admin/offer-remove/<%= offer._id %>" class="btn btn-sm btn-danger delete-offer" data-id="<%= offer._id %>">Delete</a>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        <% } else { %>
                             <tr>
-                                <td><%= offer.name %></td>
-                                <td><%= offer.type %></td>
-                                <td>
-                                    <%= offer.discountType === "percentage" ? offer.discountValue + "%" : "₹" + offer.discountValue %>
-                                </td>
-                                <td>
-                                    <%= offer.type === "product" ? offer.productId?.productName : offer.categoryId?.name %>
-                                </td>
-                                <td><%= offer.startDate.toISOString().split("T")[0] %></td>
-                                <td><%= offer.endDate.toISOString().split("T")[0] %></td>
-                                <td><%= offer.status ? "Active" : "Inactive" %></td>
-                                <td>
-                                    <a href="#" class="btn btn-sm btn-warning edit-offer" data-id="<%= offer._id %>">Edit</a>
-                                    <a href="/admin/offer-remove/<%= offer._id %>" class="btn btn-sm btn-danger delete-offer" data-id="<%= offer._id %>">Delete</a>
-                                </td>
+                                <td colspan="8" class="text-center">No offers found</td>
                             </tr>
-                        <% }); %>
+                        <% } %>
                     </tbody>
                 </table>
+
+                <!-- Pagination Controls (Always Shown) -->
+                <nav aria-label="Page navigation" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <!-- Previous Button -->
+                        <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                            <a class="page-link" href="?page=<%= currentPage - 1 %>&limit=<%= limit %>" aria-label="Previous">
+                                <span aria-hidden="true">«</span>
+                            </a>
+                        </li>
+
+                        <!-- Page Numbers -->
+                        <% if (totalPages > 0) { %>
+                            <% for (let i = 1; i <= totalPages; i++) { %>
+                                <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                                    <a class="page-link" href="?page=<%= i %>&limit=<%= limit %>"><%= i %></a>
+                                </li>
+                            <% } %>
+                        <% } else { %>
+                            <li class="page-item active">
+                                <a class="page-link" href="#">1</a>
+                            </li>
+                        <% } %>
+
+                        <!-- Next Button -->
+                        <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+                            <a class="page-link" href="?page=<%= currentPage + 1 %>&limit=<%= limit %>" aria-label="Next">
+                                <span aria-hidden="true">»</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+                
             </div>
         </div>
     </section>
 </main>
 
-<!-- Edit Offer Modal -->
+<!-- Edit Offer Modal (Unchanged) -->
 <div class="modal fade" id="editOfferModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -112,6 +151,17 @@
         margin-top: 5px;
         display: block;
     }
+    .pagination .page-link {
+        color: #007bff;
+    }
+    .pagination .page-item.active .page-link {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+    .pagination .page-item.disabled .page-link {
+        cursor: not-allowed;
+        opacity: 0.65;
+    }
 </style>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -119,7 +169,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     $(document).ready(function () {
-        // Edit Offer Click Handler
+        // Edit Offer Click Handler (Unchanged)
         $(".edit-offer").click(function (e) {
             e.preventDefault();
             const offerId = $(this).data("id");
@@ -142,7 +192,7 @@
             });
         });
 
-        // Form Validation and Submission
+        // Form Validation and Submission (Unchanged)
         $("#editOfferForm").submit(function (e) {
             e.preventDefault();
 
@@ -217,7 +267,7 @@
             });
         });
 
-        // Delete Offer Handler (unchanged)
+        // Delete Offer Handler (Unchanged)
         $(".delete-offer").click(function (e) {
             e.preventDefault();
             const offerId = $(this).data("id");

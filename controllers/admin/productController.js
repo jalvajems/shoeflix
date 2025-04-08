@@ -22,48 +22,56 @@ const addProducts = async (req, res) => {
     try {
         console.log("going to add product");
         
-        const products = req.body
+        const products = req.body;
         console.log(products);
         
         const productExists = await Product.findOne({
             productName: products.productName,
-        })
+        });
         
-        if(!productExists){
+        if (!productExists) {
             console.log("if no product exists");
             
-            const images = []
+            const images = [];
 
-            if(req.files && req.files.length > 0){
-                for(let i = 0; i < req.files.length; i++){
-                    const orginalImagePath = req.files[i].path
+            if (req.files && req.files.length > 0) {
+                for (let i = 0; i < req.files.length; i++) {
+                    const orginalImagePath = req.files[i].path;
                     const resizedFilename = `resized_${Date.now()}_${req.files[i].filename}`;
-                    const resizedImagePath = path.join('public', 'uploads', 'product-images', resizedFilename)
-                    await sharp(orginalImagePath).resize({width: 440, height: 440}).toFile(resizedImagePath)
-                    images.push(req.files[i].filename)
+                    const resizedImagePath = path.join('public', 'uploads', 'product-images', resizedFilename);
+                    await sharp(orginalImagePath).resize({ width: 440, height: 440 }).toFile(resizedImagePath);
+                    images.push(req.files[i].filename);
                 }
             }
             
-            const categoryId = await Category.findOne({name: products.category})
-            if(!categoryId){
-                return res.status(400).json("Invalid category name")
+            if (!products.category || products.category.trim() === "") {
+                return res.status(400).json({ message: "Please select a valid category" });
+            }
+            
+            const categoryId = await Category.findOne({ name: products.category });
+            if (!categoryId) {
+                return res.status(400).json({ message: "Invalid category name" });
             }
 
-            const sizes = Array.isArray(products.size) ? products.size : [products.size]
-            const quantities = Array.isArray(products.quantity) ? products.quantity : [products.quantity]
+            const sizes = Array.isArray(products.size) ? products.size : [products.size];
+            const quantities = Array.isArray(products.quantity) ? products.quantity : [products.quantity];
             
-            const variants = []
-            let totalStock = 0
+            const variants = [];
+            let totalStock = 0;
             
-            for(let i = 0; i < sizes.length; i++) {
-                const qty = parseInt(quantities[i] || 0)
-                if(sizes[i] && qty > 0) {
+            for (let i = 0; i < sizes.length; i++) {
+                const qty = parseInt(quantities[i] || 0);
+                if (sizes[i] && sizes[i] !== "" && qty > 0) {
                     variants.push({
                         size: sizes[i],
                         quantity: qty
-                    })
-                    totalStock += qty
+                    });
+                    totalStock += qty;
                 }
+            }
+
+            if (variants.length === 0) {
+                return res.status(400).json({ message: "Please add at least one valid variant with quantity" });
             }
 
             const newProduct = new Product({
@@ -76,20 +84,20 @@ const addProducts = async (req, res) => {
                 status: totalStock > 0 ? 'Available' : 'Out of stock',
                 variants: variants,
                 totalStock: totalStock
-            })
+            });
             
             console.log("this newproduct", newProduct);
             
-            await newProduct.save()
-            return res.redirect("/admin/addProducts")
+            await newProduct.save();
+            return res.status(200).json({ message: "Product added successfully" });
         } else {
-            return res.status(400).json("Product already exists, please try with another name")
+            return res.status(400).json({ message: "Product already exists, please try with another name" });
         }
     } catch (error) {
         console.error("Error saving products ", error);
-        return res.redirect("/admin/pageerror")
+        return res.status(500).json({ message: "An error occurred while adding the product" });
     }
-}
+};
 const getAllProducts = async (req, res) => {
     console.log('getallproduct listing');
     try {

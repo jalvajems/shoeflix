@@ -82,7 +82,7 @@ const productDetails = async (req, res) => {
                 bestOfferName = offer.name;
             }
         }
-
+        
         const relatedProduct = await Product.find({
             category: findCategory,
             _id: { $ne: productId }

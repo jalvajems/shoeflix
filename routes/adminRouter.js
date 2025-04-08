@@ -78,7 +78,7 @@ router.post('/offer', adminAuth, offerController.addOffer);
 router.get('/offer/:offerId', adminAuth, offerController.getOffer);
 router.put('/offer-update/:offerId', adminAuth, offerController.updateOffer);
 router.get('/offer-remove/:offerId', adminAuth, offerController.removeOffer);
-
+router.get('/category-products/:categoryId',adminAuth, offerController.getCategoryProducts);
 // Wallet Management 
 router.get("/wallet-management", adminAuth, walletController.loadWalletManagement);
 router.get("/transaction-details/:transactionId", adminAuth, walletController.loadTransactionDetails);

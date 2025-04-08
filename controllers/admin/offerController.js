@@ -79,10 +79,27 @@ const loadOffer = async (req, res) => {
 
 const offerList = async (req, res) => {
     try {
+        const page = parseInt(req.query.page) || 1; 
+        const limit = parseInt(req.query.limit) || 5; 
+        const skip = (page - 1) * limit;
+
+        const totalOffers = await Offer.countDocuments();
+
         const offers = await Offer.find()
             .populate("productId", "productName")
-            .populate("categoryId", "name");
-        res.render("offerList", { offers });
+            .populate("categoryId", "name")
+            .skip(skip)
+            .limit(limit);
+
+        const totalPages = Math.ceil(totalOffers / limit);
+
+        res.render("offerList", {
+            offers,
+            currentPage: page,
+            totalPages,
+            limit,
+            totalOffers
+        });
     } catch (error) {
         console.error("Error fetching offers:", error);
         res.status(500).render("error", { message: "Error fetching offers" });
@@ -224,6 +241,19 @@ const removeOffer = async (req, res) => {
         res.status(500).render("error", { message: "Error removing offer" });
     }
 };
+const getCategoryProducts = async (req, res) => {
+    try {
+        const categoryId = req.params.categoryId;
+        const products = await Product.find({ category: categoryId }, 'regularPrice');
+        if (!products || products.length === 0) {
+            return res.status(404).json({ success: false, message: "No products found in this category" });
+        }
+        res.status(200).json({ success: true, products });
+    } catch (error) {
+        console.error("Error fetching category products:", error);
+        res.status(500).json({ success: false, message: "Error fetching category products" });
+    }
+};
 
 module.exports = {
     loadOffer,
@@ -231,5 +261,6 @@ module.exports = {
     getOffer, 
     addOffer,
     updateOffer,
-    removeOffer
+    removeOffer,
+    getCategoryProducts
 };

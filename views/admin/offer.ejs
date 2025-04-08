@@ -27,7 +27,7 @@
                         <select class="form-control" id="productId" name="productId">
                             <option value="">Select Product</option>
                             <% products.forEach(product => { %>
-                                <option value="<%= product._id %>"><%= product.productName %></option>
+                                <option value="<%= product._id %>" data-price="<%= product.regularPrice %>"><%= product.productName %></option>
                             <% }); %>
                         </select>
                         <span class="error-message" id="productIdError"></span>
@@ -111,8 +111,37 @@
         }
     });
 
+    // Store the selected product's price or fetch category prices
+    let selectedPrice = null;
+
+    document.getElementById("productId").addEventListener("change", function () {
+        const selectedOption = this.options[this.selectedIndex];
+        selectedPrice = selectedOption ? parseFloat(selectedOption.getAttribute("data-price")) : null;
+    });
+
+    document.getElementById("categoryId").addEventListener("change", async function () {
+        const categoryId = this.value;
+        if (categoryId) {
+            try {
+                const response = await fetch(`/admin/category-products/${categoryId}`);
+                const data = await response.json();
+                if (data.success && data.products.length > 0) {
+                    // Find the minimum regular price among products in the category
+                    selectedPrice = Math.min(...data.products.map(p => p.regularPrice));
+                } else {
+                    selectedPrice = null; // No products in category
+                }
+            } catch (error) {
+                console.error("Error fetching category products:", error);
+                selectedPrice = null;
+            }
+        } else {
+            selectedPrice = null;
+        }
+    });
+
     // Form Submission with Validation
-    document.getElementById("offerForm").addEventListener("submit", function (e) {
+    document.getElementById("offerForm").addEventListener("submit", async function (e) {
         e.preventDefault();
 
         // Clear previous error messages
@@ -153,6 +182,12 @@
         } else if (discountType === "percentage" && discountValue > 100) {
             document.getElementById("discountValueError").textContent = "Percentage discount cannot exceed 100%.";
             isValid = false;
+        } else if (discountType === "amount" && selectedPrice !== null && discountValue > selectedPrice) {
+            document.getElementById("discountValueError").textContent = `Discount Value cannot exceed the ${type === "product" ? "product" : "minimum category product"} price ($${selectedPrice}).`;
+            isValid = false;
+        } else if (discountType === "amount" && selectedPrice === null && type === "category") {
+            document.getElementById("discountValueError").textContent = "No products found in the selected category to validate the discount.";
+            isValid = false;
         }
 
         if (!startDate) {
@@ -176,7 +211,7 @@
         // If validation fails, stop submission
         if (!isValid) return;
 
-        // If validation passes, proceed with confirmation
+        // If validation passes, proceed with submission
         const formData = {
             name,
             type,

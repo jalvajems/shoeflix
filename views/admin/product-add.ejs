@@ -1,6 +1,7 @@
 <%- include("../../views/partials/admin/header") %>
 <head>
    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.css">
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 <style>
    .error-message{
@@ -74,7 +75,7 @@
                            <div class="mb-4">
                                <label for="product_name" class="form-label">Product Name</label>
                                <input type="text" placeholder="Type here" name="productName"
-                                   class="form-control border" id="product_name" value="jordan">
+                                   class="form-control border" id="product_name" >
                                <div id="productName-error" class="error-message"></div>
                            </div>
                            
@@ -89,72 +90,75 @@
                                    <div class="mb-4">
                                        <label class="form-label">Regular price</label>
                                        <input placeholder="$" name="regularPrice" type="text"
-                                           class="form-control border" value="6000">
+                                           class="form-control border" >
                                        <div id="regularPrice-error" class="error-message"></div>
                                    </div>
                                </div>
                                <div class="col-lg-6">
                                    <div class="mb-4">
                                        <label class="form-label">Sale price</label>
-                                       <input placeholder="$" name="salePrice" type="text" class="form-control border" id="sale_price" value="5999">
+                                       <input placeholder="$" name="salePrice" type="text" class="form-control border" id="sale_price" >
                                        <div id="salePrice-error" class="error-message"></div>
                                    </div>
                                </div>
                            </div>
 
-                           <!-- Variants Section -->
-                           <div class="card mb-4">
-                               <div class="card-header">
-                                   <h4>Product Variants</h4>
-                               </div>
-                               <div class="card-body">
-                                   <div id="variants-container">
-                                       <!-- Variants will be added here -->
-                                       <div class="variant-container" id="variant-0">
-                                           <div class="variant-row">
-                                               <div class="col-md-6">
-                                                   <label class="form-label">Size</label>
-                                                   <select name="size" class="form-select border">
-                                                       <option value="IND-5">IND-5</option>
-                                                       <option value="IND-6">IND-6</option>
-                                                       <option value="IND-7">IND-7</option>
-                                                       <option value="IND-8">IND-8</option>
-                                                   </select>
-                                               </div>
-                                               <div class="col-md-4">
-                                                   <label class="form-label">Quantity</label>
-                                                   <input type="number" name="quantity" class="form-control border" min="0" value="0">
-                                               </div>
-                                               <div class="col-md-2 d-flex align-items-end">
-                                                   <button type="button" class="btn-remove-variant" onclick="removeVariant(0)" style="visibility: hidden;">×</button>
-                                               </div>
-                                           </div>
-                                       </div>
-                                   </div>
-                                   <button type="button" class="btn btn-sm btn-outline-primary btn-add-variant" onclick="addVariant()">
-                                       Add Variant
-                                   </button>
-                                   <div id="variants-error" class="error-message"></div>
-                               </div>
-                           </div>
+                        <!-- Category Dropdown -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row gx-2">
+            <div class="col-sm-6 mb-3">
+                <label class="form-label">Category</label>
+                <select class="form-select border" style="width: 150px;" name="category">
+                    <option value="" selected disabled>Choose Category</option>
+                    <% for(let i=0; i<cat.length; i++) { %>
+                        <option value="<%= cat[i].name %>">
+                            <%= cat[i].name %>
+                        </option>
+                    <% } %>
+                </select>
+                <div id="category-error" class="error-message"></div>
+            </div>
+        </div>
+    </div>
+</div>
 
-                           <div class="card mb-4">
-                               <div class="card-body">
-                                   <div class="row gx-2">
-                                       <div class="col-sm-6 mb-3">
-                                           <label class="form-label">Category</label>
-                                           <select class="form-select border" style="width: 150px;" name="category">
-                                               <%for(let i=0;i<cat.length;i++){%>
-                                                   <option value="<%=cat[i].name%>">
-                                                       <%=cat[i].name%>
-                                                   </option>
-                                               <%}%>
-                                           </select>
-                                           <div id="category-error" class="error-message"></div>
-                                       </div>
-                                   </div>
-                               </div>
-                           </div>
+<!-- Variants Section -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h4>Product Variants</h4>
+    </div>
+    <div class="card-body">
+        <div id="variants-container">
+            <!-- Initial Variant -->
+            <div class="variant-container" id="variant-0">
+                <div class="variant-row">
+                    <div class="col-md-6">
+                        <label class="form-label">Size</label>
+                        <select name="size" class="form-select border">
+                            <option value="" selected disabled>Choose Size</option>
+                            <option value="IND-5">IND-5</option>
+                            <option value="IND-6">IND-6</option>
+                            <option value="IND-7">IND-7</option>
+                            <option value="IND-8">IND-8</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Quantity</label>
+                        <input type="number" name="quantity" class="form-control border" min="0" value="0">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button" class="btn-remove-variant" onclick="removeVariant(0)" style="visibility: hidden;">×</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-primary btn-add-variant" onclick="addVariant()">
+            Add Variant
+        </button>
+        <div id="variants-error" class="error-message"></div>
+    </div>
+</div>
                            <div class="card mb-2">
                                <div class="card-header">
                                    <h4>Choose images</h4>
@@ -231,7 +235,7 @@
 <script src="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.js"></script>
 <!-- Cropper.js JavaScript -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 <script>
 // Variables for variant management
 let variantCount = 1;
@@ -247,7 +251,8 @@ function addVariant() {
         <div class="variant-row">
             <div class="col-md-6">
                 <label class="form-label">Size</label>
-                <select name="size" class="form-select border">
+               <select name="size" class="form-select border">
+                    <option value="" selected disabled>Choose Size</option>
                     <option value="IND-5">IND-5</option>
                     <option value="IND-6">IND-6</option>
                     <option value="IND-7">IND-7</option>
@@ -288,9 +293,47 @@ function removeVariant(index) {
 }
 
 // Form submission after validation
-function validateAndSubmit() {
-    if(validateForm()) {
-        document.getElementById('productForm').submit();
+async function validateAndSubmit() {
+    if (validateForm()) {
+        const form = document.getElementById('productForm');
+        const formData = new FormData(form);
+
+        try {
+            const response = await fetch('/admin/addProducts', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json(); // Expect JSON response from server
+
+            if (response.ok) {
+                // Success message
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: result.message || 'Product added successfully!',
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    window.location.href = '/admin/addProducts'; // Redirect after success
+                });
+            } else {
+                // Error message
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: result.message || 'Failed to add product.',
+                    confirmButtonText: 'OK'
+                });
+            }
+        } catch (error) {
+            console.error('Error submitting form:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: 'An unexpected error occurred. Please try again.',
+                confirmButtonText: 'OK'
+            });
+        }
     }
 }
 
@@ -410,6 +453,7 @@ function validateForm() {
     const description = document.getElementById('descriptionid').value;
     const price = document.getElementsByName('regularPrice')[0].value;
     const saleprice = document.getElementsByName('salePrice')[0].value;
+    const category = document.getElementsByName('category')[0].value;
     const images = document.getElementById('input1');
     
     // Get all variants
@@ -453,6 +497,12 @@ function validateForm() {
         }
     }
     
+    // Category validation
+    if (!category || category.trim() === "") {
+        displayErrorMessage('category-error', 'Please select a category.');
+        isValid = false;
+    }
+    
     // Variants validation
     let totalQuantity = 0;
     let hasDuplicateSize = false;
@@ -462,12 +512,17 @@ function validateForm() {
         const size = sizeElements[i].value;
         const quantity = parseInt(quantityElements[i].value) || 0;
         
+        if (size === "") {
+            displayErrorMessage('variants-error', 'Please select a size for all variants.');
+            isValid = false;
+        }
+        
         totalQuantity += quantity;
         
-        if (sizeSet.has(size)) {
+        if (size !== "" && sizeSet.has(size)) {
             hasDuplicateSize = true;
         }
-        sizeSet.add(size);
+        if (size !== "") sizeSet.add(size);
     }
     
     if (totalQuantity === 0) {
@@ -489,7 +544,6 @@ function validateForm() {
     console.log("Form is valid:", isValid);
     return isValid;
 }
-
 // Display error message
 function displayErrorMessage(elementId, message) {
     console.log("Displaying error for:", elementId, message);
