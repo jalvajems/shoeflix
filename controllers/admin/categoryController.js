@@ -1,4 +1,5 @@
-const Category = require('../../models/categorySchema.js');//iporting catschema
+const Category = require('../../models/categorySchema');
+
 const categoryInfo = async(req, res) => {
     try {
         console.log("reaching category info")
@@ -11,7 +12,6 @@ const categoryInfo = async(req, res) => {
             query.name = { $regex: req.query.search, $options: 'i' };
         }
 
-        // You could add a sort parameter from the frontend
         const sortOption = req.query.sort === 'oldest' ? 1 : -1;
 
         const categoryData = await Category.find(query)
@@ -126,10 +126,6 @@ const updateCategory = async(req, res) => {
         return res.status(500).json({ error: "Internal server error" });
     }
 };
-
-
-
-
 
 module.exports = {
     categoryInfo,
