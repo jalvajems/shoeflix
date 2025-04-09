@@ -28,7 +28,7 @@ const loadCheckoutPage = async (req, res) => {
       const addresses = await Address.findOne({ userId });
       const cart = await Cart.findOne({ userId }).populate('items.productId');
       if (!cart || cart.items.length === 0) return res.redirect('/cart');
-  
+
       const GST_RATE = 0.18;
       let totalPrice = 0;
       let totalGST = 0;

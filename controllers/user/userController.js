@@ -596,3 +596,4 @@ module.exports = {
     filterProduct,
     filterByPrice
 }
+
