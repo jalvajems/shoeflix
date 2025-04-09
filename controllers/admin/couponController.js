@@ -20,13 +20,21 @@ const loadCoupon = async (req, res) => {
     const count = await Coupon.countDocuments();
     const totalPages = Math.ceil(count / limit);
 
-    res.render('coupon', { coupons, totalPages, currentPage: page });
+    res.render('coupon', { 
+      coupons, 
+      totalPages, 
+      currentPage: page,
+      limit
+    });
   } catch (error) {
     console.error('Error in loadCoupon:', error);
-    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Can’t access coupon page', error: error.message });
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ 
+      success: false, 
+      message: 'Can’t access coupon page', 
+      error: error.message 
+    });
   }
 };
-
 const createCoupon = async (req, res) => {
   try {
     const { name, offerPrice, discountPercentage, minimumPrice, expireOn, maxUses } = req.body;
