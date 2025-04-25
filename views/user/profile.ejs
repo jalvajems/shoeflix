@@ -286,7 +286,7 @@
                   </div>
                 </div>
 
-                <!-- Orders Tab -->
+                <!-- Orders Tab
                 <div class="tab-pane fade" id="orders" role="tabpanel" aria-labelledby="orders-tab">
                   <div class="card">
                     <div class="card-header"><h5 class="mb-0">Your Orders</h5></div>
@@ -294,8 +294,89 @@
                       <button type="button" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#orderModal">View Orders</button>
                     </div>
                   </div>
+                </div> -->
+<!-- Orders Tab -->
+<div class="tab-pane fade" id="orders" role="tabpanel" aria-labelledby="orders-tab">
+  <div class="card">
+    <div class="card-header"><h5 class="mb-0">Your Orders</h5></div>
+    <div class="card-body">
+      <% if (orders && orders.length > 0) { %>
+        <div class="order-list">
+          <% orders.forEach(order => { %>
+            <div class="order-card">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <strong>Order ID: <%= order.orderId %></strong><br>
+                  <span>Items: <%= order.orderItems.length %></span><br>
+                  <span>Total: ₹<%= order.finalAmount.toFixed(2) %></span><br>
+                  <span class="badge <%= order.status === 'Delivered' ? 'bg-success' : order.status === 'Cancelled' ? 'bg-danger' : order.status === 'Cancellation Requested' ? 'bg-warning' : order.status === 'Pending' && order.paymentDetails?.status === 'Failed' ? 'bg-danger' : 'bg-warning' %>">
+                    <%= order.status === 'Pending' && order.paymentDetails?.status === 'Failed' ? 'Payment Failed' : order.status %>
+                  </span>
+                  <span>Date: <%= new Date(order.createdOn).toLocaleDateString() %></span>
                 </div>
-
+                <button class="btn btn-primary btn-sm view-details" data-order-id="<%= order._id %>">View Details</button>
+              </div>
+              <div class="order-details" id="details-<%= order._id %>">
+                <h6>Order Details</h6>
+                <p><strong>Shipping Address:</strong></p>
+                <address>
+                  <% if (order.address && order.address.length > 0) { %>
+                    <%= order.address[0].name %> <br>
+                    <%= order.address[0].city %> <br>
+                    <%= order.address[0].landMark %> <br>
+                    <%= order.address[0].state %> - <%= order.address[0].pincode %> <br>
+                    Phone: <%= order.address[0].phone %> / <%= order.address[0].altPhone %>
+                  <% } else { %>
+                    No address available
+                  <% } %>
+                </address>
+                <ul class="list-unstyled">
+                  <% order.orderItems.forEach(item => { %>
+                    <li class="mb-2 item-row" data-item-id="<%= item._id %>">
+                      <img src="/uploads/product-images/<%= item.productImage %>" alt="<%= item.name %>">
+                      <%= item.name %> (Size: <%= item.variants.size %>, Qty: <%= item.variants.quantity %>) - ₹<%= (item.price * item.variants.quantity).toFixed(2) %>
+                      <% if ((order.status === 'Pending' && order.paymentDetails?.status !== 'Failed') || order.status === 'Processing') { %>
+                        <button class="btn btn-cancel btn-sm cancel-product" data-order-id="<%= order._id %>" data-item-id="<%= item._id %>">Cancel Product</button>
+                      <% } %>
+                      <% if (order.status === 'Delivered' && new Date(order.createdOn).getTime() + 30*24*60*60*1000 > Date.now() && item.cancelStatus !== 'Cancelled') { %>
+                        <button class="btn btn-return btn-sm return-product" data-order-id="<%= order._id %>" data-item-id="<%= item._id %>" data-bs-toggle="modal" data-bs-target="#returnModal">Return</button>
+                      <% } %>
+                      <% if (item.cancelStatus === 'Cancelled') { %>
+                        <span class="cancelled-item">[Cancelled]</span>
+                      <% } %>
+                    </li>
+                  <% }) %>
+                </ul>
+                <p><strong>Final Amount: ₹<%= order.finalAmount.toFixed(2) %></strong></p>
+                <a href="/download-invoice/<%= order.orderId %>" class="btn btn-success btn-sm">Download Invoice</a>
+                <% if ((order.status === 'Pending' && order.paymentDetails?.status !== 'Failed') || order.status === 'Processing') { %>
+                  <button class="btn btn-danger btn-sm request-cancel-order" data-order-id="<%= order._id %>" data-bs-toggle="modal" data-bs-target="#cancelRequestModal">Request Cancellation</button>
+                <% } %>
+                <% if (order.status === 'Pending' && order.paymentDetails?.status === 'Failed') { %>
+                  <button class="btn btn-retry-payment btn-sm retry-payment" 
+                  data-order-id="<%= order.orderId %>" 
+                  data-address-id="<%= order.address[0]?._id || '' %>" 
+                  data-coupon-code="<%= order.couponCode || '' %>">Retry Payment</button>
+                <% } %>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+        <nav aria-label="Page navigation">
+          <ul class="pagination justify-content-center">
+            <% for(let i = 1; i <= totalPages; i++) { %>
+              <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                <a class="page-link" href="?tab=orders&page=<%= i %>"><%= i %></a>
+              </li>
+            <% } %>
+          </ul>
+        </nav>
+      <% } else { %>
+        <p>No orders found.</p>
+      <% } %>
+    </div>
+  </div>
+</div>
                 <!-- Wallet Tab -->
                 <div class="tab-pane fade" id="track-orders" role="tabpanel" aria-labelledby="track-orders-tab">
                   <div class="card">
@@ -369,95 +450,7 @@
   </section>
 
   <!-- Order Modal (Unchanged) -->
-  <div class="modal fade" id="orderModal" tabindex="-1" aria-labelledby="orderModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="orderModalLabel">Your Orders</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <% if (orders && orders.length > 0) { %>
-            <div class="order-list">
-              <% orders.forEach(order => { %>
-                <div class="order-card">
-                  <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                      <strong>Order ID: <%= order.orderId %></strong><br>
-                      <span>Items: <%= order.orderItems.length %></span><br>
-                      <span>Total: ₹<%= order.finalAmount.toFixed(2) %></span><br>
-                      <span class="badge <%= order.status === 'Delivered' ? 'bg-success' : order.status === 'Cancelled' ? 'bg-danger' : order.status === 'Cancellation Requested' ? 'bg-warning' : order.status === 'Pending' && order.paymentDetails?.status === 'Failed' ? 'bg-danger' : 'bg-warning' %>">
-                        <%= order.status === 'Pending' && order.paymentDetails?.status === 'Failed' ? 'Payment Failed' : order.status %>
-                      </span>
-                      <span>Date: <%= new Date(order.createdOn).toLocaleDateString() %></span>
-                    </div>
-                    <button class="btn btn-primary btn-sm view-details" data-order-id="<%= order._id %>">View Details</button>
-                  </div>
-                  <div class="order-details" id="details-<%= order._id %>">
-                    <h6>Order Details</h6>
-                    <p><strong>Shipping Address:</strong></p>
-                    <address>
-                      <% if (order.address && order.address.length > 0) { %>
-                        <%= order.address[0].name %> <br>
-                        <%= order.address[0].city %> <br>
-                        <%= order.address[0].landMark %> <br>
-                        <%= order.address[0].state %> - <%= order.address[0].pincode %> <br>
-                        Phone: <%= order.address[0].phone %> / <%= order.address[0].altPhone %>
-                      <% } else { %>
-                        No address available
-                      <% } %>
-                    </address>
-                    <ul class="list-unstyled">
-                      <% order.orderItems.forEach(item => { %>
-                        <li class="mb-2 item-row" data-item-id="<%= item._id %>">
-                          <img src="/uploads/product-images/<%= item.productImage %>" alt="<%= item.name %>">
-                          <%= item.name %> (Size: <%= item.variants.size %>, Qty: <%= item.variants.quantity %>) - ₹<%= (item.price * item.variants.quantity).toFixed(2) %>
-                          <% if ((order.status === 'Pending' && order.paymentDetails?.status !== 'Failed') || order.status === 'Processing') { %>
-                            <button class="btn btn-cancel btn-sm cancel-product" data-order-id="<%= order._id %>" data-item-id="<%= item._id %>">Cancel Product</button>
-                          <% } %>
-                          <% if (order.status === 'Delivered' && new Date(order.createdOn).getTime() + 30*24*60*60*1000 > Date.now() && item.cancelStatus !== 'Cancelled') { %>
-                            <button class="btn btn-return btn-sm return-product" data-order-id="<%= order._id %>" data-item-id="<%= item._id %>" data-bs-toggle="modal" data-bs-target="#returnModal">Return</button>
-                          <% } %>
-                          <% if (item.cancelStatus === 'Cancelled') { %>
-                            <span class="cancelled-item">[Cancelled]</span>
-                          <% } %>
-                        </li>
-                      <% }) %>
-                    </ul>
-                    <p><strong>Final Amount: ₹<%= order.finalAmount.toFixed(2) %></strong></p>
-                    <a href="/download-invoice/<%= order.orderId %>" class="btn btn-success btn-sm">Download Invoice</a>
-                    <% if ((order.status === 'Pending' && order.paymentDetails?.status !== 'Failed') || order.status === 'Processing') { %>
-                      <button class="btn btn-danger btn-sm request-cancel-order" data-order-id="<%= order._id %>" data-bs-toggle="modal" data-bs-target="#cancelRequestModal">Request Cancellation</button>
-                    <% } %>
-                    <% if (order.status === 'Pending' && order.paymentDetails?.status === 'Failed') { %>
-                      <button class="btn btn-retry-payment btn-sm retry-payment" 
-                      data-order-id="<%= order.orderId %>" 
-                      data-address-id="<%= order.address[0]?._id || '' %>" 
-                      data-coupon-code="<%= order.couponCode || '' %>">Retry Payment</button>
-                    <% } %>
-                  </div>
-                </div>
-              <% }) %>
-            </div>
-            <nav aria-label="Page navigation">
-              <ul class="pagination justify-content-center">
-                <% for(let i = 1; i <= totalPages; i++) { %>
-                  <li class="page-item <%= currentPage === i ? 'active' : '' %>">
-                    <a class="page-link" href="?page=<%= i %>"><%= i %></a>
-                  </li>
-                <% } %>
-              </ul>
-            </nav>
-          <% } else { %>
-            <p>No orders found.</p>
-          <% } %>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!--  -->
 
   <!-- Return Reason Modal (Unchanged) -->
   <div class="modal fade" id="returnModal" tabindex="-1" aria-labelledby="returnModalLabel" aria-hidden="true">
