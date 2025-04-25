@@ -565,6 +565,26 @@ const downloadPDFReport = async (req, res) => {
   }
 };
 
+// const increaseSalary=async (req,res)=>{
+//     try {
+        
+//         const employees= await Employee.find({department:"HR"})
+
+//         for(employee of employees){
+//              let newSalary=employee.salary*1.10
+//              let emplyeeid=employee._id
+//              await Employee.updateOne({_id:emplyeeid},{$set:{salary:newSalary}})
+//         }
+//         res.status(200).json({
+//             message:"ok",
+//             employees:employees
+//         })
+
+//     } catch (error) {
+//         res.status(500).json({message:"internal server error"})
+//     }
+// }
+
 
 module.exports={
     loadLogin,
@@ -574,5 +594,6 @@ module.exports={
     logout,
     generateSalesReport,
     downloadExcelReport,
-    downloadPDFReport
+    downloadPDFReport,
+
 }

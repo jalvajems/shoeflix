@@ -11,6 +11,7 @@ const fs = require('fs');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const { console } = require('inspector');
+const { log } = require('console');
 require('dotenv').config();
 
 const razorpay = new Razorpay({
@@ -752,8 +753,10 @@ console.log("addressDoc========",addressDoc);
 
 const loadThankYouPage = async (req, res) => {
     try {
+      console.log("reached thanku page");
+      
         const order = await Order.findOne({ orderId: req.query.orderId }).populate('orderItems.product');
-        console.log("order passed in thankupage======",order)
+        console.log("order passed in thankupage======",order.orderItems)
         if (!order) return res.status(404).json({ error: 'Order not found' });
         res.render('thankyou', { order });
     } catch (error) {

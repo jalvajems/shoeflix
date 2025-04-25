@@ -85,7 +85,7 @@ const productDetails = async (req, res) => {
          let applied =product.regularPrice-bestDiscount
         console.log("offer d details",bestOffer,bestDiscount);
         product=await Product.findByIdAndUpdate({_id:productId},{$set:{salePrice:applied}})
-        console.log("product details===================",product);
+        // console.log("product details===================",product);
         const relatedProduct = await Product.find({
             category: findCategory,
             _id: { $ne: productId }
