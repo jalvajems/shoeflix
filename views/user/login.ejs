@@ -1,189 +1,376 @@
 <!DOCTYPE html>
-<html lang="zxx">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="description" content="Male_Fashion Template" />
     <meta name="keywords" content="Male_Fashion, unica, creative, html" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Male-Fashion</title>
+    <title>Male-Fashion | Login</title>
     <link
-      href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css" />
-    <link rel="stylesheet" href="css/font-awesome.min.css" type="text/css" />
-    <link rel="stylesheet" href="css/elegant-icons.css" type="text/css" />
-    <link rel="stylesheet" href="css/magnific-popup.css" type="text/css" />
-    <link rel="stylesheet" href="css/nice-select.css" type="text/css" />
-    <link rel="stylesheet" href="css/owl.carousel.min.css" type="text/css" />
-    <link rel="stylesheet" href="css/slicknav.min.css" type="text/css" />
-    <link rel="stylesheet" href="css/style.css" type="text/css" />
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
-      rel="stylesheet"
-    />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" />
     <style>
-      body,
-      html {
-        height: 100%;
+      :root {
+        --primary-color: #3a86ff;
+        --secondary-color: #ff006e;
+        --text-color: #333;
+        --light-text: #777;
+        --background: #f8f9fa;
+        --card-bg: #fff;
+        --border-radius: 12px;
+        --box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+        --transition: all 0.3s ease;
+      }
+      
+      * {
         margin: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-color: #f8f9fa;
+        padding: 0;
+        box-sizing: border-box;
       }
-      .container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
+      
+      body, html {
         height: 100%;
-      }
-      .card {
-        width: 100%;
-        max-width: 800px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      }
-      .login-section {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--background);
+        color: var(--text-color);
         display: flex;
-        justify-content: space-between;
-        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
       }
-      .login-form,
+      
+      .container {
+        width: 100%;
+        max-width: 1200px;
+        padding: 0 20px;
+      }
+      
+      .login-card {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--box-shadow);
+        display: flex;
+        min-height: 550px;
+      }
+      
       .login-image {
         flex: 1;
-        padding: 10px;
-      }
-      .login-form {
-        max-width: 50%;
-      }
-      .login-image {
+        background-image: url('images/signupimg.jpg');
+        background-size: cover;
+        background-position: center;
+        position: relative;
         display: flex;
         flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        max-width: 40%;
+        justify-content: flex-end;
+        padding: 40px;
       }
-      .login-image img {
-        max-width: 100%;
-        height: auto;
+      
+      .login-image::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 60%);
+        z-index: 1;
       }
-      .social-btns {
+      
+      .brand-section {
+        position: absolute;
+        top: 30px;
+        left: 30px;
+        z-index: 2;
+      }
+      
+      .brand-logo {
+        height: 40px;
+        margin-bottom: 10px;
+      }
+      
+      .login-image-content {
+        position: relative;
+        z-index: 2;
+        color: white;
+      }
+      
+      .login-image-content h2 {
+        font-size: 28px;
+        margin-bottom: 16px;
+      }
+      
+      .login-image-content p {
+        font-size: 16px;
+        opacity: 0.8;
+        margin-bottom: 24px;
+      }
+      
+      .login-form-container {
+        flex: 1;
+        padding: 50px;
         display: flex;
         flex-direction: column;
-        align-items: center;
-        margin-top: 10px;
-      }
-      .social-btns button {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
         justify-content: center;
-        font-size: 1.5rem;
       }
+      
+      .login-header {
+        text-align: center;
+        margin-bottom: 40px;
+      }
+      
+      .login-header h1 {
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 10px;
+      }
+      
+      .login-header p {
+        color: var(--light-text);
+        font-size: 14px;
+      }
+      
+      .form-group {
+        margin-bottom: 24px;
+      }
+      
       .form-group label {
-        font-size: 0.875rem; /* Decrease label size */
+        display: block;
+        margin-bottom: 8px;
+        font-size: 14px;
+        font-weight: 500;
       }
+      
       .form-control {
-        font-size: 0.875rem; /* Decrease input text size */
-        padding: 0.5rem; /* Decrease padding */
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: var(--transition);
       }
-      .btn-primary {
-        padding: 0.5rem 1rem; /* Decrease button padding */
-        font-size: 0.875rem; /* Decrease button text size */
+      
+      .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(58, 134, 255, 0.1);
+        outline: none;
       }
-      .card-title {
-        font-size: 1.25rem; /* Decrease card title size */
-      }
-      .login-image .sign-up-link {
-        color: #333;
-        text-decoration: none;
-      }
-      .login-image .sign-up-link:hover {
-        color: #ff7f50;
-      }
+      
       .error-message {
-        color: red;
-        font-size: 0.75rem;
+        color: var(--secondary-color);
+        font-size: 12px;
+        margin-top: 5px;
         display: none;
       }
-
-      .forgot-password-link{
-        font: size 0.875rem;
-        color: #007bff;
-        text-decoration: none;
+      
+      .form-bottom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
       }
-      .forgot-password-link:hover{
-        color :#0056b3;
+      
+      .forgot-password {
+        font-size: 13px;
+        color: var(--primary-color);
+        text-decoration: none;
+        transition: var(--transition);
+      }
+      
+      .forgot-password:hover {
         text-decoration: underline;
+      }
+      
+      .remember-me {
+        display: flex;
+        align-items: center;
+      }
+      
+      .remember-me input {
+        margin-right: 8px;
+      }
+      
+      .remember-me label {
+        font-size: 13px;
+        color: var(--light-text);
+      }
+      
+      .btn {
+        cursor: pointer;
+        padding: 12px 20px;
+        border-radius: 8px;
+        border: none;
+        font-size: 15px;
+        font-weight: 500;
+        transition: var(--transition);
+      }
+      
+      .btn-primary {
+        background-color: var(--primary-color);
+        color: white;
+        width: 100%;
+      }
+      
+      .btn-primary:hover {
+        background-color: #2a75e8;
+        transform: translateY(-2px);
+      }
+      
+      .social-divider {
+        text-align: center;
+        margin: 24px 0;
+        position: relative;
+      }
+      
+      .social-divider::before {
+        content: '';
+        position: absolute;
+        height: 1px;
+        background-color: #eee;
+        left: 0;
+        right: 0;
+        top: 50%;
+      }
+      
+      .social-divider span {
+        background-color: white;
+        padding: 0 15px;
+        position: relative;
+        color: var(--light-text);
+        font-size: 13px;
+      }
+      
+      .social-login {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+      
+      .social-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 50px;
+        border-radius: 8px;
+        border: 1px solid #eee;
+        transition: var(--transition);
+        background-color: white;
+      }
+      
+      .social-btn:hover {
+        background-color: #f5f5f5;
+        transform: translateY(-2px);
+      }
+      
+      .social-btn img {
+        width: 24px;
+        height: 24px;
+      }
+      
+      .signup-link {
+        text-align: center;
+        font-size: 14px;
+        color: var(--light-text);
+      }
+      
+      .signup-link a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+        transition: var(--transition);
+      }
+      
+      .signup-link a:hover {
+        text-decoration: underline;
+      }
+      
+      @media (max-width: 768px) {
+        .login-card {
+          flex-direction: column;
+        }
+        
+        .login-image {
+          min-height: 200px;
+          padding: 20px;
+        }
+        
+        .login-form-container {
+          padding: 30px;
+        }
+        
+        .brand-section {
+          top: 20px;
+          left: 20px;
+        }
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <div class="card">
-        <div class="card-body login-section">
-          <div class="login-form mt-5">
-            <h3 class="card-title text-center">Log In</h3>
-            <form id="loginform" method="post" action="/login">
-              <div class="form-group mt-3px">
-                <label for="email">Email address</label>
-                <input
-                  type="email"
-                  class="form-control"
-                  name="email"
-                  id="email"
-                  placeholder="Enter email"
-                />
-                <div id="error1" class="error-message"></div>
-              </div>
-              <div class="form-group">
-                <label for="password">Password</label>
-                <input
-                  type="password"
-                  class="form-control"
-                  name="password"
-                  id="password"
-                  placeholder="Password"
-                />
-                <div id="error2" class="error-message"></div>
-                <div class="form-group d-flex justify-content-end">
-                  <a href="/forgot-password" class="forgot-password-link ms-auto">Forgot Password</a>
-                </div>
-              </div>
-              <%if(locals.message && message.length>0){%>
-              <div class="alert alert-danger text-center">
-                <%=message%>
-              </div>
-              <%}%>
-              <div class="d-flex justify-content-between align-items-center">
-                <button type="submit" class="btn btn-primary">Log In</button>
-                <div class="mt-2px">
-                  <p>or log in with</p>
-                </div>
-                <div class="social-btns">
-                  <a href="/auth/google" class="btn btn-outline-danger">
-                    <img
-                      src="images/googlesignup.png"
-                      alt="Google Logo"
-                      style="width: 24px; height: 24px"
-                    />
-                  </a>
-                </div>
-              </div>
-            </form>
+      <div class="login-card">
+        <div class="login-image">
+          <div class="brand-section">
+            <img src="images/logo2.png" alt="SHOEFLIX" class="brand-logo" />
           </div>
-          <div class="login-image">
-            <a href="/">
-              <img src="images/signupimg.jpg" alt="Shopping Site" />
-
-            </a>
-            <div class="text-center mt-2">
-              <a href="/signup" class="sign-up-link">Not registered? Sign up</a>
+          <div class="login-image-content">
+            <h2>Welcome to Shoeflix</h2>
+            <p>Explore the latest trends in Shoeflix</p>
+          </div>
+        </div>
+        
+        <div class="login-form-container">
+          <div class="login-header">
+            <h1>Log In</h1>
+            <p>Please enter your credentials to continue</p>
+          </div>
+          
+          <form id="loginform" method="post" action="/login">
+            <div class="form-group">
+              <label for="email">Email address</label>
+              <input type="email" class="form-control" name="email" id="email" placeholder="your@email.com" />
+              <div id="error1" class="error-message"></div>
             </div>
-          </div>
+            
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input type="password" class="form-control" name="password" id="password" placeholder="••••••••" />
+              <div id="error2" class="error-message"></div>
+            </div>
+            
+            <div class="form-bottom">
+              <div class="remember-me">
+                <input type="checkbox" id="remember" name="remember" />
+                <label for="remember">Remember me</label>
+              </div>
+              <a href="/forgot-password" class="forgot-password">Forgot Password?</a>
+            </div>
+            
+            <%if(locals.message && message.length>0){%>
+            <div class="error-message" style="display: block; margin-bottom: 15px;">
+              <%=message%>
+            </div>
+            <%}%>
+            
+            <button type="submit" class="btn btn-primary">Log In</button>
+            
+            <div class="social-divider">
+              <span>Or continue with</span>
+            </div>
+            
+            <div class="social-login">
+              <a href="/auth/google" class="social-btn">
+                <img src="images/googlesignup.png" alt="Google Logo" />
+              </a>
+            </div>
+            
+            <div class="signup-link">
+              Don't have an account? <a href="/signup">Sign up</a>
+            </div>
+          </form>
         </div>
       </div>
     </div>
@@ -195,41 +382,44 @@
       const error2 = document.getElementById("error2");
       const loginform = document.getElementById("loginform");
 
-      function emailValidateChecking(e) {
+      function emailValidateChecking() {
         const emailval = emailid.value;
-        const emailpattern =
-          /^[a-zA-Z0-9._-]+@([a-zA-Z0-9.-]+)\.([a-zA-Z]{2,4})$/;
+        const emailpattern = /^[a-zA-Z0-9._-]+@([a-zA-Z0-9.-]+)\.([a-zA-Z]{2,4})$/;
 
         if (!emailpattern.test(emailval)) {
           error1.style.display = "block";
-          error1.innerHTML = "Invalid Format";
+          error1.innerHTML = "Please enter a valid email address";
+          return false;
         } else {
           error1.style.display = "none";
           error1.innerHTML = "";
+          return true;
         }
       }
 
-      function passValidateChecking(e) {
+      function passValidateChecking() {
         const passval = passid.value;
         if (passval.length < 8) {
           error2.style.display = "block";
-          error2.innerHTML = "Should contain at least 8 characters";
+          error2.innerHTML = "Password must be at least 8 characters";
+          return false;
         } else {
           error2.style.display = "none";
           error2.innerHTML = "";
+          return true;
         }
       }
 
+      // Add input validation on blur
+      emailid.addEventListener("blur", emailValidateChecking);
+      passid.addEventListener("blur", passValidateChecking);
+
       document.addEventListener("DOMContentLoaded", function () {
         loginform.addEventListener("submit", function (e) {
-          emailValidateChecking();
-          passValidateChecking();
+          const isEmailValid = emailValidateChecking();
+          const isPassValid = passValidateChecking();
 
-          if (!emailid || !passid || !error1 || !error2 || !loginform) {
-            console.error("One or more elements not found");
-          }
-
-          if (error1.innerHTML || error2.innerHTML) {
+          if (!isEmailValid || !isPassValid) {
             e.preventDefault();
           }
         });
