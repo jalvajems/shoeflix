@@ -7,6 +7,14 @@ const connectDB= async()=>{
       console.log("dbname",conn.connection.name)
         console.log('db connected');
         
+        try {
+            const User = require("../models/userSchema");
+            await User.collection.dropIndex("googleId_1");
+            console.log("Dropped old non-sparse googleId_1 index successfully");
+        } catch (err) {
+            // Index doesn't exist or already dropped, ignore
+        }
+        
     }catch(error){
         
         console.log('db connection error',error.message);

@@ -1,5 +1,6 @@
 const express=require('express')
-const  app=express()
+const app=express()
+app.set('trust proxy', 1);
 const path=require("path")
 const env=require("dotenv").config()
 const session=require("express-session")
@@ -38,7 +39,11 @@ app.use("/",userRouter)
 app.use("/admin",adminRouter)
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.redirect('/admin/pageerror');
+    if (req.originalUrl && req.originalUrl.startsWith('/admin')) {
+        res.redirect('/admin/pageerror');
+    } else {
+        res.redirect('/pageNotFound');
+    }
 });
 app.listen(PORT,()=>{
     console.log(`running on http://localhost:${PORT}`)

@@ -185,7 +185,7 @@ const signup = async (req, res) => {
         console.log('findusert',findUser);
         console.log('checkmail');
         if (findUser) {
-            return res.render("home", { message: "User with this email is exists" })
+            return res.render("signup", { message: "User with this email already exists" })
         }
 
 
@@ -198,7 +198,7 @@ const signup = async (req, res) => {
 
 
         if (!emailSent) {
-            return res.json("email-error")
+            return res.render("signup", { message: "Failed to send OTP verification email. Please check server email credentials." })
         }
 
 
@@ -241,9 +241,7 @@ const verifyOtp=async(req,res)=>{
                 name:user.name,
                 email:user.email,
                 phone:user.phone,
-                password:passwordHash,
-                googleId:user.email
-
+                password:passwordHash
             })
 
             await saveUserData.save();
