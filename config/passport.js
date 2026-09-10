@@ -14,23 +14,33 @@ passport.use(new GoogleStrategy({
 },
 
 async (asseccToken,refreshToken,profile,done)=>{
-    console.log('password initialised',profile);
+    console.log('passport initialized',profile);
     
     try {
-        let user= await User.findOne({googleId:profile.id});
-        if(user){
-            return done(null,user)
-        }else{
-            user=new User({
-                name:profile.displayName,
-                email:profile.emails[0].value,
-                googleId:profile.id,
-            })
-            await user.save()
-            return done(null,user)
+        let user = await User.findOne({ googleId: profile.id });
+        if (user) {
+            return done(null, user);
         }
+
+        const email = profile.emails && profile.emails[0] ? profile.emails[0].value : null;
+        if (email) {
+            user = await User.findOne({ email: email });
+            if (user) {
+                user.googleId = profile.id;
+                await user.save();
+                return done(null, user);
+            }
+        }
+
+        user = new User({
+            name: profile.displayName,
+            email: email,
+            googleId: profile.id,
+        });
+        await user.save();
+        return done(null, user);
     } catch (error) {
-        return done(error,null)
+        return done(error, null);
     }
 }
 ));
