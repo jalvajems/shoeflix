@@ -41,10 +41,7 @@ async (req,res)=>{
             if(req.user.isBlocked){
                 return res.redirect('/login?error=Your account has been blocked by the admin')
             }
-            req.session.user={
-            _id:req.user._id,
-            name:req.user.name
-            }
+            req.session.user = req.user._id;
         }
         res.redirect('/')
         
